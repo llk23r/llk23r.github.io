@@ -1,9 +1,16 @@
 ---
 title: My SAAS knowledge dump
 tags:
+  - saas
+  - thoughts
 categories:
+  - saas
 date: 2022-10-30
 lastMod: 2022-10-30
+ShowToc: true
+public: true
+format: article
+
 ---
 ![Cover](https://images.unsplash.com/photo-1667120651808-34305af680d3?ixlib=rb-4.0.3&ixid=mnwxmja3fdb8mhxwag90by1wywdlfhx8fgvufdb8fhx8&auto=format&fit=crop&w=1468&q=80)
 

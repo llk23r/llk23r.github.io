@@ -5,8 +5,8 @@ theme: "PaperMod"
 
 params:
   homeInfoParams:
-    Title: Namaskar Sansar!! 😎
-    Content: This is a translation of Hello World?.
+    Title: Namaskar Sansar! 🙏
+    Content: My thoughts and ideas on various topics of interest will be posted here.
 
   socialIcons: # optional
     - name: "github"
