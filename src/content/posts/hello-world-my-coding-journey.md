@@ -1,7 +1,7 @@
 ---
 title: "Hello World: Starting My Coding Journey"
 description: "My first blog post about setting up this development blog and what I plan to share"
-publishedDate: 2025-09-08
+published: 2025-09-08
 tags: ["introduction", "blogging", "learning", "coding"]
 ---
 
