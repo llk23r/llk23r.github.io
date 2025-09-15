@@ -12,7 +12,7 @@ coverImage:
 
 Amp is an agentic coding tool by Sourcegraph. Install it from the [manual](https://ampcode.com/manual#install). You get $10 USD free usage, then pay-as-you-go.
 
-https://github.com/sourcegraph/amp
+https://ampcode.com/manual
 
 
 ## IEx Integration
