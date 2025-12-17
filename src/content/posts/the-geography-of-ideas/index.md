@@ -6,173 +6,171 @@ tags: ["mental-models", "discovery", "knowledge", "innovation", "sparse-territor
 toc: true
 ---
 
-I've been thinking about how the world finds answers, and I keep coming back to a spatial model.
+August 11, 1973. A back-to-school party at 1520 Sedgwick Avenue in the Bronx. An 18-year-old Jamaican immigrant named Clive Campbell set up two turntables. He called himself DJ Kool Herc. He extended the drum breaks from funk records so people could dance longer.[^4][^5]
 
-Everything—every idea, skill, technology, cultural practice, and answer—exists as a point in a high-dimensional space. When the world has a question that becomes urgent enough, it searches this space. The search finds what's positioned there.
+He knew maybe 10 or 15 other DJs doing something similar. To him, this was a scene.[^1][^2][^3]
 
-## The Model
+To the rest of the world, this cluster of teenagers in the South Bronx was invisible. No record labels were watching. No journalists were taking notes. The question "what comes after disco?" hadn't become urgent yet.
 
-Let me be precise about what I mean. The knowledge space is high-dimensional. Every position in it represents a distinct point in this vast territory. The critical insight is about perspective.
-
-When you're working on something, you have a **local perspective**. From your vantage point, you can see who else is working on similar things. You find five, ten, maybe twenty people worldwide doing related work. From where you sit, there's a community. It feels populated.
-
-But from the **world's perspective**—looking at all of human knowledge and activity—that same cluster of people may be extraordinarily far from other clusters doing different work. What feels like density locally is sparsity globally. This perspective gap creates a systematic illusion.
-
-## Observer-Relative Coordinates
-
-The space has no absolute origin. Perception is always relative to where you stand. This relativity creates systematic illusions about what's real versus what's apparent.
-
-Say you're working on something and you can see five other people worldwide doing similar work. From your local perspective, you have peers. It feels like there's a community around this work.
-
-From your local frame of reference: you see five peers nearby. This feels like a community. It feels populated.
-
-From the world's frame of reference: your entire cluster is extremely distant from the nearest other cluster. You're in genuinely sparse territory—and didn't know it.
-
-### Example: Hip Hop
-
-In 1973, if you were DJing in the Bronx, you knew maybe 10-15 others doing it. From your position, a scene. From the world's position (all of music, all of culture), completely new territory.[^1][^2][^3]
-
-When the question "what comes after disco/soul?" became urgent, the search found that entire cluster. We call what happened next hip hop. DJ Kool Herc's August 11, 1973 party at 1520 Sedgwick Avenue is widely recognized as the birthplace of hip hop, where he introduced techniques that would define the genre.[^4][^5]
-
-### Example: Neural Networks
-
-In the 1980s, neural network research existed in sparse territory. After the first AI winter (1974-1980), funding and interest had declined significantly.[^6][^7] Researchers like Geoffrey Hinton worked on backpropagation and multi-layer networks during this period, often with limited support.[^8][^9]
-
-When pattern recognition and machine learning questions became urgent in the 2010s, the search found this foundational work, leading to the deep learning revolution.[^10]
-
-## When Work Looks "Wrong"
-
-Here's what trips people up: when you're positioned in sparse territory, it often looks like nobody cares about what you're doing.
-
-No funding. No media attention. Peers think you're wasting your time. The market doesn't value it. Institutions ignore it. It feels wrong.
-
-But this is exactly what sparse territory looks like from the inside before the search arrives. The lack of interest isn't evidence you're wrong. It's evidence you're far from dense regions where the current search is operating.
-
-Gregor Mendel published his pioneering work on heredity in 1866. His findings were largely overlooked for 34 years until three scientists—Hugo de Vries, Carl Correns, and Erich von Tschermak—independently rediscovered his work in 1900, recognizing its fundamental importance to genetics.[^9][^10][^11]
-
-Katalin Karikó worked on mRNA for decades in obscurity. The University of Pennsylvania demoted her in 1995 from her tenure-track position and significantly reduced her salary, as her mRNA research was considered too risky and failed to secure sufficient funding.[^12][^13] Despite this setback and a cancer diagnosis, she persisted in her research. When COVID-19 made mRNA vaccine technology desperately urgent in 2020, her decades of foundational work with Drew Weissman became the basis for the Pfizer-BioNTech and Moderna vaccines.[^14][^15]
-
-Vincent van Gogh is known to have sold only one painting during his lifetime—"The Red Vineyard"—which sold for 400 francs at a Brussels exhibition in March 1890, four months before his death.[^16][^17][^18] Post-impressionism was positioned in sparse territory during his lifetime. The search found it decades later.
-
-*If you have depth in your work—if it's complete, coherent, if others can build on it—and you're in genuinely sparse territory, the search will find you when the question becomes urgent enough. This isn't probability. It's inevitability.*
-
-The search has to find you, or it fails at its purpose.
-
-The feeling of being wrong is just what it feels like to be in position P at distance d from dense regions, before urgency U reaches the threshold that triggers search S in your region.
-
-## The Search Mechanism
-
-Different domains use different search mechanisms:
-
-**Science:** Citation networks, replication, conferences, funding flows
-
-**Technology:** Markets, patents, developer communities, GitHub stars
-
-**Culture:** Media, imitation, social transmission, platforms
-
-**Economics:** Price signals, competition, investment patterns
-
-But they all exhibit the same pattern: when a question becomes urgent, the mechanism searches the space and finds what's positioned there.
-
-### Evidence Across Domains
-
-#### Science—Different Timescales
-
-- Mendel (1866) → rediscovered (1900). Position sat 34 years until biology needed it.[^9][^10]
-- mRNA vaccines: positioned since 1990s, found urgently in 2020.[^12][^13][^14]
-- CRISPR: CRISPR systems in bacteria were discovered in the 1980s, but the breakthrough for genome editing came in 2012 when Jennifer Doudna and Emmanuelle Charpentier demonstrated CRISPR-Cas9 could be used as programmable genetic scissors.[^19][^20][^21]
-- Continental drift: Alfred Wegener proposed the theory in 1912, but it was widely rejected due to lack of a convincing mechanism. The theory wasn't accepted until the 1960s when seafloor spreading provided the missing evidence for plate tectonics.[^22][^23][^24]
-
-#### Technology
-
-- Personal computers: The Homebrew Computer Club first met in March 1975 in Menlo Park, California, bringing together about 30-50 computer enthusiasts.[^25][^26] Steve Wozniak and Steve Jobs attended these meetings, where Wozniak showed off the Apple-1. The club was instrumental in launching the personal computing revolution, with mainstream adoption following within 5-10 years.[^27]
-- Internet (TCP/IP): positioned 1960s-70s → found 1990s. 20-30 year lag.
-- LLMs: small research cluster post-2017 → found explosively 2022-2023. 5 years.
-
-#### Culture
-
-- Jazz: New Orleans ~1900, small community → global within decades.
-- K-pop: positioned in South Korea → found globally via YouTube and social media platforms in the 2010s. PSY's "Gangnam Style" in 2012 became the first YouTube video to reach one billion views, marking K-pop's breakthrough to mainstream global consciousness.[^28][^29][^30]
-- Yoga: positioned in India for millennia → spread to the West primarily in the 20th century. Swami Vivekananda introduced yoga philosophy to America in 1893, but widespread adoption as a physical practice didn't occur until the mid-20th century, particularly during the 1960s-70s.[^31][^32][^33]
-
-#### Economics
-
-- Index funds: John Bogle founded Vanguard in 1974 and introduced the First Index Investment Trust (now Vanguard 500 Index Fund) in 1976—the first index fund available to individual investors.[^34][^35][^36] Initially ridiculed as "un-American" and "Bogle's Folly," index funds were found gradually as investors recognized their benefits, and are now dominant in the investment landscape.
-- Bitcoin: emerged from cypherpunk circles when Satoshi Nakamoto released the whitepaper in October 2008 and mined the genesis block in January 2009.[^37][^38] Found rapidly in tech communities, with slower mainstream adoption.
-- Remote work: technology for remote work was positioned for decades, but found urgently in 2020 during the COVID-19 pandemic. The share of workers primarily working from home jumped from 6.5% in 2019 to 32% in May 2020, stabilizing around 12% by 2022.[^39][^40][^41]
-
-#### Politics & Social Movements
-
-- Civil disobedience: Mahatma Gandhi developed and demonstrated nonviolent civil disobedience in South Africa and India during the early-to-mid 20th century.[^42][^43] Martin Luther King Jr. studied Gandhi's methods and applied them to the American civil rights movement. King visited India in 1959 to learn more about Gandhi's philosophy, and the experience strengthened his commitment to nonviolent resistance.[^44][^45] Gandhi's positioned work was found and adapted by movements worldwide.
-- Guerrilla warfare: positioned in theory → found repeatedly (Mao, Castro, Vietnam).
-
-The pattern: deep work in sparse territory gets found when the question becomes urgent. The lag varies (years to centuries), the mechanism varies, but the dynamic holds.
-
-## Manufacturing Urgency
-
-Here's where it gets interesting. You can sometimes influence which questions the world asks.
-
-Elon Musk didn't wait for "Should we colonize Mars?" to become urgent. He manufactured urgency through demonstration, narrative, media. Forcing the question into consciousness before it would naturally arise.
-
-Rachel Carson made environmental questions urgent with "Silent Spring," published in 1962. The book documented the environmental harm caused by pesticides like DDT and is widely credited with launching the modern environmental movement.[^46][^47][^48] The questions about environmental harm existed dimly; she made them pressing through rigorous scientific analysis combined with accessible prose.
-
-Steve Jobs demonstrated "computers as creative tools" and made that question urgent through product and narrative.
-
-This is different from positioning and waiting. It's positioning and accelerating when the search happens. Requires resources: capital, platform, narrative skill, or extreme visibility.
-
-Not everyone can do this. But when you can, you're not just positioning in the space—you're influencing the search pattern itself.
-
-## Modern Visibility
-
-Something fundamental changed recently. For most of history, you couldn't see the graph. Buddha didn't know if others were working on consciousness frameworks. Mendel couldn't search "who else studies inheritance?"
-
-Now you can:
-
-Search engines show who else works on X globally. GitHub shows all open source projects in a space. Citation databases show related research. Social media shows cultural interest. Google Trends shows questions becoming urgent. Funding patterns are visible.
-
-This means you can assess sparsity somewhat accurately. Search thoroughly and find only 5-10 similar projects worldwide? Probably genuinely sparse.
-
-You can track urgency in real-time. Watch questions become pressing through search trends, funding, media coverage.
-
-You can find your cluster even if geographically distributed. Connect with the other people working on similar things across continents.
-
-The instruments are vastly better than what anyone before 2000 had. The game has new dimensions.
-
-## The Core Insight
-
-You can't see the full graph. You see your local neighborhood through imperfect instruments.
-
-If you find a small number of others doing genuinely novel work, you're likely all in sparse territory from the world's perspective, even if it feels populated from yours.
-
-When you're there and nobody seems to care, that's not evidence you're wrong. That's what sparse territory looks like before the search arrives.
-
-If your work has depth—if it's complete, coherent, if others can build on it—and the question eventually becomes urgent, the search will find you. Not might find you. Will find you.
-
-The search operates through different mechanisms (markets, culture, citations) at different speeds (years to centuries), but when sufficient depth exists in sparse territory and urgency arrives, discovery follows a logic that's more about position than luck.
-
-That's the mental model I keep coming back to. The world asks questions. The search operates. It finds what's positioned in the space with sufficient depth when the question becomes urgent enough.
-
-Everything we know about was found. The interesting question is how the search operates and what that suggests about positioning.
-
-## Limitations of the Model
-
-This model is powerful but incomplete. It assumes certain conditions that don't always hold:
-
-**Survivorship Bias.** We see the ideas that were found. We don't see the deep work that remained lost due to lack of preservation, missing documents, or genuine unluckiness. Some brilliant work was positioned correctly but never discovered because it wasn't recorded, didn't survive, or the person couldn't persist long enough.
-
-**Depth Is Necessary but Uncertain.** The model assumes that if your work has sufficient depth and you're in sparse territory, search will find you. But depth is hard to judge before discovery. You can't know with certainty if your work is complete enough, coherent enough, buildable enough. This creates real anxiety for people doing novel work.
-
-**Barriers Are Real and Structural.** Geography, language, institutional access, and bias affect whether a search actually reaches sparse regions. A breakthrough in a remote area, in a non-dominant language, or outside prestigious institutions faces additional barriers that the pure spatial model doesn't capture.
-
-**Path Dependence and Paradigms.** The knowledge space isn't static. Discoveries change what's possible next, what's even visible. A paradigm shift can make old work suddenly relevant or permanently obsolete. The search space itself evolves as we discover.
-
-**Urgency Varies Wildly.** What creates urgency in one domain might never create it in another. A question that became urgent for science through war or disease might never become urgent for art through any mechanism. The search operates differently across domains.
-
-The model explains a real pattern, but it's not a guarantee. It's a framework for thinking about why deep work often gets found, not a promise that yours will be.
+When it did, the search found them.
 
 ---
 
-*This essay explores a mental model, not a prescription. The examples show the pattern holds across domains with varying timescales and mechanisms. What doesn't fit teaches us about constraints: preservation matters, paradigms must shift sometimes, social biases affect the search, urgency is non-negotiable.*
+I keep thinking about knowledge as geography.
+
+Every idea, every skill, every breakthrough exists somewhere in a vast space. Most regions are empty. Some are crowded. And when the world needs an answer badly enough, it searches this space until it finds what's positioned there.
+
+The interesting part is what it feels like to be waiting.
+
+## The Illusion of Density
+
+When you're working on something, you can see who else is nearby. Five, ten, twenty people worldwide doing related work. Academic conferences. Discord servers. A small community.
+
+From where you stand, it feels populated.
+
+But zoom out to the world's view and your whole cluster might be extraordinarily far from the next one. What feels like a neighborhood is actually an outpost at the edge of explored territory.
+
+This gap between local and global perspective creates a systematic illusion. You think you're part of something. You are. But you're also more alone than you realize.
+
+## What Sparse Territory Feels Like
+
+In the 1980s, Geoffrey Hinton was working on neural networks.[^8][^9] The first AI winter had collapsed funding. His peers had moved on to symbolic AI, the approach that actually worked, the one that got grants. He kept publishing papers on backpropagation to small audiences.
+
+From his perspective, there was a research community. From the world's perspective, he was in sparse territory. The question "how do we recognize patterns at scale?" wasn't urgent yet.[^6][^7]
+
+Three decades later, it became urgent. The search found everything he'd been building.[^10]
+
+---
+
+Katalin Karikó spent the 1990s working on mRNA as a therapeutic platform. Penn demoted her in 1995, cut her salary.[^12][^13] Her grant applications kept getting rejected. The work was too speculative, the applications too uncertain.
+
+She had collaborators. Drew Weissman was working with her. It felt like progress.
+
+But from the world's view, mRNA therapeutics was sparse territory. Nobody was searching that region of the space because no question demanded it.
+
+Then COVID arrived. Suddenly the question "how do we make vaccines faster than ever before?" became the most urgent question on Earth. The search swept through decades of obscure immunology research and found Karikó and Weissman's foundational work on modified nucleosides.[^14][^15]
+
+Within months, their techniques were being injected into billions of arms.
+
+---
+
+Vincent van Gogh sold one painting while he was alive. It went for 400 francs, four months before his death.[^16][^17][^18]
+
+He wrote letters to his brother describing his vision, his certainty that post-impressionism would matter. He could see a handful of others working in similar territory. It felt like a movement to him.
+
+The art market wasn't searching that region of the space. Not yet.
+
+---
+
+In the early 1980s, a young driver named Keiichi Tsuchiya started pushing his Toyota AE86 sideways through the mountain passes outside Tokyo. The touge roads were narrow, unlit, technically illegal to race on. He and maybe a dozen other drivers would meet at night, drifting through switchbacks at speeds that should have killed them.
+
+Someone started filming. VHS tapes of Tsuchiya's runs circulated through underground car culture. He called himself the Drift King. To him and his small crew, this was a scene.
+
+To the rest of the world, it was invisible. No motorsport federation was watching. No media coverage. The question "what's the next evolution in car culture?" wasn't being asked yet.
+
+Then the Fast and Furious franchise needed something new. The search swept through decades of underground Japanese car culture and found everything those touge drivers had built. Drifting went from mountain passes to stadiums to the Olympics discussions. Tsuchiya became a global icon.
+
+---
+
+In 1997, a group of nine teenagers in Lisses, a suburb south of Paris, spent their afternoons at a concrete sculpture called La Dame Du Lac. They jumped between structures, vaulted walls, climbed buildings. They called themselves the Yamakasi, a Lingala word meaning "strong man, strong spirit."
+
+One of them, David Belle, had learned movement techniques from his father Raymond, a French special forces veteran who'd adapted Georges Hébert's "méthode naturelle" for urban environments. The group developed what they called "l'art du déplacement." The art of movement through obstacles.
+
+They knew each other. A handful of related practitioners in nearby towns. To them, this was a discipline.
+
+To the world, they were invisible teenagers doing weird gymnastics on public property. No sports federation recognized what they were doing. No media cared.
+
+Then YouTube emerged, and the question "what does superhuman urban movement look like?" became searchable. The search found Belle and the Yamakasi. He starred in District 13. The discipline they'd been building got called parkour, and it spread everywhere.
+
+---
+
+In 1993, a PC game called DOOM shipped with a feature that let players record their inputs as tiny "demo" files. Some players started competing to finish levels as fast as possible, sharing demos on early internet forums.
+
+By 1997, a group of Quake players stitched their demos together into "Quake Done Quick," a full game playthrough using techniques nobody had imagined. Bunny hopping. Rocket jumping. Breaking the game open.
+
+They knew maybe a few hundred people doing this. Forums, IRC channels, a website called Speed Demos Archive. To them, this was a scene.
+
+To the gaming industry, it was invisible. No tournaments. No prize money. Just nerds in forums arguing about frame-perfect inputs.
+
+Then Twitch emerged. Suddenly the question "what does superhuman game mastery look like?" became streamable. The first Games Done Quick marathon ran from the founder's mother's basement in 2010. Now GDQ events draw millions of viewers and have raised over $50 million for charity. Speedrunning went from demo files passed between forum users to a cultural force with its own celebrities and language.
+
+---
+
+This is the pattern. When you're positioned in sparse territory before the search arrives, it looks and feels like failure. No funding. No recognition. Peers who think you're wasting your time.
+
+But this sensation of wrongness is just distance. You're far from where the current search is operating. That's all.
+
+If your work has depth, if it's complete and coherent and others can build on it, the search will find you when the question becomes urgent enough.
+
+Not might find you. Will.
+
+The search has to find you, or it fails at its purpose.
+
+## The Mechanisms
+
+Different domains search differently.
+
+Science searches through citation networks and replication. Technology searches through markets and developer adoption. Culture searches through imitation and media. Economics searches through price signals.
+
+But the dynamic is the same. Urgency triggers search. Search finds what's positioned.
+
+Mendel sat for 34 years before biology needed him.[^9][^10][^11] CRISPR editing was discovered in the 1980s but the breakthrough came in 2012 when the question got urgent.[^19][^20][^21] Continental drift waited 50 years for seafloor spreading to provide the mechanism.[^22][^23][^24]
+
+TCP/IP was positioned in the 1970s and found in the 1990s. Bitcoin emerged from cypherpunk circles in 2008 when "trustless digital money" became searchable.[^37][^38] Remote work tech existed for decades before 2020 made it mandatory.[^39][^40][^41]
+
+Gandhi positioned nonviolent resistance. King found it and adapted it.[^42][^43][^44][^45] Bogle's index funds were ridiculed as "un-American" in 1976. Now they're dominant.[^34][^35][^36]
+
+The lag varies. Years, decades, sometimes centuries. The pattern doesn't.
+
+## Forcing the Question
+
+Some people don't wait for urgency. They manufacture it.
+
+Rachel Carson didn't wait for "are pesticides killing wildlife?" to become urgent. She made it urgent with Silent Spring in 1962, rigorous science wrapped in prose that regular people could feel.[^46][^47][^48] She pulled the search toward sparse territory by making the question impossible to ignore.
+
+Musk doesn't wait for space colonization to become urgent. He manufactures urgency through spectacle and narrative, forcing the question into consciousness before it would naturally arrive.
+
+This is different from positioning and waiting. It's positioning and accelerating. Requires resources: capital, platform, narrative skill, timing.
+
+Not everyone can do this. But if you can, you're not just sitting in the space. You're reshaping which questions get asked.
+
+## The New Instruments
+
+Something fundamental changed recently.
+
+For most of human history, you couldn't see the map. Buddha didn't know if others were working on consciousness frameworks on other continents. Mendel couldn't search "who else studies inheritance?"
+
+Now you can. Search engines show who else works on your problem globally. GitHub shows similar projects. Citation databases reveal related research. Google Trends shows questions becoming urgent in real time.
+
+You can assess your sparsity. Search thoroughly and find only five similar projects worldwide? You're probably in genuinely sparse territory.
+
+You can track urgency. Watch search volume, funding announcements, media coverage. See the question becoming pressing.
+
+You can find your cluster even if they're distributed across continents.
+
+The instruments are better than anyone had before 2000. The map is finally visible, at least in outline.
+
+## What This Suggests
+
+You can't see the full graph. Nobody can. You only see your local neighborhood.
+
+But if you find a small number of others doing genuinely novel work, you're probably all in sparse territory from the world's view, even if it feels populated from yours.
+
+And when you're there and nobody seems to care, that's not evidence you're wrong.
+
+That's just what sparse territory feels like before the search arrives.
+
+---
+
+This model has limits. Survivorship bias is real. We see what was found, not the brilliant work that was lost to fires or obscurity or bad luck. Depth is hard to judge before discovery. Structural barriers matter. Geography, language, institutions, bias. The space itself evolves as paradigms shift.
+
+The model explains a pattern. It's not a guarantee.
+
+But if I were doing deep work in sparse territory right now, this is what I'd want to believe: that the feeling of being ignored isn't evidence of being wrong. That the search is coming. That all I have to do is keep building, keep the work complete and coherent and buildable, and wait for the question to become urgent enough.
+
+The search will find what's positioned there.
+
+It has to.
 
 ---
 
@@ -226,3 +224,12 @@ The model explains a real pattern, but it's not a guarantee. It's a framework fo
 [^46]: Wikipedia. (2002). Silent Spring.
 [^47]: Environment & Society Portal. (2020). Silent Spring.
 [^48]: American Chemical Society. (2023). Legacy of Rachel Carson's Silent Spring.
+[^49]: The Drift Culture. (2023). The History of Drifting.
+[^50]: TopSpeed. (2023). Keiichi Tsuchiya: The Drift King.
+[^51]: Hagerty. (2023). How Keiichi Tsuchiya Became the Drift King.
+[^52]: Wikipedia. David Belle.
+[^53]: Parkour UK. The History of Parkour.
+[^54]: Flow Legends. (2023). David Belle and the Origins of Parkour.
+[^55]: Wikipedia. Speedrunning.
+[^56]: Wikipedia. Games Done Quick.
+[^57]: EGM Now. (2020). The History of Games Done Quick.
