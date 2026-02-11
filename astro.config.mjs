@@ -3,6 +3,7 @@ import { defineConfig } from 'astro/config'
 import tailwindcss from '@tailwindcss/vite'
 import sitemap from '@astrojs/sitemap'
 import mdx from '@astrojs/mdx'
+import svelte from '@astrojs/svelte'
 import { rehypeHeadingIds } from '@astrojs/markdown-remark'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import expressiveCode from 'astro-expressive-code'
@@ -75,6 +76,7 @@ export default defineConfig({
       plugins: [pluginLineNumbers()],
     }), // Must come after expressive-code integration
     mdx(),
+    svelte(),
   ],
   experimental: {
     contentIntellisense: true,
