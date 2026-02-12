@@ -22,10 +22,6 @@
     { freq: 1, label: '1 Hz' },
   ]
 
-  // We show detail for the last 6 stages (visible waveforms)
-  const visibleStart = 10
-  const visibleStages = stages.slice(visibleStart)
-
   let canvas
   let ctx
 
@@ -40,10 +36,8 @@
 
     ctx.beginPath()
     const drawW = w - labelW
+    const cycles = 1 + Math.log2(freq)
     for (let x = 0; x < drawW; x++) {
-      // Normalize frequency so the slowest (1 Hz) shows ~1 cycle
-      const normFreq = freq / stages[visibleStart].freq
-      const cycles = normFreq * 3
       const phase = t * freq * 0.001
       const px = labelW + x
       const y = yOffset + height / 2 + Math.sin((x / drawW) * cycles * Math.PI * 2 + phase) * (height * 0.32)
@@ -67,10 +61,10 @@
     const h = rect.height
     ctx.clearRect(0, 0, w, h)
 
-    const rowHeight = h / visibleStages.length
+    const rowHeight = h / stages.length
     const labelW = 80
 
-    visibleStages.forEach((stage, i) => {
+    stages.forEach((stage, i) => {
       const yBase = i * rowHeight
 
       // Divider line across full width
@@ -85,7 +79,7 @@
 
       // Frequency label (right-aligned in label column)
       ctx.fillStyle = getComputedStyle(canvas).getPropertyValue('--label-color').trim() || '#888'
-      ctx.font = '12px "JetBrains Mono", monospace'
+      ctx.font = '11px "JetBrains Mono", monospace'
       ctx.textAlign = 'right'
       ctx.textBaseline = 'middle'
       ctx.fillText(stage.label, labelW - 12, yBase + rowHeight / 2)
@@ -104,12 +98,12 @@
       ctx.beginPath()
       ctx.rect(labelW, yBase, w - labelW, rowHeight)
       ctx.clip()
-      drawWave(yBase, rowHeight, stage.freq, time, i === visibleStages.length - 1 ? 1 : 0.65)
+      drawWave(yBase, rowHeight, stage.freq, time, i === stages.length - 1 ? 1 : 0.65)
       ctx.restore()
     })
 
     // Subtle highlight on the 1 Hz output row
-    const lastY = (visibleStages.length - 1) * rowHeight
+    const lastY = (stages.length - 1) * rowHeight
     ctx.fillStyle = getComputedStyle(canvas).getPropertyValue('--highlight-color').trim() || 'rgba(16, 185, 129, 0.06)'
     ctx.fillRect(0, lastY, w, rowHeight)
   }
@@ -139,12 +133,6 @@
 </script>
 
 <figure class="trace-viz" role="img" aria-label="Frequency divider chain: 15 flip-flops divide 32,768 Hz down to 1 Hz">
-  <div class="top-stages">
-    <div class="chain-summary">
-      32,768 Hz → 16,384 → 8,192 → ... → 128 → 64 → <strong>32 Hz</strong>
-    </div>
-    <div class="chain-note">10 flip-flop stages, each ÷2</div>
-  </div>
   <div class="canvas-wrap">
     <canvas bind:this={canvas}></canvas>
   </div>
@@ -172,34 +160,9 @@
     font-family: var(--theme-font, 'JetBrains Mono', monospace);
   }
 
-  .top-stages {
-    padding: 0.6rem 0.75rem;
-    border-bottom: 1px solid var(--theme-separator, #333);
-    text-align: center;
-  }
-
-  .chain-summary {
-    font-size: 0.7rem;
-    color: var(--theme-foreground, #888);
-    opacity: 0.7;
-    line-height: 1.6;
-  }
-
-  .chain-summary strong {
-    color: var(--theme-green, #10b981);
-    opacity: 1;
-  }
-
-  .chain-note {
-    font-size: 0.6rem;
-    color: var(--theme-foreground, #888);
-    opacity: 0.4;
-    margin-top: 0.15rem;
-  }
-
   .canvas-wrap {
     width: 100%;
-    height: 360px;
+    height: 660px;
   }
 
   canvas {
