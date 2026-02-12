@@ -22,3 +22,6 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# private planning docs
+BLOG_SERIES_PLAN.md

@@ -473,25 +473,29 @@ They agree because they're both listening to atoms.
 
 ## The Frontier
 
-The second has been defined by cesium since 1967. Before that, it was defined by the Earth's rotation; one day divided into 86,400 equal parts. The astronomical second served for centuries. Then Essen and Parry showed that atoms keep better time than planets, and the definition changed.
+Cesium has defined the second since 1967. Before that, the Earth's rotation did; one day divided into 86,400 equal parts. Planets kept time for centuries. Then Essen and Parry showed that atoms keep better time than planets, and the definition changed.
 
-Now cesium itself is being replaced.
+Now cesium itself is being surpassed.
 
-In Boulder, Colorado, a few miles from NIST-F2, the clocks that will retire it are already running. Optical lattice clocks trap strontium or ytterbium atoms in a grid of laser light and probe transitions at visible-light frequencies; hundreds of trillions of cycles per second, compared to cesium's 9.2 billion. More cycles per second means finer resolution, the way a ruler with millimeter marks is more precise than one with only centimeter marks.
+In Boulder, Colorado, a few miles from NIST-F2, the clocks that will retire it are already running. They trap strontium or ytterbium atoms in a grid of laser light and measure their energy transitions; the same principle as the cesium clock, but at visible-light frequencies instead of microwaves. Hundreds of trillions of cycles per second, compared to cesium's 9.2 billion. More cycles per second means finer resolution, the way a ruler with millimeter marks is more precise than one with only centimeter marks.
 
 ![JILA's strontium optical lattice clock, with red and blue laser beams visible threading through the laboratory apparatus](./images/jila-strontium-clock.jpg "JILA's strontium optical lattice clock at NIST in Boulder, Colorado. The colored beams are lasers that trap and probe strontium atoms at visible-light frequencies. Image: Ye group and Baxley/JILA, public domain via NIST.")
 
-In July 2024, JILA's strontium lattice clock achieved a systematic uncertainty of 8 × 10⁻¹⁹. One year later, in July 2025, NIST's aluminum ion clock surpassed it: 5.5 × 10⁻¹⁹; the most accurate clock ever built. It uses a single trapped aluminum ion, interrogated through quantum logic spectroscopy; a partner magnesium ion handles laser cooling and state readout, while the aluminum ion provides the clock transition. The precision corresponds to one second of drift in roughly 60 billion years; more than four times the age of the universe.
+In July 2024, a strontium clock at JILA; a research institute partnered with NIST in Boulder; achieved an accuracy of one second in 40 billion years. The universe is about 14 billion years old.
+
+One year later, NIST's aluminum clock surpassed it. One second in 60 billion years.
+
+The aluminum clock works differently. Instead of measuring billions of atoms at once, it measures one. A single aluminum atom, stripped of an electron; what physicists call an ion; and held in an electromagnetic trap. Aluminum's energy transition is ideal for timekeeping, but the ion moves too much at room temperature for a clean measurement. So a partner magnesium ion sits next to it. The magnesium handles cooling; the aluminum provides the tick. The two sit close enough that the magnesium can sense when the aluminum absorbs energy, letting physicists read the aluminum's transition through its partner. One atom, telling time.
 
 ![The NIST aluminum ion clock team standing beside the apparatus — a complex array of lasers, optics, and electronics filling a large optical table](./images/nist-aluminum-ion-clock.jpg "The NIST aluminum ion clock: Mason Marshall, David Hume, Willa Arthur-Dworschack, and Daniel Rodriguez Castillo. As of July 2025, this is the most accurate clock ever built. Image: R. Jacobson/NIST, public domain.")
 
 <ClockAccuracyScale />
 
-In November 2025, the JILA group pushed further still; not by building a better clock, but by linking the atoms inside one. In a normal atomic clock, each atom is measured on its own. The random noise of those independent measurements sets a floor on how precise any clock can get. The JILA team found a way to correlate the atoms; to make each measurement inform the others. The noise partially cancelled. The precision floor broke.
+In November 2025, the JILA group tried something different; not building a better clock, but linking the atoms inside one. In a normal atomic clock, each atom is measured on its own. The random noise of those independent measurements sets a floor on how precise any clock can get. The JILA team found a way to correlate the atoms; to make each measurement inform the others. The noise partially cancelled. The precision floor broke.
 
 These clocks used to fill laboratories. They're leaving.
 
-In January 2025, NIST shipped a complete ytterbium optical lattice clock 3,000 kilometers; from Boulder to the U.S. Naval Observatory in Washington, DC. It was fully operational within two days.
+In January 2025, NIST packed a complete ytterbium optical lattice clock into shipping containers and sent it 3,000 kilometers; from Boulder to the U.S. Naval Observatory in Washington, DC. It was running within two days.
 
 That same year, Vector Atomic ran three optical clocks aboard a naval vessel for twenty days at sea. Timing errors below 300 picoseconds per day. They now sell the Evergreen-30; the world's first commercial optical clock.
 
@@ -499,7 +503,9 @@ In June 2025, ten optical clocks across six countries were compared simultaneous
 
 If the new clocks are better than cesium, the definition has to follow. The second, unchanged since 1967, is now actively under review. The [28th General Conference on Weights and Measures](https://www.bipm.org/en/cgpm-2026) meets in October 2026 at Versailles. The 13th General Conference gave us cesium. The 28th may begin to retire it. Only the second time in human history that we've changed what a second means.
 
-A better standard at the top matters only if the signal reaches your devices. NTP gets your laptop within a few milliseconds. But 5G base stations need nanoseconds. A newer protocol; Precision Time Protocol, or PTP; is a thousand times tighter than NTP. In 2024, Meta open-sourced their entire time infrastructure; a simplified version of PTP that any organization can run on ordinary servers.
+A better standard at the top matters only if the signal reaches your devices. NTP gets your laptop within a few milliseconds. But 5G base stations need nanoseconds.
+
+A newer protocol; Precision Time Protocol, or PTP; is a thousand times tighter than NTP. In 2024, Meta open-sourced their entire time infrastructure; a simplified version of PTP that any organization can run on ordinary servers.
 
 CERN; the European particle physics laboratory; built a timing protocol called White Rabbit to synchronize detectors across kilometers of tunnel. It became an international standard in 2019. By 2025, the Frankfurt Stock Exchange was using it to timestamp stock trades. Power grids adopted it as a timing backup that doesn't depend on GPS. A protocol built for particle physics; keeping stock markets honest.
 
@@ -509,7 +515,7 @@ And NTP itself finally got encryption. A standard called Network Time Security b
 
 Chip-scale atomic clocks; barely larger than a postage stamp; pack rubidium atoms into a sealed cell and run the same feedback loop as the room-sized cesium fountains, just smaller and less precise. The newest version, released in January 2025, is ten times more precise than the first from 2011. You'll find them inside military radios navigating without GPS. Inside 5G base stations holding synchronization through satellite outages. On seismic sensors resting on the ocean floor. Over 100,000 so far.
 
-Even the quartz crystal; the grain of rice this post began with; is facing a successor. Oscillators etched directly into silicon chips are entering the devices you carry. In 2025, Apple chose these silicon oscillators over quartz for the iPhone 16e. Over four billion have shipped across the industry. A thousand times smaller than quartz crystals. Fifty times more reliable.
+Even the quartz crystal; the grain of rice on your wrist; is facing a successor. Oscillators etched directly into silicon chips are entering the devices you carry. In 2025, Apple chose these silicon oscillators over quartz for the iPhone 16e. Over four billion have shipped across the industry. A thousand times smaller than quartz crystals. Fifty times more reliable.
 
 The tuning fork on your wrist may be among the last of its kind.
 
