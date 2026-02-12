@@ -97,7 +97,7 @@
       <text x={CC} y="18" text-anchor="middle"
         fill="var(--theme-foreground, #888)" font-size="10"
         font-family="JetBrains Mono, monospace" letter-spacing="0.08em"
-        opacity="0.6">YOUR MAC</text>
+        opacity="0.6">YOUR LAPTOP</text>
       <text x={SC} y="18" text-anchor="middle"
         fill="var(--theme-foreground, #888)" font-size="10"
         font-family="JetBrains Mono, monospace" letter-spacing="0.08em"

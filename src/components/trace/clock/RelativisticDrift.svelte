@@ -108,6 +108,14 @@
     </svg>
   </div>
 
+  {#if !correctionOn && day > 0.1}
+    <div class="conversion-note">
+      <span class="conversion-formula">{(day * 38).toFixed(0)} μs clock error × speed of light</span>
+      <span class="conversion-arrow">→</span>
+      <span class="conversion-result">{errorKm.toFixed(1)} km position error</span>
+    </div>
+  {/if}
+
   <div class="stats">
     <div class="stat">
       <span class="stat-label">Day</span>
@@ -227,6 +235,32 @@
 
   .stat-value.off {
     color: var(--theme-red, #ef4444);
+  }
+
+  .conversion-note {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.7rem;
+    color: var(--theme-foreground, #888);
+    border-top: 1px solid var(--theme-separator, #333);
+    flex-wrap: wrap;
+  }
+
+  .conversion-formula {
+    opacity: 0.7;
+  }
+
+  .conversion-arrow {
+    color: var(--theme-yellow, #f59e0b);
+    font-weight: 600;
+  }
+
+  .conversion-result {
+    color: var(--theme-red, #ef4444);
+    font-weight: 600;
   }
 
   .controls {

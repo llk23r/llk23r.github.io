@@ -1,9 +1,25 @@
 <script>
-  // Static illustration: no state, no animation
-  // Shows how the two independent paths (watch & laptop) converge on atomic clocks
+  import { onMount } from 'svelte'
+
+  let visible = $state(false)
+  let figureEl
+
+  onMount(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          visible = true
+          observer.disconnect()
+        }
+      },
+      { threshold: 0.15 }
+    )
+    observer.observe(figureEl)
+    return () => observer.disconnect()
+  })
 </script>
 
-<figure class="trace-viz" role="img" aria-label="System diagram: how your watch and laptop both trace back to atomic clocks">
+<figure bind:this={figureEl} class="trace-viz" class:visible role="img" aria-label="System diagram: how your watch and laptop both trace back to atomic clocks">
   <div class="diagram-container">
     <svg viewBox="0 0 460 596" preserveAspectRatio="xMidYMid meet" class="system-svg">
       <defs>
@@ -194,5 +210,13 @@
     width: 100%;
     max-width: 480px;
     height: auto;
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.9s ease, transform 0.9s ease;
+  }
+
+  .visible .system-svg {
+    opacity: 1;
+    transform: translateY(0);
   }
 </style>

@@ -5,6 +5,7 @@
   let elapsedSimSeconds = $state(0)
   let animFrame = $state(null)
   let lastTimestamp = $state(null)
+  let lastCorrectionTime = $state(0)
 
   const speedOptions = [
     { value: 3600, label: '1 hour/sec' },
@@ -13,7 +14,7 @@
     { value: 86400 * 30, label: '1 month/sec' },
   ]
 
-  let driftSeconds = $derived(elapsedSimSeconds * driftPPM * 1e-6)
+  let driftSeconds = $derived((elapsedSimSeconds - lastCorrectionTime) * driftPPM * 1e-6)
   let elapsedDays = $derived(elapsedSimSeconds / 86400)
 
   let referenceTime = $derived({
@@ -52,8 +53,13 @@
 
   function reset() {
     elapsedSimSeconds = 0
+    lastCorrectionTime = 0
     lastTimestamp = null
     running = false
+  }
+
+  function correct() {
+    lastCorrectionTime = elapsedSimSeconds
   }
 
   import { onMount, onDestroy } from 'svelte'
@@ -115,6 +121,7 @@
       {running ? '⏸ Pause' : '▶ Play'}
     </button>
     <button onclick={reset}>↺ Reset</button>
+    <button class="correct-btn" onclick={correct}>📡 Correct</button>
     <div class="control-group">
       <label>
         Speed
@@ -264,6 +271,15 @@
 
   button:hover {
     background: var(--theme-separator, #333);
+  }
+
+  .correct-btn {
+    border-color: var(--theme-cyan, #06b6d4);
+    color: var(--theme-cyan, #06b6d4);
+  }
+
+  .correct-btn:hover {
+    background: rgba(6, 182, 212, 0.1);
   }
 
   .control-group {

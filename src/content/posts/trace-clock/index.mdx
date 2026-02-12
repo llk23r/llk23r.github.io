@@ -1,6 +1,6 @@
 ---
 title: "How Do Two Clocks Agree?"
-published: 2025-12-01
+published: 2026-02-11
 description: "Your watch and your laptop both say 3:00 PM. They've never communicated. How?"
 series: "trace"
 tags: [trace, time, clocks, physics, ntp, gps, relativity]
@@ -14,6 +14,19 @@ import CrystalDrift from '~/components/trace/clock/CrystalDrift.svelte'
 import NTPHandshake from '~/components/trace/clock/NTPHandshake.svelte'
 import RelativisticDrift from '~/components/trace/clock/RelativisticDrift.svelte'
 import SystemDiagram from '~/components/trace/clock/SystemDiagram.svelte'
+import TimeAsState from '~/components/trace/clock/TimeAsState.svelte'
+import CesiumFeedbackLoop from '~/components/trace/clock/CesiumFeedbackLoop.svelte'
+import SlewVsJump from '~/components/trace/clock/SlewVsJump.svelte'
+import StratumHierarchy from '~/components/trace/clock/StratumHierarchy.svelte'
+import IonosphereReflection from '~/components/trace/clock/IonosphereReflection.svelte'
+import PiezoelectricCycle from '~/components/trace/clock/PiezoelectricCycle.svelte'
+import TemperatureParabola from '~/components/trace/clock/TemperatureParabola.svelte'
+import HyperfineTransition from '~/components/trace/clock/HyperfineTransition.svelte'
+import LaptopClockArchitecture from '~/components/trace/clock/LaptopClockArchitecture.svelte'
+import ThreePathsToPhone from '~/components/trace/clock/ThreePathsToPhone.svelte'
+import ClockAccuracyScale from '~/components/trace/clock/ClockAccuracyScale.svelte'
+import FlipFlop from '~/components/trace/clock/FlipFlop.svelte'
+import GPSTrilateration from '~/components/trace/clock/GPSTrilateration.svelte'
 
 export const journeySteps = [
   { label: 'You look at two clocks', depth: 'human' },
@@ -69,13 +82,17 @@ Warren Marrison, ["The Evolution of the Quartz Crystal Clock"](https://ieeexplor
 The first quartz wristwatch: Seiko Astron 35SQ, released December 25, 1969.
 :::
 
-Hook a quartz crystal into the right circuit, and it starts oscillating; flexing, generating voltage, flexing again, over and over, at a frequency determined by its physical shape and size. Cut the crystal to the right fork shape, the right thickness, and it oscillates at 32,768 times per second.
+Hook a quartz crystal into the right circuit, and it starts oscillating; flexing, generating voltage, flexing again, over and over, at a frequency determined by its physical shape and size. The crystal alone would damp out in microseconds; the oscillator circuit amplifies each tiny voltage and feeds it back, sustaining the vibration indefinitely:
+
+<PiezoelectricCycle />
+
+Cut the crystal to the right fork shape, the right thickness, and it oscillates at 32,768 times per second.
 
 Not roughly. Not within a range. Every quartz crystal of this shape settles on the same number.
 
 Why? Why would nature pick that number?
 
-It didn't. We did. We cut the crystal to the shape that vibrates at 32,768 Hz. But why *that* number specifically?
+It didn't. We did. We cut the crystal to the shape that vibrates at 32,768 Hz; hertz, cycles per second. But why *that* number specifically?
 
 32,768 is 2 to the power of 15. Two multiplied by itself fifteen times. And that matters because of what comes next.
 
@@ -86,6 +103,10 @@ It didn't. We did. We cut the crystal to the shape that vibrates at 32,768 Hz. B
 You have a crystal oscillating 32,768 times a second. You need one tick per second. You need to divide by 32,768.
 
 There's a simple electronic component called a flip-flop. It takes an input signal that switches on and off at some frequency, and outputs a signal at half that frequency. Two input pulses become one output pulse.
+
+Send a few pulses below and watch what happens. Each flip-flop toggles on every input pulse, but only passes a pulse onward when it transitions from HIGH back to LOW. The result: each stage halves the frequency.
+
+<FlipFlop client:visible />
 
 Chain fifteen flip-flops together.
 
@@ -114,7 +135,11 @@ Because quartz drifts.
 
 ## The Problem with "Perfect"
 
-The crystal's oscillation frequency depends on temperature. Heat it up, it vibrates slightly faster. Cool it down, slightly slower. The crystal also ages; its properties change imperceptibly over months and years as the atomic structure shifts.
+The crystal's oscillation frequency depends on temperature. Its frequency follows a gentle parabola that peaks near room temperature; deviations in either direction slow it down.
+
+<TemperatureParabola />
+
+The crystal also ages; its properties change imperceptibly over months and years as the atomic structure shifts.
 
 A typical watch crystal drifts about 6 parts per million. That sounds tiny.
 
@@ -132,6 +157,66 @@ You looked at your watch and your laptop. Same second. If the watch drifts half 
 They don't disagree.
 
 So either your watch isn't drifting, or something is correcting for the drift.
+
+But before we get to how; what does "correcting" a clock even mean?
+
+## What Does "Setting" a Clock Mean?
+
+Your watch crystal is vibrating at 32,768 Hz. The flip-flop chain divides that down to one pulse per second. But where does the time live?
+
+In more flip-flops.
+
+The same circuit element that divides the frequency also stores the count. After the fifteenth divider outputs a 1 Hz pulse, that pulse feeds into a cascade of flip-flops arranged as counters. The counters store time in Binary-Coded Decimal; BCD; where each decimal digit gets four bits. The seconds digit 5 is stored as 0101: zero eights, one four, zero twos, one one. Each bit is one flip-flop.
+
+Hours: eight flip-flops (two BCD digits). Minutes: eight. Seconds: eight. Twenty-four flip-flops total. That's the time on your wrist.
+
+Here's what 23:59:55 looks like inside your watch; and inside your laptop's RTC chip:
+
+<TimeAsState client:visible />
+
+Hit **+1 sec** a few times. Watch which bits flip. Then jump to **23:59:55** and hit **Play** to watch midnight arrive; nearly all 24 bits cascade at once.
+
+Each green cell is a flip-flop: two transistors wired in a loop, one conducting and the other held off. That's a stable state; it stays there, drawing a trickle of current from the watch battery, until a pulse from the counter circuit flips it. HIGH means one transistor is conducting, pulling its output toward the battery's 1.5 volts. LOW means the other transistor conducts, pulling the output to zero. Two stable states, nothing in between.
+
+The "time" on your wrist is not a number in the way you might imagine; not a value stored in a file, not bytes in memory. It's a pattern of voltages across twenty-four transistor pairs on a chip smaller than your fingernail. Remove the battery, and these voltages collapse in milliseconds. The flip-flops settle to undefined states. The time is gone. Not erased; it was never *written* anywhere. It existed only as sustained electrical state.
+
+When you pull the crown and press a button, you send a signal to the chip that forces specific flip-flops to change; incrementing the hours or minutes register until the display matches what you want. The crystal doesn't notice. The divider chain doesn't notice. You're rearranging transistor states.
+
+### The First Tick
+
+Here's an odd consequence. When you put a battery in a brand-new watch, the crystal starts oscillating within microseconds. The divider chain starts dividing. The 24 counter flip-flops start from their reset state; all zeros. The display shows 12:00:00.
+
+The watch is counting real oscillations. Real, physical vibrations of quartz. Every one of those seconds is an accurate second. But the *time* is meaningless; it's counting from an arbitrary starting point. The physics is correct. The meaning is absent.
+
+It becomes a clock the moment you set it.
+
+### Your Laptop's Version
+
+Your laptop does this too, with more layers. Inside the machine, a small chip called the Real-Time Clock sits on the motherboard with its own quartz crystal; vibrating at 32,768 Hz, same as your watch; and its own tiny battery. That coin cell.
+
+The RTC chip stores time in a few bytes of battery-backed memory; static RAM, where each bit is a latch: six transistors instead of two, but the same principle. Two cross-coupled inverters hold a stable state. The BCD encoding is identical to the watch: the byte at register address 0x00 holds seconds, 0x02 holds minutes, 0x04 holds hours. Same bit patterns. Same BCD. Different transistor arrangement on a different chip, kept alive by a different battery.
+
+The RTC's own divider chain produces a 1 Hz pulse that increments the seconds byte. When seconds reaches 60, it resets and increments minutes. Same cascade as the watch.
+
+The coin-cell battery keeps this crystal oscillating and this memory powered even when the computer is off. Unplug your laptop for three weeks. Plug it back in. The RTC has been counting the whole time. Not accurately; it's quartz, it drifts; but close enough.
+
+When the computer boots, the operating system reads the RTC's bytes; on x86 hardware, through I/O ports 0x70 and 0x71, a convention that dates back to the original IBM PC in 1981. That gives the OS a rough starting time.
+
+Then the OS starts its own clock. Not the RTC; something faster. The kernel reads a high-resolution hardware counter built into the main processor; the CPU's Time Stamp Counter (TSC), which ticks at billions of cycles per second, and stores a base time in memory: "at this counter value, the real time was X." Every call to check the time; every `clock_gettime()`, every glance at the menu bar clock; computes: base time + (counter ticks since base × nanoseconds per tick).
+
+<LaptopClockArchitecture />
+
+When you open Date & Time settings and type in "3:00 PM," the operating system writes a new base time to the kernel's timekeeping structure and syncs it back to the RTC chip. Pulling the crown on a watch, but with electrons instead of gears: you changed a stored reference point. The crystals; both of them, the RTC's and the CPU's; didn't notice.
+
+### The Slew
+
+There's a subtlety here that matters. When an outside correction arrives; we'll see where it comes from next; it could just overwrite the base time. Jump forward 200 milliseconds. But sudden jumps cause problems. Files get timestamps from the future. Log entries appear out of order. Running programs get confused about how much time has passed.
+
+So the correction does something cleverer: it *slews* the clock. It adjusts the nanoseconds-per-tick multiplier; making each tick count for slightly more or slightly less time; so the clock drifts gently toward the correct time. No discontinuity. The crystal oscillates at the same frequency; the kernel just temporarily reinterprets what each oscillation means.
+
+<SlewVsJump client:visible />
+
+Setting a clock; whether by turning a crown, overwriting an RTC register, or slewing the kernel's tick rate; never changes any oscillation. The quartz doesn't care. You're only ever adjusting which count corresponds to "now."
 
 <JourneyMap steps={journeySteps} current={4} client:visible />
 
@@ -182,6 +267,8 @@ The clock offset; how wrong your clock is: ((T2 - T1) + (T3 - T4)) / 2.
 
 <NTPHandshake client:visible />
 
+Try dragging the delay sliders so the outbound and return delays are different. Watch what happens to the calculated offset.
+
 This is the Network Time Protocol. NTP. Mills first described it in RFC 958 in 1985 and spent the next four decades refining it. He was a professor at the University of Delaware. He maintained the reference implementation, wrote the specification through four major versions, and fielded bug reports; nearly single-handedly. He passed away in January 2024. The protocol that keeps every computer on Earth synchronized was, for most of its life, one person's obsession.
 
 :::tip[How We Know]
@@ -189,13 +276,11 @@ David L. Mills, ["Network Time Protocol"](https://www.rfc-editor.org/rfc/rfc958.
 David L. Mills, ["Network Time Protocol Version 4"](https://www.rfc-editor.org/info/rfc5905) (2010), RFC 5905. The current specification. The four-timestamp algorithm has remained essentially unchanged since 1985.
 :::
 
-Try dragging the delay sliders above so the outbound and return delays are different. Watch what happens to the calculated offset.
-
 ### The Catch
 
 The math assumes symmetric paths. Same delay in both directions. If the outbound message takes 10ms and the return takes 50ms, NTP gets it wrong. And there's no way to detect this asymmetry from the four timestamps alone.
 
-So NTP makes many measurements, throws out outliers, and picks the sample with the lowest round-trip time; which is most likely to have the most symmetric path. In practice, this gets your laptop within a few milliseconds of the correct time.
+So NTP makes many measurements, throws out outliers, and picks the sample with the lowest round-trip time; which is most likely to have the most symmetric path. In practice, this gets your laptop within a few milliseconds of the correct time. And if every server is unreachable; you're on a plane, or behind a strict firewall; the laptop falls back to its quartz oscillator alone, drifting until the next successful sync.
 
 Good enough for a desktop clock. Not good enough for GPS.
 
@@ -205,9 +290,23 @@ Good enough for a desktop clock. Not good enough for GPS.
 
 Your laptop asks a time server. That time server asks a better time server. That one asks an even better one.
 
-It's time servers all the way up.
+NTP organizes this chain into layers called *strata*. At the top: stratum 0. The atomic clocks themselves; cesium fountains at NIST in Boulder, at PTB in Braunschweig, the clocks aboard GPS satellites. These are the sources of truth.
 
-At the top of the hierarchy: atomic clocks.
+But an atomic clock isn't a network device. NIST-F2 doesn't have an Ethernet port. It's a laboratory instrument that outputs a frequency reference; a signal locked to the cesium transition. So stratum 1 servers sit in the same facility, connected by a direct physical link. A serial cable running to a cesium clock in the next room. A GPS antenna bolted to the roof, decoding satellite time signals. No network hops between the atom and the server. The connection is a wire.
+
+Stratum 1 servers serve stratum 2. Stratum 2 serves stratum 3. Your laptop usually talks to stratum 2 or 3; two or three hops from an atom.
+
+<StratumHierarchy client:visible />
+
+Why the hierarchy? Why can't every device just query stratum 1 directly?
+
+Scale. There are billions of internet-connected devices that need to know the time. There are roughly three hundred stratum 1 servers worldwide. If every laptop, phone, and server on Earth queried stratum 1, the servers would collapse under the load. The hierarchy is a fan-out: each stratum 1 server feeds dozens of stratum 2 servers. Each stratum 2 feeds thousands of clients. The pyramid distributes the load.
+
+The [NTP Pool Project](https://www.ntppool.org/) makes this concrete. Thousands of volunteers around the world run NTP servers and donate them to a shared pool. When your computer queries `pool.ntp.org`, DNS returns a different volunteer server each time, spreading the load across the whole network. Your laptop might be getting its time from a machine in someone's apartment in Frankfurt. That machine got its time from a stratum 1 server at the Physikalisch-Technische Bundesanstalt. The chain holds.
+
+And your laptop doesn't trust any single server. It queries several; typically four; and cross-checks them against each other. If three agree within a few milliseconds and one disagrees wildly, the outlier is discarded. NTP's *intersection algorithm* finds the largest group of servers whose time estimates overlap and rejects anything outside that consensus. A broken clock, a compromised server, a congested network path; any single failure gets outvoted. The system's reliability comes not from the perfection of any one link, but from redundancy across many.
+
+<JourneyMap steps={journeySteps} current={7} client:visible />
 
 ## Atoms Don't Drift
 
@@ -217,6 +316,8 @@ An atom doesn't have these problems.
 
 Every cesium-133 atom in the universe is identical. Not similar. Identical. When you expose cesium-133 atoms to a specific type of electromagnetic wave; microwaves, at exactly 9,192,631,770 cycles per second; something specific happens. Electrons in the atom jump between two energy levels. This is called the hyperfine transition.
 
+<HyperfineTransition />
+
 This frequency is a property of the atom itself. It doesn't depend on temperature. It doesn't age. It doesn't drift. It's the same in Colorado, Tokyo, and the far side of the galaxy.
 
 In 1955, Louis Essen and Jack Parry at the National Physical Laboratory in Teddington, England, built the first cesium clock accurate enough to challenge the astronomical definition of the second. They measured the cesium frequency against the existing astronomical second and got 9,192,631,770 cycles. Twelve years later, in 1967, the 13th General Conference on Weights and Measures voted to redefine the second:
@@ -224,6 +325,26 @@ In 1955, Louis Essen and Jack Parry at the National Physical Laboratory in Teddi
 > **One second = 9,192,631,770 oscillations of the cesium-133 hyperfine transition.**
 
 They didn't measure the second. They *defined* it. The second IS that many oscillations of a cesium atom. Everything else; your watch, your microwave clock, the Earth's rotation; is an approximation.
+
+### How You Build a Clock from an Atom
+
+The cesium frequency is a fact of nature. But a fact isn't a clock. You need a way to *use* that frequency; to count those oscillations and turn them into a timekeeping signal.
+
+The trick is a feedback loop.
+
+You start with a microwave oscillator; a device that generates electromagnetic waves at approximately 9,192,631,770 Hz. You don't need it to be exact. Approximately is fine.
+
+You pass these microwaves through a cloud of cesium-133 atoms. If the frequency is exactly right, atoms absorb the energy and transition between their two hyperfine energy levels. A detector on the other side counts how many atoms made the transition.
+
+More transitions means your frequency is closer to the resonance. Fewer means you've drifted.
+
+The detector's output feeds back into the oscillator. Too few transitions? Nudge the frequency up. Still too few? Nudge it down. The feedback loop hunts for the peak; the frequency where the maximum number of atoms transition.
+
+When it finds that peak, the oscillator is locked to 9,192,631,770 Hz. Now you count those oscillations. 9,192,631,770 of them is exactly one second.
+
+<CesiumFeedbackLoop client:visible />
+
+It's a servo loop; the same concept as a thermostat. A thermostat holds temperature steady by measuring the room and adjusting the heater. A cesium clock holds frequency steady by measuring atomic transitions and adjusting the oscillator. The quartz watch has no thermostat for its frequency. It drifts. The cesium clock IS the thermostat.
 
 NIST-F2, the primary time standard of the United States, keeps time to about one second in 300 million years. You would have to wait from the Carboniferous period; when the first reptiles appeared; to today, for it to be off by one second.
 
@@ -241,14 +362,24 @@ NIST-F2 accuracy: T.P. Heavner et al., ["First accuracy evaluation of NIST-F2"](
 
 Your laptop gets atomic time through the internet; NTP. What about your watch?
 
-Some watches have a radio receiver built in. In the United States, a station called WWVB in Fort Collins, Colorado broadcasts a 60,000 Hz radio signal, twenty-four hours a day, encoding the current time in its pulses.
+Some watches have a radio receiver built in. In the United States, a station called WWVB in Fort Collins, Colorado broadcasts a 60,000 Hz radio signal, twenty-four hours a day, encoding the current time in its pulses. Each second, the station reduces its signal power for a specific duration; 200 milliseconds for a binary zero, 500 milliseconds for a binary one, 800 milliseconds for a frame marker. Sixty pulses make one complete time code.
 
-![The WWVB radio transmitter antenna at Fort Collins, Colorado — a tall lattice tower against the sky](./images/wwvb-antenna.jpg "The WWVB antenna at Fort Collins, Colorado, 1963. This station has been broadcasting atomic time signals continuously for over sixty years. Image: NIST, public domain.") Your watch picks up this signal; usually at night, when radio waves in this frequency range travel farther because of how the upper atmosphere reflects them; and corrects its quartz oscillator.
+![The WWVB radio transmitter antenna at Fort Collins, Colorado — a tall lattice tower against the sky](./images/wwvb-antenna.jpg "The WWVB antenna at Fort Collins, Colorado, 1963. This station has been broadcasting atomic time signals continuously for over sixty years. Image: NIST, public domain.")
 
-In Japan: JJY, broadcasting at 40,000 and 60,000 Hz. In Europe: DCF77, at 77,500 Hz. In China: BPC, at 68,500 Hz. Different stations, different frequencies, same idea. Atomic clocks broadcasting the time by radio.
+Your watch picks up this signal; usually at night. There's a reason for this, and it involves the Sun.
+
+During the day, ultraviolet radiation from the Sun ionizes the lowest layer of the upper atmosphere; the D-region, at about 60 to 90 kilometers altitude. This layer of free electrons absorbs low-frequency radio waves. WWVB's 60 kHz signal can travel along the ground; hugging the Earth's surface; for about a thousand kilometers. But the sky-wave component, the part of the signal that radiates upward, gets swallowed by the D-region before it can bounce back down.
+
+At sunset, the ultraviolet bombardment stops. Without that energy, the free electrons in the D-region recombine with ions and the layer effectively disappears. Now WWVB's signal passes straight through where the D-region was and reaches the higher E-region, around 100 kilometers up. The E-region doesn't absorb it; it reflects it. The signal bounces back to the ground, hits the ground, reflects upward again, and can skip across the continent this way; reaching watches two or three thousand kilometers from Fort Collins.
+
+<IonosphereReflection client:visible />
+
+This is why radio-controlled watches sync at night. The chip inside is programmed to try receiving the signal at 2 AM local time, when the D-region is gone and the signal is at its strongest. If it decodes a valid time code, it adjusts the counter flip-flops; the same ones you'd set by pulling the crown. If it doesn't; too much interference, too far from the transmitter; the watch falls back to quartz until tomorrow night.
+
+In Japan: JJY, broadcasting from Mount Otakadoya and Mount Hagane at 40,000 and 60,000 Hz. In Europe: DCF77, at 77,500 Hz from Mainflingen, Germany. In China: BPC, at 68,500 Hz. Different stations, different frequencies, different continents; all broadcasting atomic time by radio, all relying on the same nighttime ionosphere to reach their farthest receivers.
 
 :::tip[How We Know]
-WWVB has been broadcasting from Fort Collins since 1963. NIST operates it alongside the WWV shortwave station, which has been broadcasting time signals since 1920; making it one of the oldest continuously operating radio stations in the United States.
+WWVB has been broadcasting from Fort Collins since 1963. NIST operates it alongside the WWV shortwave station, which has been broadcasting time signals since 1920; making it one of the oldest continuously operating radio stations in the United States. The D-region absorption and nighttime sky-wave propagation of VLF/LF signals is described in detail in the ITU-R Recommendation P.684, "Prediction of field strength at frequencies below about 150 kHz."
 — [NIST Special Publication 432](https://www.nist.gov/publications/nist-time-and-frequency-services), "NIST Time and Frequency Services" (2002, updated).
 :::
 
@@ -258,11 +389,25 @@ If your watch doesn't have a radio receiver, it's just very good quartz. The dri
 
 ## GPS: When Milliseconds Aren't Enough
 
-Thirty-one satellites orbit the Earth at 20,200 kilometers altitude. Each one carries atomic clocks; rubidium and cesium. Each one broadcasts: "I am at this position, and the time is this."
+About thirty-one satellites orbit the Earth at 20,200 kilometers altitude; the constellation is in the middle of a generational upgrade, with nine GPS III satellites launched between 2018 and January 2026, and the tenth scheduled for later this year. Each one carries atomic clocks. Each one broadcasts: "I am at this position, and the time is this."
 
-![An artist's rendering of a GPS Block IIF satellite in orbit above Earth, with solar panels extended and the planet's surface visible below](./images/gps-satellite.jpg "A GPS Block IIF satellite. Each one carries rubidium and cesium atomic clocks and broadcasts timing signals corrected for general relativity. Image: NASA/Boeing, public domain.")
+Not cesium clocks. This entire post has been about cesium; the definition of the second, the gold standard of timekeeping. But the clocks orbiting overhead are rubidium.
 
-Your phone receives these signals from four or more satellites. The signals travel at the speed of light. The time delay between when the satellite sent the signal and when your phone received it tells you the distance to that satellite. Four distances; four overlapping spheres in space; pin down your position to within a few meters.
+Rubidium-87 has its own hyperfine transition; at 6,834,682,610 Hz instead of cesium's 9,192,631,770. Same principle, different atom. But rubidium clocks are smaller, lighter, draw less power, and their sealed vapor cells last decades without wearing out. In orbit, where every gram costs thousands of dollars to launch and nothing can be serviced, this matters more than ultimate accuracy.
+
+The tradeoff: rubidium drifts more than cesium over weeks. But ground control uploads fresh corrections to every satellite daily. Rubidium's excellent short-term stability; hours to days; is all that's needed between uploads. The ground stations trace back to cesium fountains and hydrogen masers. Rubidium keeps time in orbit; cesium keeps rubidium honest from the ground.
+
+:::tip[How We Know]
+The evolution of GPS clocks across satellite blocks is documented in the [GPS Interface Control Document IS-GPS-200](https://www.navcen.uscg.gov/gps-technical-references) and in R.A. Nelson, ["The Global Positioning System: A National Resource"](https://ntrs.nasa.gov/api/citations/19960042628/downloads/19960042628.pdf) (1996), NASA Conference Publication. Block IIR carried three Rubidium Atomic Frequency Standards (RAFS) built by Excelitas Technologies. GPS III uses enhanced RAFS with improved short-term stability.
+:::
+
+![An artist's rendering of a GPS Block IIF satellite in orbit above Earth, with solar panels extended and the planet's surface visible below](./images/gps-satellite.jpg "A GPS Block IIF satellite (2010–2016 generation). Today's GPS III satellites carry only rubidium clocks, broadcast a new L1C civil signal interoperable with Europe's Galileo, and deliver roughly three times better civilian accuracy. In early 2024, GPS signal-in-space range error was reduced by 30% through clock switches and more frequent navigation data uploads. Image: NASA/Boeing, public domain.")
+
+Your phone receives these signals from four or more satellites. The signals travel at the speed of light. The time delay between when the satellite sent the signal and when your phone received it tells you the distance to that satellite.
+
+Why four? Three would be enough to fix your position; if your phone's clock were perfect. But your phone has a cheap quartz oscillator, not an atomic clock. Its timing error is an unknown. So you need a fourth satellite to solve for four unknowns: latitude, longitude, altitude, and the exact error in your phone's clock. Every position fix is simultaneously a time fix.
+
+<GPSTrilateration />
 
 The timing has to be extraordinary. Light covers 30 centimeters in one nanosecond; a billionth of a second. A 10-nanosecond timing error means 3 meters of position error. A microsecond; a millionth of a second; means 300 meters.
 
@@ -278,7 +423,7 @@ GPS satellites orbit at 20,200 km altitude, moving at about 14,000 km/h. Two con
 
 The two effects work against each other. Net result: satellite clocks run 38 microseconds per day faster than clocks on the ground.
 
-38 microseconds per day. Light covers 11.4 kilometers in 38 microseconds. Without the relativistic correction, your phone's GPS position would drift about 10 kilometers per day. By Friday, it would place you in a different city.
+38 microseconds per day. Light covers 11.4 kilometers in 38 microseconds. Without the relativistic correction, your phone's GPS position would drift about 11 kilometers per day. By Friday, it would place you in a different city.
 
 <RelativisticDrift client:visible />
 
@@ -293,6 +438,20 @@ Neil Ashby, ["Relativity in the Global Positioning System"](https://link.springe
 The specific numbers: special relativistic time dilation of -7.2 μs/day and general relativistic gravitational blueshift of +45.8 μs/day are derived from the Schwarzschild metric at GPS orbital parameters (semi-major axis 26,561.75 km, eccentricity ~0.02).
 — [GPS Interface Control Document IS-GPS-200](https://www.navcen.uscg.gov/gps-technical-references), which specifies the relativistic correction term in the navigation message.
 :::
+
+### How GPS Time Reaches Your Phone
+
+Remember the fourth unknown? Every GPS position fix silently solves for your phone's clock offset too. Every time your phone knows where it is, it also knows what time it is; to within tens of nanoseconds.
+
+But your phone doesn't always have GPS. Indoors, underground, in airplane mode. So it has other sources.
+
+Cell towers broadcast time through a protocol called NITZ; Network Identity and Time Zone. It's been part of the GSM standard since the 1990s. Rough; accurate to maybe a few seconds, delivered only when your phone switches between towers.
+
+And there's NTP. Same protocol your laptop uses. Your phone queries time.apple.com or time.android.com.
+
+Three independent paths to the same atoms: GPS from orbit, NTP through the internet, NITZ from the nearest cell tower. Your phone quietly chooses the most accurate source available at any moment.
+
+<ThreePathsToPhone />
 
 <JourneyMap steps={journeySteps} current={-1} client:visible />
 
@@ -312,6 +471,53 @@ They agree not because they talked to each other.
 
 They agree because they're both listening to atoms.
 
+## The Frontier
+
+The second has been defined by cesium since 1967. Before that, it was defined by the Earth's rotation; one day divided into 86,400 equal parts. The astronomical second served for centuries. Then Essen and Parry showed that atoms keep better time than planets, and the definition changed.
+
+Now cesium itself is being replaced.
+
+In Boulder, Colorado, a few miles from NIST-F2, the clocks that will retire it are already running. Optical lattice clocks trap strontium or ytterbium atoms in a grid of laser light and probe transitions at visible-light frequencies; hundreds of trillions of cycles per second, compared to cesium's 9.2 billion. More cycles per second means finer resolution, the way a ruler with millimeter marks is more precise than one with only centimeter marks.
+
+![JILA's strontium optical lattice clock, with red and blue laser beams visible threading through the laboratory apparatus](./images/jila-strontium-clock.jpg "JILA's strontium optical lattice clock at NIST in Boulder, Colorado. The colored beams are lasers that trap and probe strontium atoms at visible-light frequencies. Image: Ye group and Baxley/JILA, public domain via NIST.")
+
+In July 2024, JILA's strontium lattice clock achieved a systematic uncertainty of 8 × 10⁻¹⁹. One year later, in July 2025, NIST's aluminum ion clock surpassed it: 5.5 × 10⁻¹⁹; the most accurate clock ever built. It uses a single trapped aluminum ion, interrogated through quantum logic spectroscopy; a partner magnesium ion handles laser cooling and state readout, while the aluminum ion provides the clock transition. The precision corresponds to one second of drift in roughly 60 billion years; more than four times the age of the universe.
+
+![The NIST aluminum ion clock team standing beside the apparatus — a complex array of lasers, optics, and electronics filling a large optical table](./images/nist-aluminum-ion-clock.jpg "The NIST aluminum ion clock: Mason Marshall, David Hume, Willa Arthur-Dworschack, and Daniel Rodriguez Castillo. As of July 2025, this is the most accurate clock ever built. Image: R. Jacobson/NIST, public domain.")
+
+<ClockAccuracyScale />
+
+In November 2025, the JILA group pushed further still; not by building a better clock, but by entangling the atoms inside one. Using spin-squeezed quantum states, they surpassed the standard quantum limit; the fundamental noise floor that limits any measurement of independent particles. Entanglement didn't just improve the clock. It changed what clocks can be.
+
+The clocks have also left the lab. In January 2025, NIST shipped a complete ytterbium optical lattice clock 3,000 kilometers from Boulder to the U.S. Naval Observatory in Washington, DC. It was fully operational within two days. In 2024, a startup called Vector Atomic ran three optical clocks aboard a New Zealand naval vessel for twenty days at sea, maintaining timing errors below 300 picoseconds per day. They now sell the Evergreen-30; the world's first rack-mount commercial optical clock. In June 2025, ten optical clocks across six countries were compared simultaneously, measuring 38 frequency ratios; the most extensive coordinated comparison ever performed.
+
+The definition of the second, unchanged since 1967, is now actively under review. The [28th General Conference on Weights and Measures](https://www.bipm.org/en/cgpm-2026) meets in October 2026 at Versailles to consider the proposal. Ratification is expected by 2030. The 13th General Conference gave us cesium. The 28th may begin to retire it. When it happens, it will be only the second time in human history that we've changed what a second means.
+
+And the chain between the atoms and your devices keeps tightening at the other end too. Precision Time Protocol now synchronizes 5G base stations and data centers to nanoseconds; a thousand times tighter than NTP. In 2024, Meta open-sourced their entire time infrastructure, publishing a simplified PTP variant that any organization can deploy on commodity hardware. CERN's White Rabbit protocol; born to synchronize particle detectors across kilometers of tunnel; was standardized as the High Accuracy profile in IEEE 1588-2019, and by 2025 had been adopted by Deutsche Borse for trading system fairness and by power grids as a GPS-independent timing backup. Network Time Security, the cryptographic layer NTP never had, became the default in Ubuntu 25.10; authenticating the same four-timestamp exchange David Mills designed in 1985.
+
+![A next-generation rubidium vapor cell for a chip-scale atomic clock, shown beside a coffee bean for scale — the cell is smaller than the bean](./images/csac-coffee-bean.jpg "A rubidium vapor cell for NIST's chip-scale atomic clock, next to a coffee bean for scale. Over 100,000 commercial CSACs have been deployed in military radios, 5G base stations, and ocean-floor seismic sensors. Image: Hummon/NIST, public domain.")
+
+Chip-scale atomic clocks; barely larger than a postage stamp; continue to shrink the gap between atomic precision and edge devices. Microchip's newest CSAC, the SA65-LN released in January 2025, achieves ten times better short-term stability than the original 2011 model. Over 100,000 CSACs have been sold; inside military radios navigating without GPS, 5G base stations maintaining synchronization during satellite outages, and seismic sensors on the ocean floor.
+
+Even the quartz crystal; the grain of rice this post began with; is facing a successor. MEMS oscillators, fabricated in silicon rather than cut from mineral, are entering the devices you carry. In 2025, Apple chose SiTime's MEMS oscillators for the iPhone 16e's modem; a 32 kHz resonator for timekeeping and a 76.8 MHz resonator for RF, displacing quartz entirely. Over four billion MEMS oscillators have shipped across the industry. The resonators are a thousand times smaller than quartz crystals, fifty times more reliable, and immune to the helium sensitivity that occasionally bricks quartz-based phones. The tuning fork on your wrist may be among the last of its kind.
+
+The atoms got more precise. The links got shorter. The crystals got smaller. The hierarchy we've traced in this post; from your wrist to the quantum mechanics of electron transitions; is being compressed at every level.
+
+:::tip[How We Know]
+JILA strontium lattice clock: Aeppli et al., ["Clock with 8.1 × 10⁻¹⁹ Systematic Uncertainty"](https://www.nist.gov/news-events/news/2024/07/worlds-most-accurate-and-precise-atomic-clock-pushes-new-frontiers-physics) (2024), *Physical Review Letters* 133, 023401.
+NIST aluminum ion clock: Marshall et al., ["NIST Ion Clock Sets New Record"](https://www.nist.gov/news-events/news/2025/07/nist-ion-clock-sets-new-record-most-accurate-clock-world) (2025), *Physical Review Letters*. Systematic uncertainty of 5.5 × 10⁻¹⁹.
+Entanglement-enhanced clock: Yang et al., (2025), *Physical Review Letters*. First optical lattice clock to surpass the standard quantum limit using spin-squeezed atoms.
+Transportable optical clock: Nardelli et al., ["Transportable Yb Lattice Clock"](https://opg.optica.org/ol/abstract.cfm?uri=ol-50-2-646) (2025), *Optics Letters* 50(2), 646.
+Optical clocks at sea: Strangfeld et al., (2024), [*Nature* 628, 736](https://www.nature.com/articles/s41586-024-07225-2).
+Six-country comparison: Lindvall et al., (2025), [*Optica*](https://www.optica.org/about/newsroom/news_releases/2025/unprecedented_optical_clock_network_lays_groundwork_for_redefining_the_second/). Ten clocks, six countries, 38 frequency ratios.
+Redefinition roadmap: [27th CGPM, Resolution 5](https://www.bipm.org/en/cgpm-2022/resolution-5) (2022); [28th CGPM](https://www.bipm.org/en/cgpm-2026) scheduled October 2026.
+Meta SPTP: [engineering.fb.com](https://engineering.fb.com/2024/02/07/production-engineering/simple-precision-time-protocol-sptp-meta/) (2024).
+White Rabbit: standardized as IEEE 1588-2019 High Accuracy profile; [White Rabbit Collaboration](https://home.cern/news/news/knowledge-sharing/white-rabbit-cern-born-technology-sets-new-global-standard) launched March 2024, now 18 members.
+NTS: [RFC 8915](https://datatracker.ietf.org/doc/html/rfc8915) (2020); [default in Ubuntu 25.10](https://www.omgubuntu.co.uk/2025/06/ubuntu-chrony-nts-default-25-10) via chrony.
+CSAC SA65-LN: [Microchip announcement](https://www.microchip.com/en-us/about/news-releases/products/microchip-launches-next-generation-of-low-noise-chip-scale-atomic-clock) (January 2025).
+MEMS oscillators: SiTime chosen as exclusive MEMS supplier for [Apple C1 modem](https://medium.com/@mingchikuo/sitime-exclusive-supplier-of-mems-oscillators-for-apples-in-house-modem-set-for-robust-growth-in-1d3dc42b3965) (2025). 4+ billion units shipped industry-wide.
+:::
+
 ## Time at Every Level
 
 | Layer | What "time" IS at this layer |
@@ -326,15 +532,15 @@ They agree because they're both listening to atoms.
 
 ## Further Reading
 
-- [**RFC 5905: Network Time Protocol Version 4**](https://www.rfc-editor.org/info/rfc5905) — The actual specification. Dense but definitive. If you want to know exactly how NTP selects peers, filters measurements, and disciplines the clock, this is the document.
+- [**RFC 5905: Network Time Protocol Version 4**](https://www.rfc-editor.org/info/rfc5905); The actual specification. Dense but definitive. If you want to know exactly how NTP selects peers, filters measurements, and disciplines the clock, this is the document.
 
-- **David Mills, *Computer Network Time Synchronization* (2006)** — The definitive reference by NTP's creator, covering the protocol's design, algorithms, and decades of evolution. Mills passed away in 2024; this book is his life's work.
+- **David Mills, *Computer Network Time Synchronization* (2006)**; The definitive reference by NTP's creator, covering the protocol's design, algorithms, and decades of evolution. Mills passed away in 2024; this book is his life's work.
 
-- [**Richard Pogge, "Real-World Relativity: The GPS Navigation System"**](https://www.astronomy.ohio-state.edu/pogge.1/Ast162/Unit5/gps.html) — An excellent walkthrough of the relativistic corrections in GPS with the actual numbers. Written for a university astronomy course; the math is accessible.
+- [**Richard Pogge, "Real-World Relativity: The GPS Navigation System"**](https://www.astronomy.ohio-state.edu/pogge.1/Ast162/Unit5/gps.html); An excellent walkthrough of the relativistic corrections in GPS with the actual numbers. Written for a university astronomy course; the math is accessible.
 
-- [**NIST, "A New Era for Atomic Clocks"**](https://www.nist.gov/news-events/news/2014/02/new-era-atomic-clocks) — NIST's overview of their cesium and optical lattice clocks. Optical lattice clocks are the next generation; they're about 100 times more accurate than cesium. The definition of the second may change again.
+- [**NIST, "NIST Ion Clock Sets New Record as Most Accurate Clock in the World"**](https://www.nist.gov/news-events/news/2025/07/nist-ion-clock-sets-new-record-most-accurate-clock-world) (2025); The aluminum ion clock that surpassed JILA's strontium record, achieving 5.5 × 10⁻¹⁹ systematic uncertainty. See also the [2024 JILA strontium result](https://www.nist.gov/news-events/news/2024/07/worlds-most-accurate-and-precise-atomic-clock-pushes-new-frontiers-physics) that it beat. The [28th CGPM](https://www.bipm.org/en/cgpm-2026) meets October 2026 to consider redefining the second.
 
-- **Charles Kittel, *Introduction to Solid State Physics*** — The standard reference for understanding piezoelectric crystals and why quartz oscillates the way it does. Chapter on dielectrics and ferroelectrics covers the physics.
+- **Charles Kittel, *Introduction to Solid State Physics***; The standard reference for understanding piezoelectric crystals and why quartz oscillates the way it does. Chapter on dielectrics and ferroelectrics covers the physics.
 
 :::note[Connection]
 Time synchronization is the foundation of distributed systems. When two computers need to agree on the order of events, they need to agree on time; or find a way around it. We'll explore this in the Distributed Systems post, where Lamport clocks and vector clocks offer a different answer to "what happened first?"
