@@ -12,9 +12,10 @@ interface Props {
   description?: string
   tags?: string[]
   author?: string
+  wide?: boolean
 }
 
-const { title, description, tags, author } = Astro.props
+const { title, description, tags, author, wide } = Astro.props
 const pageUrl = new URL(Astro.url.pathname, Astro.site).href.replace(/\/$/, '') // Remove trailing slash for consistency
 const pageType = Astro.url.pathname.startsWith('/posts') ? 'article' : 'website'
 const pageTitle = title ? `${title} - ${siteConfig.title}` : siteConfig.title
@@ -145,13 +146,35 @@ let generatedCss: string = cssLines.join('\n')
       style="background: var(--kap-orb-1, none), var(--kap-orb-2, none), var(--kap-orb-3, none);"
     ></div>
     <div
-      class="flex flex-col max-w-3xl min-h-screen border-accent/10 m-auto p-4 sm:py-5 sm:px-6 md:py-10"
+      class:list={[
+        "flex flex-col min-h-screen m-auto p-4 sm:py-5 sm:px-6 md:py-10",
+        wide ? "max-w-7xl" : "max-w-4xl"
+      ]}
     >
-      <Header />
-      <main id="main-content" class="flex flex-col py-1">
-        <slot />
-      </main>
-      <Footer />
+      {wide ? (
+        <div class="lg:flex lg:gap-6 lg:items-start flex-1">
+          <div class="flex-1 min-w-0 flex flex-col">
+            <div class="content-grid">
+              <Header />
+            </div>
+            <main id="main-content" class="flex flex-col py-1 flex-1">
+              <slot />
+            </main>
+            <div class="content-grid">
+              <Footer />
+            </div>
+          </div>
+          <slot name="sidebar" />
+        </div>
+      ) : (
+        <Fragment>
+          <Header />
+          <main id="main-content" class="flex flex-col py-1 flex-1">
+            <slot />
+          </main>
+          <Footer />
+        </Fragment>
+      )}
     </div>
   </body>
 </html>

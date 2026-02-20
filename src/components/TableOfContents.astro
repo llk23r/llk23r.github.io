@@ -40,13 +40,13 @@ const filteredHeadings = headings.filter(({ depth }) => depth >= 2 && depth <= 3
   </div>
 </div>
 
-<!-- Desktop: fixed sidebar -->
+<!-- Desktop: sticky sidebar -->
 <details
   open
-  class="toc hidden lg:block text-foreground/90 text-sm bg-transparent px-4 py-4 rounded-xl border-none shadow-none fixed top-1/2 -translate-y-1/2 left-[calc(50%+22.5rem)] w-[220px] xl:left-[calc(50%+22.5rem)] xl:w-[274px] 2xl:left-[calc(50%+25rem)] 2xl:w-[320px] max-h-[55vh] overflow-hidden z-40"
+  class="toc hidden lg:block text-foreground/90 text-sm bg-transparent px-4 py-4 rounded-xl border-none shadow-none sticky top-24 shrink-0 w-[220px] xl:w-[274px] max-h-[calc(100vh-8rem)] overflow-hidden"
 >
   <summary class="list-none marker:hidden marker:content-[''] cursor-default text-foreground/90 font-semibold text-sm">Contents</summary>
-  <nav class="toc-nav w-full mt-4 max-h-[calc(55vh-5rem)] overflow-y-auto">
+  <nav class="toc-nav w-full mt-4 max-h-[calc(100vh-13rem)] overflow-y-auto">
     <ul class="toc-list flex flex-col gap-0.5 max-w-full">
       {filteredHeadings.map((heading) => <TOCHeading heading={heading} />)}
     </ul>

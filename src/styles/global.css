@@ -432,6 +432,35 @@ article img {
 .prose {
   @apply text-base/7;
 
+  /* Breakout grid: text stays narrow, visuals expand */
+  display: grid;
+  grid-template-columns:
+    [full-start breakout-start] minmax(0, 1fr)
+    [content-start] min(660px, 100%)
+    [content-end] minmax(0, 1fr)
+    [breakout-end full-end];
+
+  & > * {
+    grid-column: content;
+  }
+
+  & > div.expressive-code,
+  & > figure:not(.expressive-code figure),
+  & > img,
+  & > video,
+  & > table,
+  & > aside,
+  & > blockquote,
+  & > astro-island,
+  & > hr {
+    grid-column: breakout;
+  }
+
+  & > astro-island {
+    display: block;
+    width: 100%;
+  }
+
   code:not(.expressive-code code) {
     @apply text-sm text-foreground/90 bg-foreground/5 px-2 py-1 rounded-lg whitespace-nowrap;
     font-family: var(--theme-font), monospace;
@@ -441,7 +470,7 @@ article img {
     color: color-mix(in srgb, var(--theme-link) 65%, var(--theme-foreground));
   }
 
-  & > *:not(div.expressive-code, img, figure, video, hr, blockquote, aside),
+  & > *:not(div.expressive-code, img, figure, video, hr, blockquote, aside, astro-island),
   figcaption {
     @apply md:mx-2;
   }
@@ -834,6 +863,19 @@ article img {
 
   input[type='submit'] {
     @apply border-accent cursor-pointer;
+  }
+}
+
+/* Content grid — centers children to match prose content column */
+.content-grid {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    min(660px, 100%)
+    minmax(0, 1fr);
+
+  & > * {
+    grid-column: 2;
   }
 }
 

@@ -55,7 +55,8 @@
 <style>
   .journey-map {
     padding: 1rem 0;
-    margin: 1.5rem 0;
+    margin: 1.5rem auto;
+    max-width: 660px;
     font-family: var(--theme-font, 'JetBrains Mono', monospace);
     font-size: 0.8rem;
   }

@@ -74,6 +74,7 @@ const totalMinutes = minutesRead ? parseInt(minutesRead) : 0
 ---
 
 <Layout
+  wide
   title={postData.title}
   description={postData.description}
   author={postData.author}
@@ -88,114 +89,118 @@ const totalMinutes = minutesRead ? parseInt(minutesRead) : 0
   </div>
 
   <article class="max-w-full py-7.5" data-pagefind-body>
-    {
-      postData.coverImage && (
-        <Image
-          priority
-          layout="constrained"
-          src={postData.coverImage.src}
-          alt={postData.coverImage.alt}
-          class="w-full rounded-xl mb-5"
-        />
-      )
-    }
-    <div class="md:mx-2">
-      <!-- Breadcrumbs -->
-      <nav class="post-breadcrumbs" aria-label="Breadcrumb">
-        <a href="/">Home</a>
-        {series && (
-          <>
-            <span class="sep" aria-hidden="true">›</span>
-            <a href={series.url}>{series.title.toUpperCase()}</a>
-          </>
+    <div class="prose" id="prose-content">
+      {
+        postData.coverImage && (
+          <Image
+            priority
+            layout="constrained"
+            src={postData.coverImage.src}
+            alt={postData.coverImage.alt}
+            class="w-full rounded-xl mb-5"
+          />
+        )
+      }
+      <div class="md:mx-2">
+        <!-- Breadcrumbs -->
+        <nav class="post-breadcrumbs" aria-label="Breadcrumb">
+          <a href="/">Home</a>
+          {series && (
+            <>
+              <span class="sep" aria-hidden="true">›</span>
+              <a href={series.url}>{series.title.toUpperCase()}</a>
+            </>
+          )}
+          <span class="sep" aria-hidden="true">›</span>
+          <span class="current">{postData.title}</span>
+        </nav>
+
+        {/* Series context banner */}
+        {series && seriesPostNumber && seriesTotal && (
+          <div class="series-context">
+            <span class="series-context-label">
+              {series.title.toUpperCase()} · Part {seriesPostNumber} of {seriesTotal}
+            </span>
+            <span class="series-context-nav">
+              {prevPostInSeries && (
+                <a href={`/posts/${prevPostInSeries.id}`} class="series-context-link">← Previous</a>
+              )}
+              {prevPostInSeries && nextPostInSeries && (
+                <span class="series-context-sep">·</span>
+              )}
+              {nextPostInSeries && (
+                <a href={`/posts/${nextPostInSeries.id}`} class="series-context-link next">Next →</a>
+              )}
+            </span>
+          </div>
         )}
-        <span class="sep" aria-hidden="true">›</span>
-        <span class="current">{postData.title}</span>
-      </nav>
 
-      {/* Series context banner */}
-      {series && seriesPostNumber && seriesTotal && (
-        <div class="series-context">
-          <span class="series-context-label">
-            {series.title.toUpperCase()} · Part {seriesPostNumber} of {seriesTotal}
-          </span>
-          <span class="series-context-nav">
-            {prevPostInSeries && (
-              <a href={`/posts/${prevPostInSeries.id}`} class="series-context-link">← Previous</a>
-            )}
-            {prevPostInSeries && nextPostInSeries && (
-              <span class="series-context-sep">·</span>
-            )}
-            {nextPostInSeries && (
-              <a href={`/posts/${nextPostInSeries.id}`} class="series-context-link next">Next →</a>
-            )}
-          </span>
+        <h1 id={post.id} class="mb-4 mt-8 text-[1.75rem] text-heading1 font-semibold" style="font-family: 'Inter Variable', system-ui, sans-serif;">
+          {postData.title}
+        </h1>
+        <div class="my-2 pl-4 py-2" style="border-left: 2px solid var(--kap-border-right);">
+          <PostInfo post={post} class="mb-1" />
+          {
+            tags && (
+              <div class="mt-4">
+                <Tags tags={tags} />
+              </div>
+            )
+          }
         </div>
-      )}
-
-      <h1 id={post.id} class="mb-4 mt-8 text-[1.75rem] text-heading1 font-semibold" style="font-family: 'Inter Variable', system-ui, sans-serif;">
-        {postData.title}
-      </h1>
-      <div class="my-2 pl-4 py-2" style="border-left: 2px solid var(--kap-border-right);">
-        <PostInfo post={post} class="mb-1" />
         {
-          tags && (
-            <div class="mt-4">
-              <Tags tags={tags} />
-            </div>
+          postData.disclaimer && (
+            <p class="text-foreground/50 text-sm italic mt-4" style="font-family: 'Inter Variable', system-ui, sans-serif;">
+              {postData.disclaimer}
+            </p>
           )
         }
       </div>
-      {
-        postData.disclaimer && (
-          <p class="text-foreground/50 text-sm italic mt-4" style="font-family: 'Inter Variable', system-ui, sans-serif;">
-            {postData.disclaimer}
-          </p>
-        )
-      }
-    </div>
-    <div class="flex flex-col lg:gap-1 2xl:gap-18 lg:flex-row lg:items-start">
-      {postData.toc && headings.length > 0 && <TableOfContents headings={headings} />}
-      <div class="mb-5 lg:min-w-full 2xl:min-w-full prose" id="prose-content">
-        <PostContent />
-      </div>
+      <PostContent />
     </div>
   </article>
-  {
-    nextPostInSeries && (
-      <a
-        href={`/posts/${nextPostInSeries.id}`}
-        class="button justify-center -mt-8 mb-8 !whitespace-normal text-center flex gap-2 sm:gap-3 items-center"
-      >
-        <span>Next: {nextPostInSeries.data.title}</span>
-        <ChevronsRight class="size-5 hidden sm:block" />
-      </a>
-    )
-  }
-  {
-    AddendumContent && (
-      <PostAddendum avatarImage={addendumAvatarImage}>
-        <AddendumContent />
-      </PostAddendum>
-    )
-  }
-  {
-    showSeries && series ? (
-      <section>
-        <DividerText text={`${series.title} Series`} />
-        {series.entries.map((seriesPost) => (
-          <PostPreview post={seriesPost} />
-        ))}
-      </section>
-    ) : prev || next ? (
-      <section>
-        <DividerText text="More Posts" />
-        {prev && <PostPreview post={prev} />}
-        {next && <PostPreview post={next} />}
-      </section>
-    ) : null
-  }
+
+  <!-- Post footer content — same column as prose, centered to content width -->
+  <div class="content-grid">
+    {
+      nextPostInSeries && (
+        <a
+          href={`/posts/${nextPostInSeries.id}`}
+          class="button justify-center -mt-8 mb-8 !whitespace-normal text-center flex gap-2 sm:gap-3 items-center"
+        >
+          <span>Next: {nextPostInSeries.data.title}</span>
+          <ChevronsRight class="size-5 hidden sm:block" />
+        </a>
+      )
+    }
+    {
+      AddendumContent && (
+        <PostAddendum avatarImage={addendumAvatarImage}>
+          <AddendumContent />
+        </PostAddendum>
+      )
+    }
+    {
+      showSeries && series ? (
+        <section>
+          <DividerText text={`${series.title} Series`} />
+          {series.entries.map((seriesPost) => (
+            <PostPreview post={seriesPost} />
+          ))}
+        </section>
+      ) : prev || next ? (
+        <section>
+          <DividerText text="More Posts" />
+          {prev && <PostPreview post={prev} />}
+          {next && <PostPreview post={next} />}
+        </section>
+      ) : null
+    }
+  </div>
+
   <ScrollUpButton />
+
+  {postData.toc && headings.length > 0 && <TableOfContents slot="sidebar" headings={headings} />}
 </Layout>
 
 <style>
