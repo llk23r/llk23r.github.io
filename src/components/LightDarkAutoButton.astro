@@ -3,17 +3,8 @@ import IconSun from '~/icons/sun.svg'
 import IconMoon from '~/icons/moon.svg'
 import IconContrast from '~/icons/contrast.svg'
 import siteConfig from '~/site.config'
-const themes = siteConfig.themes.include as string[]
-const themeLabels: Record<string, string> = {
-  'rose-pine-dawn': 'Light',
-  'github-dark-dimmed': 'Gray',
-  'kanagawa-dragon': 'Dark',
-}
-const themeColors: Record<string, { bg: string; accent: string }> = {
-  'rose-pine-dawn': { bg: '#FAF6F1', accent: '#B86020' },
-  'github-dark-dimmed': { bg: '#2A2A2A', accent: '#B0B0B0' },
-  'kanagawa-dragon': { bg: '#0C0804', accent: '#E89050' },
-}
+
+const themes = siteConfig.themes.include
 ---
 
 <div class="theme-picker-wrap" id="theme-picker-wrap">
@@ -24,23 +15,24 @@ const themeColors: Record<string, { bg: string; accent: string }> = {
     aria-expanded="false"
     aria-haspopup="true"
   >
-    <IconSun id="icon-theme-0" class="hidden size-6 text-accent" />
-    <IconContrast id="icon-theme-1" class="hidden size-6 text-accent" />
-    <IconMoon id="icon-theme-2" class="hidden size-6 text-accent" />
+    {/* Icons shown based on current theme's colorScheme */}
+    <IconSun class="hidden size-6 text-accent trigger-icon" data-scheme="light" />
+    <IconContrast class="hidden size-6 text-accent trigger-icon" data-scheme="other" />
+    <IconMoon class="hidden size-6 text-accent trigger-icon" data-scheme="dark" />
   </button>
   <div class="theme-picker-dropdown hidden" id="theme-picker-dropdown" role="menu">
-    {themes.map((themeId, i) => (
+    {themes.map((theme) => (
       <button
         class="theme-picker-option"
         role="menuitem"
-        data-theme-id={themeId}
-        data-theme-index={i}
+        data-theme-id={theme.shikiTheme}
+        data-color-scheme={theme.colorScheme}
       >
         <span
           class="theme-swatch"
-          style={`background: ${themeColors[themeId]?.bg || '#888'}; border-color: ${themeColors[themeId]?.accent || '#aaa'};`}
+          style={`background: ${theme.colors.background}; border-color: ${theme.colors.accent};`}
         ></span>
-        <span class="theme-label">{themeLabels[themeId] || themeId}</span>
+        <span class="theme-label">{theme.label}</span>
       </button>
     ))}
   </div>
@@ -51,13 +43,20 @@ const themeColors: Record<string, { bg: string; accent: string }> = {
   const trigger = document.getElementById('theme-picker-trigger')
   const dropdown = document.getElementById('theme-picker-dropdown')
   const themes = (document.documentElement.getAttribute('data-themes') || '').split(',')
-  const icons = themes.map((_, i) => trigger?.querySelector(`#icon-theme-${i}`))
   const options = dropdown?.querySelectorAll('.theme-picker-option')
+  const triggerIcons = trigger?.querySelectorAll('.trigger-icon')
 
-  function updateIcons(theme: string) {
-    const idx = themes.indexOf(theme)
-    icons.forEach((icon, i) => {
-      icon?.classList.toggle('hidden', i !== idx)
+  function updateIcon(theme: string) {
+    // Find colorScheme from the matching option's data attribute
+    let scheme = 'other'
+    options?.forEach((opt) => {
+      if (opt.getAttribute('data-theme-id') === theme) {
+        scheme = opt.getAttribute('data-color-scheme') || 'other'
+      }
+    })
+    triggerIcons?.forEach((icon) => {
+      const forScheme = (icon as HTMLElement).dataset.scheme
+      icon.classList.toggle('hidden', forScheme !== scheme)
     })
   }
 
@@ -72,13 +71,13 @@ const themeColors: Record<string, { bg: string; accent: string }> = {
   function applyTheme(theme: string) {
     localStorage.setItem('data-theme', theme)
     document.documentElement.setAttribute('data-theme', theme)
-    updateIcons(theme)
+    updateIcon(theme)
     updateActive(theme)
   }
 
   // Init
   const current = localStorage.getItem('data-theme') || themes[0]
-  updateIcons(current)
+  updateIcon(current)
   updateActive(current)
 
   // Toggle dropdown

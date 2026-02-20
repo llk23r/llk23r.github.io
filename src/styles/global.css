@@ -57,205 +57,8 @@
   --default-mono-font-family: var(--theme-font), monospace;
 }
 
-/* ==========================================================================
-   Kapsicum Visual Language — CSS Variables
-   ========================================================================== */
-
-/* Ember Chamber (dark) — firelight amber */
-:root[data-theme="kanagawa-dragon"] {
-  color-scheme: dark;
-
-  /* Atmosphere */
-  --kap-bg-from: #0C0804;
-  --kap-bg-to: #14100A;
-
-  /* Surfaces — no haze, just a warm tint */
-  --kap-surface-bg: rgba(224, 136, 64, 0.035);
-  --kap-surface-blur: 8px;
-
-  /* Borders — amber ember glow on right, deep char on bottom */
-  --kap-border-right: rgba(224, 136, 64, 0.3);
-  --kap-border-bottom: rgba(40, 24, 10, 0.7);
-  --kap-border-top: rgba(245, 237, 228, 0.06);
-  --kap-border-left: rgba(245, 237, 228, 0.03);
-
-  /* Shadows — deep and warm, not diffuse */
-  --kap-shadow-card:
-    0 1px 3px rgba(0,0,0,0.5),
-    0 4px 16px rgba(0,0,0,0.35);
-  --kap-shadow-button:
-    0 2px 8px rgba(12,8,4,0.6),
-    0 4px 12px rgba(224,136,64,0.12);
-
-  /* Text */
-  --kap-text-shadow-title: 1px 1px 2px rgba(0,0,0,0.7);
-  --kap-text-secondary: rgba(245,237,228,0.7);
-  --kap-text-tertiary: rgba(245,237,228,0.5);
-  --kap-text-muted: rgba(245,237,228,0.3);
-
-  /* Buttons — amber gradient */
-  --kap-btn-gradient: linear-gradient(135deg, #E89050 0%, #C07030 100%);
-  --kap-btn-hover-shadow:
-    0 4px 16px rgba(12,8,4,0.5),
-    0 8px 24px rgba(224,136,64,0.2);
-  --kap-btn-active-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
-
-  /* Atmosphere orbs — warm amber nebulae */
-  --kap-orb-1: radial-gradient(ellipse 600px 400px at 10% 15%, rgba(224,136,64,0.05), transparent 70%);
-  --kap-orb-2: radial-gradient(ellipse 500px 500px at 90% 50%, rgba(200,152,80,0.035), transparent 70%);
-  --kap-orb-3: radial-gradient(ellipse 400px 300px at 50% 85%, rgba(184,96,32,0.03), transparent 70%);
-}
-
-/* Grayscale (mid) — pure monochrome, no color */
-:root[data-theme="github-dark-dimmed"] {
-  color-scheme: dark;
-
-  /* Atmosphere */
-  --kap-bg-from: #2A2A2A;
-  --kap-bg-to: #252525;
-
-  /* Surfaces — neutral, no tint */
-  --kap-surface-bg: rgba(255, 255, 255, 0.03);
-  --kap-surface-blur: 8px;
-
-  /* Borders — pure neutral, slightly higher contrast */
-  --kap-border-right: rgba(255, 255, 255, 0.15);
-  --kap-border-bottom: rgba(0, 0, 0, 0.45);
-  --kap-border-top: rgba(255, 255, 255, 0.08);
-  --kap-border-left: rgba(255, 255, 255, 0.04);
-
-  /* Shadows — deep neutral */
-  --kap-shadow-card:
-    0 1px 3px rgba(0,0,0,0.4),
-    0 4px 16px rgba(0,0,0,0.25);
-  --kap-shadow-button:
-    0 2px 8px rgba(0,0,0,0.4),
-    0 4px 12px rgba(0,0,0,0.15);
-
-  /* Text */
-  --kap-text-shadow-title: 1px 1px 2px rgba(0,0,0,0.5);
-  --kap-text-secondary: rgba(216,216,216,0.7);
-  --kap-text-tertiary: rgba(216,216,216,0.5);
-  --kap-text-muted: rgba(216,216,216,0.3);
-
-  /* Buttons — neutral gray gradient */
-  --kap-btn-gradient: linear-gradient(135deg, #808080 0%, #606060 100%);
-  --kap-btn-hover-shadow:
-    0 4px 16px rgba(0,0,0,0.4),
-    0 8px 24px rgba(255,255,255,0.05);
-  --kap-btn-active-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
-
-  /* Atmosphere — no color, subtle neutral glow */
-  --kap-orb-1: radial-gradient(ellipse 600px 400px at 10% 15%, rgba(255,255,255,0.015), transparent 70%);
-  --kap-orb-2: radial-gradient(ellipse 500px 500px at 90% 50%, rgba(255,255,255,0.01), transparent 70%);
-  --kap-orb-3: radial-gradient(ellipse 400px 300px at 50% 85%, rgba(255,255,255,0.008), transparent 70%);
-
-  /* Extra color vars not in theme key system — ensure gray for components using them */
-  --theme-orange: #C8C8C8;
-  --theme-pink: #B0B0B0;
-}
-
-/* Grayscale: desaturate non-color-critical simulations and code blocks.
-   Components with data-preserves-color keep their actual wavelength/spectrum colors. */
-:root[data-theme="github-dark-dimmed"] .trace-viz:not([data-preserves-color]),
-:root[data-theme="github-dark-dimmed"] .prose div.expressive-code {
-  filter: grayscale(1);
-}
-
-/* Grayscale: override viz-specific vars for high-contrast charts */
-:root[data-theme="github-dark-dimmed"] .trace-viz {
-  /* Structure: subtle grid, visible axes */
-  --viz-grid: #3D3D3D;
-  --viz-axis: #909090;
-  --viz-bg: #2A2A2A;
-
-  /* Text: bright labels, readable muted */
-  --viz-text: #D8D8D8;
-  --viz-text-muted: #A0A0A0;
-
-  /* Data curves: wide brightness spread for distinction */
-  --viz-curve-planck: #E8E8E8;
-  --viz-curve-classical: #909090;
-  --viz-wien: #C8C8C8;
-  --viz-catastrophe: #E0E0E0;
-
-  /* Field/circuit components */
-  --viz-positive: #E0E0E0;
-  --viz-negative: #808080;
-  --viz-coil: #D0D0D0;
-  --viz-field: #808080;
-  --viz-voltage: #B8B8B8;
-  --viz-propagation: #C0C0C0;
-  --viz-wire: #C8C8C8;
-  --viz-electron: #A0A0A0;
-
-  /* Neuron/action potential */
-  --viz-waveform: #E0E0E0;
-  --viz-na: #D8D8D8;
-  --viz-k: #888888;
-  --viz-resting: #C0C0C0;
-  --viz-threshold: #A8A8A8;
-  --viz-refractory: #909090;
-
-  /* Timeline/general colors */
-  --viz-accent: #B0B0B0;
-  --viz-purple: #B0B0B0;
-  --viz-yellow: #D0D0D0;
-  --viz-orange: #C0C0C0;
-  --viz-cyan: #A0A0A0;
-  --viz-blue: #888888;
-  --viz-red: #D8D8D8;
-  --viz-green: #B8B8B8;
-  --viz-pink: #A8A8A8;
-
-  /* PhotoelectricEffect UI indicators (not wavelength data) */
-  --viz-reject: #B0B0B0;
-  --viz-accept: #A0A0A0;
-  --viz-electron-fill: #909090;
-}
-
-/* Warm Parchment (light) — aged paper, no haze */
-:root[data-theme="rose-pine-dawn"] {
-  color-scheme: light;
-
-  --kap-bg-from: #FAF6F1;
-  --kap-bg-to: #F2EBE2;
-
-  /* Surfaces — barely tinted, no glassmorphism fog */
-  --kap-surface-bg: rgba(184, 96, 32, 0.035);
-  --kap-surface-blur: 0px;
-
-  /* Borders — crisp, architectural. Amber accent right edge like a book spine */
-  --kap-border-right: rgba(184, 96, 32, 0.18);
-  --kap-border-bottom: rgba(44, 26, 14, 0.1);
-  --kap-border-top: rgba(250, 244, 236, 0.7);
-  --kap-border-left: rgba(250, 244, 236, 0.4);
-
-  /* Shadows — subtle but defined, not cloudy */
-  --kap-shadow-card:
-    0 1px 2px rgba(44,26,14,0.06),
-    0 2px 8px rgba(44,26,14,0.04);
-  --kap-shadow-button:
-    0 1px 3px rgba(44,26,14,0.12),
-    0 2px 6px rgba(184,96,32,0.08);
-
-  --kap-text-shadow-title: none;
-  --kap-text-secondary: rgba(44,26,14,0.65);
-  --kap-text-tertiary: rgba(44,26,14,0.45);
-  --kap-text-muted: rgba(44,26,14,0.3);
-
-  /* Buttons — burnt sienna gradient */
-  --kap-btn-gradient: linear-gradient(135deg, #B86020 0%, #9A4C18 100%);
-  --kap-btn-hover-shadow:
-    0 2px 8px rgba(44,26,14,0.12),
-    0 4px 12px rgba(184,96,32,0.12);
-  --kap-btn-active-shadow: inset 0 2px 3px rgba(44,26,14,0.2);
-
-  /* Atmosphere — barely-there warmth */
-  --kap-orb-1: radial-gradient(ellipse 600px 400px at 10% 15%, rgba(184,96,32,0.025), transparent 70%);
-  --kap-orb-2: radial-gradient(ellipse 500px 500px at 90% 50%, rgba(154,122,32,0.02), transparent 70%);
-  --kap-orb-3: radial-gradient(ellipse 400px 300px at 50% 85%, rgba(82,122,58,0.015), transparent 70%);
-}
+/* Kapsicum CSS variables and extra theme CSS are now generated at build time
+   from theme definition files in src/themes/. See Layout.astro. */
 
 /* ==========================================================================
    Kapsicum — Glassmorphism Surfaces
@@ -417,7 +220,9 @@ button {
 }
 
 article img {
-  @apply block max-w-full rounded-xl overflow-hidden mx-auto;
+  @apply block rounded-xl overflow-hidden mx-auto;
+  max-width: min(100%, 800px);
+  max-height: min(80vh, 600px);
   border-right: 1px solid var(--kap-border-right);
   border-bottom: 1px solid var(--kap-border-bottom);
   border-top: 1px solid var(--kap-border-top);
@@ -470,7 +275,7 @@ article img {
     color: color-mix(in srgb, var(--theme-link) 65%, var(--theme-foreground));
   }
 
-  & > *:not(div.expressive-code, img, figure, video, hr, blockquote, aside, astro-island),
+  & > *:not(div.expressive-code, img, figure, video, hr, blockquote, aside, astro-island, table),
   figcaption {
     @apply md:mx-2;
   }
@@ -805,22 +610,38 @@ article img {
 
 
   table {
-    @apply border-2 p-2.5;
-    border-color: var(--kap-border-bottom);
-    display: block;
-    overflow-x: auto;
-    max-width: 100%;
-    scrollbar-width: auto;
+    width: 100%;
+    border-spacing: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--kap-surface-bg);
+    border-right: 1px solid var(--kap-border-right);
+    border-bottom: 1px solid var(--kap-border-bottom);
+    border-top: 1px solid var(--kap-border-top);
+    border-left: 1px solid var(--kap-border-left);
+    box-shadow: var(--kap-shadow-card);
+  }
+
+  aside table,
+  blockquote table {
+    background: transparent;
+    box-shadow: none;
+    border: none;
   }
 
   th,
   td {
-    @apply border-2 p-2.5;
-    border-color: var(--kap-border-bottom);
+    @apply p-2.5 text-left;
+    border-bottom: 1px solid var(--kap-border-bottom);
   }
 
   th {
-    @apply uppercase text-left;
+    @apply uppercase font-semibold text-[0.85em];
+    border-bottom-width: 2px;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
   }
 
   .katex-display {

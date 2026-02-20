@@ -63,7 +63,7 @@ export default defineConfig({
   integrations: [
     sitemap(),
     expressiveCode({
-      themes: siteConfig.themes.include,
+      themes: siteConfig.themes.include.map((t) => t.shikiTheme),
       useDarkModeMediaQuery: false,
       defaultProps: {
         showLineNumbers: false,

@@ -1,4 +1,7 @@
-import type { SiteConfig } from '~/types'
+import type { SiteConfig } from './types'
+import parchment from './themes/parchment'
+import grayscale from './themes/grayscale'
+import emberChamber from './themes/ember-chamber'
 
 const config: SiteConfig = {
   // Absolute URL to the root of your published site, used for generating links and sitemaps.
@@ -46,97 +49,17 @@ const config: SiteConfig = {
       external: true,
     },
   ],
-  // The theming configuration for the site.
+  // Theming — each theme is a self-contained file in src/themes/.
+  // To add a theme: create a new file in src/themes/, import it here, and add to include[].
   themes: {
     mode: 'light-dark-auto',
     default: 'rose-pine-dawn',
-    include: ['rose-pine-dawn', 'github-dark-dimmed', 'kanagawa-dragon'],
-    overrides: {
-      // Ember Chamber (dark) — ember to ash
-      'kanagawa-dragon': {
-        background: '#0C0804',
-        foreground: '#F5EDE4',
-        accent: '#E89050',
-        heading1: '#F0A050',       // bright amber — the flame
-        heading2: '#E08840',       // deep amber
-        heading3: '#C87838',       // burnt sienna — the coal
-        heading4: '#B06830',       // dark umber
-        heading5: '#A08060',       // warm taupe — the ash
-        heading6: '#907868',       // warm gray-brown
-        separator: '#2A1C10',
-        link: '#F0A050',
-        list: '#E89050',
-        note: '#6AACC4',          // warm steel blue
-        tip: '#80A868',           // warm olive
-        important: '#B888A8',     // warm mauve
-        caution: '#E8C85A',       // golden ochre
-        warning: '#D08050',       // burnt orange
-        red: '#D08050',
-        green: '#80A868',
-        yellow: '#E8C85A',
-        blue: '#6AACC4',
-        magenta: '#B888A8',
-        cyan: '#68B8A8',          // warm teal
-      },
-      // Grayscale (mid) — pure monochrome, no color anywhere
-      // All values must clear 3:1 contrast against #2A2A2A bg (min ~#707070)
-      'github-dark-dimmed': {
-        background: '#2A2A2A',
-        foreground: '#D8D8D8',
-        accent: '#B0B0B0',
-        heading1: '#E8E8E8',
-        heading2: '#D8D8D8',
-        heading3: '#C8C8C8',
-        heading4: '#B8B8B8',
-        heading5: '#A8A8A8',
-        heading6: '#989898',
-        separator: '#707070',
-        link: '#D0D0D0',
-        list: '#B0B0B0',
-        note: '#A0A0A0',
-        tip: '#A8A8A8',
-        important: '#B0B0B0',
-        caution: '#989898',
-        warning: '#909090',
-        red: '#D0D0D0',
-        green: '#A8A8A8',
-        yellow: '#C0C0C0',
-        blue: '#909090',
-        magenta: '#B8B8B8',
-        cyan: '#A0A0A0',
-      },
-      // Warm Parchment (light) — hierarchy through contrast
-      'rose-pine-dawn': {
-        background: '#FAF6F1',
-        foreground: '#2C1A0E',
-        accent: '#B86020',
-        heading1: '#8B4513',       // saddle brown — commanding
-        heading2: '#A05520',       // burnt sienna
-        heading3: '#B06830',       // lighter sienna
-        heading4: '#9A7050',       // warm mid-brown
-        heading5: '#887868',       // warm gray
-        heading6: '#787070',       // warm charcoal
-        separator: '#E0D0BC',
-        link: '#9A5020',
-        list: '#B86020',
-        note: '#3A7098',          // deep warm steel
-        tip: '#527A3A',           // dark olive
-        important: '#7A5A72',     // warm plum
-        caution: '#9A7A20',       // deep golden
-        warning: '#B85830',       // warm brick
-        red: '#B85830',
-        green: '#527A3A',
-        yellow: '#9A7A20',
-        blue: '#3A7098',
-        magenta: '#7A5A72',
-        cyan: '#2A7A70',          // warm dark teal
-      },
-    },
+    include: [parchment, grayscale, emberChamber],
   },
   // Social links to display in the footer.
   socialLinks: {
     github: 'https://github.com/llk23r',
-    rss: true, // Set to true to include an RSS feed link in the footer
+    rss: true,
   },
 }
 
