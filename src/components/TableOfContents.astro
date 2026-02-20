@@ -33,9 +33,12 @@ const filteredHeadings = headings.filter(({ depth }) => depth >= 2 && depth <= 3
       </button>
     </div>
     <nav class="toc-mobile-nav overflow-y-auto flex-1 min-h-0">
-      <ul class="flex flex-col gap-0.5">
-        {filteredHeadings.map((heading) => <TOCHeading heading={heading} />)}
-      </ul>
+      <details class="toc-media-section" open>
+        <summary class="toc-media-heading">Sections <span class="toc-media-count">{filteredHeadings.length}</span></summary>
+        <ul class="toc-media-list flex flex-col gap-0.5">
+          {filteredHeadings.map((heading) => <TOCHeading heading={heading} />)}
+        </ul>
+      </details>
     </nav>
   </div>
 </div>
@@ -47,9 +50,12 @@ const filteredHeadings = headings.filter(({ depth }) => depth >= 2 && depth <= 3
 >
   <summary class="list-none marker:hidden marker:content-[''] cursor-default text-foreground/90 font-semibold text-sm">Contents</summary>
   <nav class="toc-nav w-full mt-4 max-h-[calc(100vh-13rem)] overflow-y-auto">
-    <ul class="toc-list flex flex-col gap-0.5 max-w-full">
-      {filteredHeadings.map((heading) => <TOCHeading heading={heading} />)}
-    </ul>
+    <details class="toc-media-section" open>
+      <summary class="toc-media-heading">Sections <span class="toc-media-count">{filteredHeadings.length}</span></summary>
+      <ul class="toc-list toc-media-list flex flex-col gap-0.5 max-w-full">
+        {filteredHeadings.map((heading) => <TOCHeading heading={heading} />)}
+      </ul>
+    </details>
   </nav>
 </details>
 
@@ -153,6 +159,137 @@ const filteredHeadings = headings.filter(({ depth }) => depth >= 2 && depth <= 3
 
     window.addEventListener('scroll', updateActiveHeading, { passive: true })
     updateActiveHeading()
+
+    // --- Media Navigator ---
+    initMediaNav(closeDrawer)
+  }
+
+  function initMediaNav(closeDrawer: () => void) {
+    const article = document.querySelector('article')
+    if (!article) return
+
+    const SKIP_COMPONENTS = new Set(['JourneyMap'])
+
+    function pascalToReadable(name: string): string {
+      return name
+        .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+        .replace(/([a-z])([A-Z])/g, '$1 $2')
+    }
+
+    // Discover visualizations (astro-island components)
+    type MediaItem = { element: Element; label: string }
+    const vizItems: MediaItem[] = []
+    article.querySelectorAll('astro-island').forEach((island) => {
+      const opts = island.getAttribute('opts')
+      if (!opts) return
+      try {
+        const parsed = JSON.parse(opts)
+        const name = parsed.name
+        if (!name || SKIP_COMPONENTS.has(name)) return
+        vizItems.push({ element: island, label: pascalToReadable(name) })
+      } catch {}
+    })
+
+    // Discover images (skip cover image — anything before first h2)
+    const imgItems: MediaItem[] = []
+    const firstH2 = article.querySelector('.prose h2')
+    article.querySelectorAll('.prose img').forEach((img) => {
+      if (firstH2 && img.compareDocumentPosition(firstH2) & Node.DOCUMENT_POSITION_FOLLOWING) return
+      const figure = img.closest('figure')
+      const caption = figure?.querySelector('figcaption')
+      const label = caption?.textContent?.trim() || (img as HTMLImageElement).alt || 'Image'
+      imgItems.push({ element: figure || img, label })
+    })
+
+    if (vizItems.length === 0 && imgItems.length === 0) return
+
+    // Build media nav DOM
+    function buildSection(heading: string, items: MediaItem[], type: string): HTMLDetailsElement {
+      const section = document.createElement('details')
+      section.className = 'toc-media-section'
+
+      const summary = document.createElement('summary')
+      summary.className = 'toc-media-heading'
+      summary.innerHTML = `${heading} <span class="toc-media-count">${items.length}</span>`
+      section.appendChild(summary)
+
+      const ul = document.createElement('ul')
+      ul.className = 'toc-media-list'
+
+      items.forEach((item, i) => {
+        const li = document.createElement('li')
+        li.className = `toc-media-item toc-media-${type}`
+        li.dataset.mediaType = type
+        li.dataset.mediaIndex = String(i)
+
+        const idx = document.createElement('span')
+        idx.className = 'toc-media-idx'
+        idx.textContent = String(i + 1).padStart(2, '0')
+
+        const btn = document.createElement('button')
+        btn.textContent = item.label
+        btn.title = item.label
+        btn.addEventListener('click', () => {
+          item.element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          // Brief highlight flash on target
+          const el = item.element as HTMLElement
+          el.classList.add('toc-scroll-target')
+          el.addEventListener('animationend', () => el.classList.remove('toc-scroll-target'), { once: true })
+          closeDrawer()
+        })
+
+        li.appendChild(idx)
+        li.appendChild(btn)
+        ul.appendChild(li)
+      })
+
+      section.appendChild(ul)
+      return section
+    }
+
+    function buildMediaNav(): HTMLDivElement {
+      const container = document.createElement('div')
+      container.className = 'toc-media-nav'
+      if (vizItems.length > 0) container.appendChild(buildSection('Visualizations', vizItems, 'viz'))
+      if (imgItems.length > 0) container.appendChild(buildSection('Figures', imgItems, 'img'))
+      return container
+    }
+
+    // Inject into desktop and mobile ToC
+    const desktopNav = document.querySelector('details.toc .toc-nav')
+    const mobileNav = document.querySelector('.toc-mobile-nav')
+
+    if (desktopNav) desktopNav.appendChild(buildMediaNav())
+    if (mobileNav) mobileNav.appendChild(buildMediaNav())
+
+    // Active tracking via IntersectionObserver
+    const allItems = [...vizItems.map((v, i) => ({ ...v, type: 'viz', index: i })), ...imgItems.map((v, i) => ({ ...v, type: 'img', index: i }))]
+
+    function setActiveMedia(type: string, index: number) {
+      document.querySelectorAll('.toc-media-item').forEach((el) => {
+        const htmlEl = el as HTMLElement
+        if (htmlEl.dataset.mediaType === type && htmlEl.dataset.mediaIndex === String(index)) {
+          htmlEl.classList.add('active-media')
+        } else {
+          htmlEl.classList.remove('active-media')
+        }
+      })
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const el = entry.target as HTMLElement
+            const match = allItems.find((item) => item.element === el)
+            if (match) setActiveMedia(match.type, match.index)
+          }
+        }
+      },
+      { rootMargin: '-20% 0px -60% 0px', threshold: 0 },
+    )
+
+    allItems.forEach((item) => observer.observe(item.element))
   }
 
   initToc()
@@ -172,5 +309,153 @@ const filteredHeadings = headings.filter(({ depth }) => depth >= 2 && depth <= 3
   .toc-mobile-nav::-webkit-scrollbar-thumb {
     background: var(--theme-separator);
     border-radius: 3px;
+  }
+
+  /* Media Navigator */
+  :global(.toc-media-nav) {
+    margin-top: 8px;
+    padding-top: 0;
+  }
+
+  /* Section = collapsible <details> */
+  :global(.toc-media-section) {
+    margin-top: 8px;
+  }
+
+  :global(.toc-media-section:first-child) {
+    margin-top: 0;
+  }
+
+  :global(.toc-media-heading) {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    list-style: none;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: color-mix(in srgb, var(--theme-foreground) 50%, transparent);
+    padding: 4px 8px 4px 14px;
+    user-select: none;
+  }
+
+  :global(.toc-media-heading)::marker,
+  :global(.toc-media-heading)::-webkit-details-marker {
+    display: none;
+  }
+
+  :global(.toc-media-heading)::before {
+    content: '▸';
+    font-size: 0.65rem;
+    transition: transform 0.15s ease;
+  }
+
+  :global(.toc-media-section[open]) > :global(.toc-media-heading)::before {
+    transform: rotate(90deg);
+  }
+
+  :global(.toc-media-heading:hover) {
+    color: color-mix(in srgb, var(--theme-foreground) 70%, transparent);
+  }
+
+  :global(.toc-media-count) {
+    font-size: 0.6rem;
+    font-weight: 500;
+    color: color-mix(in srgb, var(--theme-foreground) 30%, transparent);
+    margin-left: auto;
+  }
+
+  :global(.toc-media-list) {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  :global(.toc-media-item) {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    border-left: 2px solid transparent;
+    padding: 2px 8px 2px 12px;
+    transition: border-color 0.15s, padding-left 0.15s;
+    overflow: hidden;
+  }
+
+  :global(.toc-media-item:hover) {
+    border-left-color: color-mix(in srgb, var(--theme-accent) 40%, transparent);
+    padding-left: 14px;
+  }
+
+  :global(.toc-media-idx) {
+    flex-shrink: 0;
+    font-size: 0.6rem;
+    font-weight: 500;
+    color: color-mix(in srgb, var(--theme-foreground) 25%, transparent);
+    font-variant-numeric: tabular-nums;
+    min-width: 1.4em;
+  }
+
+  :global(.toc-media-item button) {
+    all: unset;
+    display: block;
+    cursor: pointer;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: left;
+    color: color-mix(in srgb, var(--theme-foreground) 55%, transparent);
+    font-family: inherit;
+    font-size: 0.7rem;
+    line-height: 1.5;
+    flex: 1;
+  }
+
+  :global(.toc-media-item button:hover) {
+    color: var(--theme-accent);
+  }
+
+  :global(.toc-media-item.active-media) {
+    border-left-color: var(--theme-accent);
+  }
+
+  :global(.toc-media-item.active-media .toc-media-idx) {
+    color: var(--theme-accent);
+  }
+
+  :global(.toc-media-item.active-media button) {
+    color: var(--theme-accent);
+    font-weight: 600;
+  }
+
+  /* Mobile: larger touch targets */
+  :global(.toc-mobile-drawer .toc-media-item) {
+    padding: 6px 8px 6px 14px;
+  }
+
+  :global(.toc-mobile-drawer .toc-media-item button) {
+    font-size: 0.78rem;
+  }
+
+  :global(.toc-mobile-drawer .toc-media-heading) {
+    font-size: 0.73rem;
+    padding: 6px 8px 6px 14px;
+  }
+
+  /* Scroll-to highlight flash */
+  @keyframes toc-highlight {
+    0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--theme-accent) 40%, transparent); }
+    40% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--theme-accent) 25%, transparent); }
+    100% { box-shadow: 0 0 0 0 transparent; }
+  }
+
+  :global(.toc-scroll-target) {
+    animation: toc-highlight 1.7s ease-out;
+    border-radius: 8px;
   }
 </style>
