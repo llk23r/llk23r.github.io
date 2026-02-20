@@ -325,6 +325,89 @@ const totalMinutes = minutesRead ? parseInt(minutesRead) : 0
   }
 </style>
 
+<!-- Image lightbox overlay -->
+<div id="lightbox" class="lightbox" aria-hidden="true">
+  <img id="lightbox-img" class="lightbox-img" alt="" />
+</div>
+
+<style>
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms ease;
+    cursor: zoom-out;
+    padding: 24px;
+  }
+
+  .lightbox[data-active] {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .lightbox-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    /* Reset article img constraints */
+    cursor: zoom-out;
+  }
+</style>
+
+<script>
+  function initLightbox() {
+    const lightbox = document.getElementById('lightbox')
+    const lightboxImg = document.getElementById('lightbox-img')
+    if (!lightbox || !lightboxImg) return
+
+    function open(src, alt) {
+      lightboxImg.src = src
+      lightboxImg.alt = alt || ''
+      lightbox.setAttribute('data-active', '')
+      lightbox.setAttribute('aria-hidden', 'false')
+      document.body.style.overflow = 'hidden'
+    }
+
+    function close() {
+      lightbox.removeAttribute('data-active')
+      lightbox.setAttribute('aria-hidden', 'true')
+      document.body.style.overflow = ''
+    }
+
+    // Delegate click on article images
+    const article = document.querySelector('article')
+    if (article) {
+      article.addEventListener('click', (e) => {
+        const img = e.target.closest('img')
+        if (!img) return
+        e.preventDefault()
+        open(img.src, img.alt)
+      })
+    }
+
+    // Close on backdrop click
+    lightbox.addEventListener('click', close)
+
+    // Close on Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && lightbox.hasAttribute('data-active')) {
+        close()
+      }
+    })
+  }
+
+  initLightbox()
+</script>
+
 <script define:vars={{ totalMinutes }}>
   function initReadingProgress() {
     const fill = document.getElementById('reading-progress-fill')
