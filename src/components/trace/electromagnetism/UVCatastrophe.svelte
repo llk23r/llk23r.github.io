@@ -323,15 +323,15 @@
     ctx.lineWidth = 2
     ctx.setLineDash([])
     ctx.beginPath()
-    ctx.moveTo(legendX - 120, entryY1 + 5)
-    ctx.lineTo(legendX - 80, entryY1 + 5)
+    ctx.moveTo(legendX - 40, entryY1 + 5)
+    ctx.lineTo(legendX, entryY1 + 5)
     ctx.stroke()
 
     ctx.fillStyle = textColor
     ctx.font = '10px "JetBrains Mono", monospace'
-    ctx.textAlign = 'left'
+    ctx.textAlign = 'right'
     ctx.textBaseline = 'top'
-    ctx.fillText('Planck (quantum)', legendX - 76, entryY1)
+    ctx.fillText('Planck (quantum)', legendX - 46, entryY1)
 
     // R-J legend entry
     const entryY2 = entryY1 + 16
@@ -339,16 +339,16 @@
     ctx.lineWidth = 2
     ctx.setLineDash([6, 4])
     ctx.beginPath()
-    ctx.moveTo(legendX - 120, entryY2 + 5)
-    ctx.lineTo(legendX - 80, entryY2 + 5)
+    ctx.moveTo(legendX - 40, entryY2 + 5)
+    ctx.lineTo(legendX, entryY2 + 5)
     ctx.stroke()
     ctx.setLineDash([])
 
     ctx.fillStyle = textColor
     ctx.font = '10px "JetBrains Mono", monospace'
-    ctx.textAlign = 'left'
+    ctx.textAlign = 'right'
     ctx.textBaseline = 'top'
-    ctx.fillText('Rayleigh-Jeans (classical)', legendX - 76, entryY2)
+    ctx.fillText('Rayleigh-Jeans (classical)', legendX - 46, entryY2)
   }
 
   onMount(() => {
