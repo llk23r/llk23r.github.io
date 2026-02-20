@@ -56,7 +56,7 @@ How?
 
 Here's everything that happens between your wrist and the atoms:
 
-<JourneyMap steps={journeySteps} current={0} client:only="svelte" />
+<JourneyMap steps={journeySteps} current={0} client:visible />
 
 ---
 
@@ -96,7 +96,7 @@ It didn't. We did. We cut the crystal to the shape that vibrates at 32,768 Hz; h
 
 32,768 is 2 to the power of 15. Two multiplied by itself fifteen times. And that matters because of what comes next.
 
-<JourneyMap steps={journeySteps} current={2} client:only="svelte" />
+<JourneyMap steps={journeySteps} current={2} client:visible />
 
 ## From 32,768 to 1
 
@@ -106,7 +106,7 @@ There's a simple electronic component called a flip-flop. It takes an input sign
 
 Send a few pulses below and watch what happens. Each flip-flop toggles on every input pulse, but only passes a pulse onward when it transitions from HIGH back to LOW. The result: each stage halves the frequency.
 
-<FlipFlop client:only="svelte" />
+<FlipFlop client:visible />
 
 Chain fifteen flip-flops together.
 
@@ -116,7 +116,7 @@ After fifteen stages: 32,768 → 16,384 → 8,192 → 4,096 → 2,048 → 1,024 
 
 One pulse per second. A clock.
 
-<FrequencyDivider client:only="svelte" />
+<FrequencyDivider client:visible />
 
 This is why the number is a power of two. If the crystal vibrated at, say, 30,000 Hz, you couldn't divide it to exactly 1 Hz with flip-flops alone. You'd need more complicated circuitry. But 2^15 divides to 1 in exactly fifteen binary steps. Elegant. Cheap. Tiny enough to fit in a wristwatch.
 
@@ -131,7 +131,7 @@ Except you don't.
 
 Because quartz drifts.
 
-<JourneyMap steps={journeySteps} current={3} client:only="svelte" />
+<JourneyMap steps={journeySteps} current={3} client:visible />
 
 ## The Problem with "Perfect"
 
@@ -150,7 +150,7 @@ Casio specifies G-Shock accuracy at ±15 seconds per month (≈ 5.8 ppm) under n
 — Casio G-Shock module specifications; also [IEEE Std 1139-2022](https://standards.ieee.org/ieee/1139/7585/), "Standard Definitions of Physical Quantities for Fundamental Frequency and Time Metrology."
 :::
 
-<CrystalDrift client:only="svelte" />
+<CrystalDrift client:visible />
 
 You looked at your watch and your laptop. Same second. If the watch drifts half a second per day, they should disagree after 48 hours. After a month, the watch should be fifteen seconds off. After six months, a minute and a half.
 
@@ -172,7 +172,7 @@ Hours: eight flip-flops (two BCD digits). Minutes: eight. Seconds: eight. Twenty
 
 Here's what 23:59:55 looks like inside your watch; and inside your laptop's RTC chip:
 
-<TimeAsState client:only="svelte" />
+<TimeAsState client:visible />
 
 Hit **+1 sec** a few times. Watch which bits flip. Then jump to **23:59:55** and hit **Play** to watch midnight arrive; nearly all 24 bits cascade at once.
 
@@ -214,11 +214,11 @@ There's a subtlety here that matters. When an outside correction arrives; we'll 
 
 So the correction does something cleverer: it *slews* the clock. It adjusts the nanoseconds-per-tick multiplier; making each tick count for slightly more or slightly less time; so the clock drifts gently toward the correct time. No discontinuity. The crystal oscillates at the same frequency; the kernel just temporarily reinterprets what each oscillation means.
 
-<SlewVsJump client:only="svelte" />
+<SlewVsJump client:visible />
 
 Setting a clock; whether by turning a crown, overwriting an RTC register, or slewing the kernel's tick rate; never changes any oscillation. The quartz doesn't care. You're only ever adjusting which count corresponds to "now."
 
-<JourneyMap steps={journeySteps} current={4} client:only="svelte" />
+<JourneyMap steps={journeySteps} current={4} client:visible />
 
 ## Your Laptop's Solution
 
@@ -248,7 +248,7 @@ It's circular. There shouldn't be a solution to this.
 
 David Mills found one in 1985.
 
-<JourneyMap steps={journeySteps} current={5} client:only="svelte" />
+<JourneyMap steps={journeySteps} current={5} client:visible />
 
 ## Four Timestamps
 
@@ -265,7 +265,7 @@ The round-trip time: (T4 - T1) - (T3 - T2). That's the total time from send to r
 
 The clock offset; how wrong your clock is: ((T2 - T1) + (T3 - T4)) / 2.
 
-<NTPHandshake client:only="svelte" />
+<NTPHandshake client:visible />
 
 Try dragging the delay sliders so the outbound and return delays are different. Watch what happens to the calculated offset.
 
@@ -284,7 +284,7 @@ So NTP makes many measurements, throws out outliers, and picks the sample with t
 
 Good enough for a desktop clock. Not good enough for GPS.
 
-<JourneyMap steps={journeySteps} current={6} client:only="svelte" />
+<JourneyMap steps={journeySteps} current={6} client:visible />
 
 ## Where Does the Time Server Get Its Time?
 
@@ -296,7 +296,7 @@ But an atomic clock isn't a network device. NIST-F2 doesn't have an Ethernet por
 
 Stratum 1 servers serve stratum 2. Stratum 2 serves stratum 3. Your laptop usually talks to stratum 2 or 3; two or three hops from an atom.
 
-<StratumHierarchy client:only="svelte" />
+<StratumHierarchy client:visible />
 
 Why the hierarchy? Why can't every device just query stratum 1 directly?
 
@@ -306,7 +306,7 @@ The [NTP Pool Project](https://www.ntppool.org/) makes this concrete. Thousands 
 
 And your laptop doesn't trust any single server. It queries several; typically four; and cross-checks them against each other. If three agree within a few milliseconds and one disagrees wildly, the outlier is discarded. NTP's *intersection algorithm* finds the largest group of servers whose time estimates overlap and rejects anything outside that consensus. A broken clock, a compromised server, a congested network path; any single failure gets outvoted. The system's reliability comes not from the perfection of any one link, but from redundancy across many.
 
-<JourneyMap steps={journeySteps} current={7} client:only="svelte" />
+<JourneyMap steps={journeySteps} current={7} client:visible />
 
 ## Atoms Don't Drift
 
@@ -342,7 +342,7 @@ The detector's output feeds back into the oscillator. Too few transitions? Nudge
 
 When it finds that peak, the oscillator is locked to 9,192,631,770 Hz. Now you count those oscillations. 9,192,631,770 of them is exactly one second.
 
-<CesiumFeedbackLoop client:only="svelte" />
+<CesiumFeedbackLoop client:visible />
 
 It's a servo loop; the same concept as a thermostat. A thermostat holds temperature steady by measuring the room and adjusting the heater. A cesium clock holds frequency steady by measuring atomic transitions and adjusting the oscillator. The quartz watch has no thermostat for its frequency. It drifts. The cesium clock IS the thermostat.
 
@@ -356,7 +356,7 @@ The redefinition: [13th CGPM, Resolution 1](https://www.bipm.org/en/committees/c
 NIST-F2 accuracy: T.P. Heavner et al., ["First accuracy evaluation of NIST-F2"](https://www.nist.gov/publications/first-accuracy-evaluation-nist-f2) (2014), *Metrologia* 51, 174-182. Uncertainty of 1 × 10⁻¹⁶, corresponding to ~1 second in 300 million years.
 :::
 
-<JourneyMap steps={journeySteps} current={8} client:only="svelte" />
+<JourneyMap steps={journeySteps} current={8} client:visible />
 
 ## How the Time Gets to Your Watch
 
@@ -372,7 +372,7 @@ During the day, ultraviolet radiation from the Sun ionizes the lowest layer of t
 
 At sunset, the ultraviolet bombardment stops. Without that energy, the free electrons in the D-region recombine with ions and the layer effectively disappears. Now WWVB's signal passes straight through where the D-region was and reaches the higher E-region, around 100 kilometers up. The E-region doesn't absorb it; it reflects it. The signal bounces back to the ground, hits the ground, reflects upward again, and can skip across the continent this way; reaching watches two or three thousand kilometers from Fort Collins.
 
-<IonosphereReflection client:only="svelte" />
+<IonosphereReflection client:visible />
 
 This is why radio-controlled watches sync at night. The chip inside is programmed to try receiving the signal at 2 AM local time, when the D-region is gone and the signal is at its strongest. If it decodes a valid time code, it adjusts the counter flip-flops; the same ones you'd set by pulling the crown. If it doesn't; too much interference, too far from the transmitter; the watch falls back to quartz until tomorrow night.
 
@@ -385,7 +385,7 @@ WWVB has been broadcasting from Fort Collins since 1963. NIST operates it alongs
 
 If your watch doesn't have a radio receiver, it's just very good quartz. The drift is there. You either correct it manually or you don't notice, because fifteen seconds a month isn't catastrophic for a wristwatch.
 
-<JourneyMap steps={journeySteps} current={9} client:only="svelte" />
+<JourneyMap steps={journeySteps} current={9} client:visible />
 
 ## GPS: When Milliseconds Aren't Enough
 
@@ -425,7 +425,7 @@ The two effects work against each other. Net result: satellite clocks run 38 mic
 
 38 microseconds per day. Light covers 11.4 kilometers in 38 microseconds. Without the relativistic correction, your phone's GPS position would drift about 11 kilometers per day. By Friday, it would place you in a different city.
 
-<RelativisticDrift client:only="svelte" />
+<RelativisticDrift client:visible />
 
 There is a correction factor in the firmware of every GPS satellite, applied to every timing signal, every second of every day, that accounts for general relativity.
 
@@ -453,11 +453,11 @@ Three independent paths to the same atoms: GPS from orbit, NTP through the inter
 
 <ThreePathsToPhone />
 
-<JourneyMap steps={journeySteps} current={-1} client:only="svelte" />
+<JourneyMap steps={journeySteps} current={-1} client:visible />
 
 ## The Loop Closes
 
-<SystemDiagram client:only="svelte" />
+<SystemDiagram client:visible />
 
 Your watch and your laptop both say 3:00 PM.
 
