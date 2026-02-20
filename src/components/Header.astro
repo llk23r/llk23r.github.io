@@ -151,6 +151,9 @@ const lightDarkAutoTheme = siteConfig.themes.mode === 'light-dark-auto'
     list-style: none;
     min-width: 160px;
     transition: opacity 150ms ease, transform 150ms ease;
+    background: color-mix(in srgb, var(--theme-background) 85%, transparent);
+    backdrop-filter: blur(16px) saturate(130%);
+    -webkit-backdrop-filter: blur(16px) saturate(130%);
   }
 
   .header-mobile-nav li {
@@ -160,7 +163,7 @@ const lightDarkAutoTheme = siteConfig.themes.mode === 'light-dark-auto'
   .header-mobile-nav :global(a) {
     display: block;
     text-decoration: none;
-    color: color-mix(in srgb, var(--theme-foreground) 60%, transparent);
+    color: color-mix(in srgb, var(--theme-foreground) 85%, transparent);
     font-size: 0.8125rem;
     padding: 8px 12px;
     border-radius: 8px;
