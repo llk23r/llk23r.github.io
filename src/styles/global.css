@@ -223,6 +223,7 @@ article img {
   @apply block rounded-xl overflow-hidden mx-auto;
   max-width: min(100%, 800px);
   max-height: min(80vh, 600px);
+  cursor: zoom-in;
   border-right: 1px solid var(--kap-border-right);
   border-bottom: 1px solid var(--kap-border-bottom);
   border-top: 1px solid var(--kap-border-top);
