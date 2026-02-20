@@ -4,44 +4,172 @@ import IconMoon from '~/icons/moon.svg'
 import IconContrast from '~/icons/contrast.svg'
 import siteConfig from '~/site.config'
 const themes = siteConfig.themes.include as string[]
+const themeLabels: Record<string, string> = {
+  'rose-pine-dawn': 'Light',
+  'github-dark-dimmed': 'Gray',
+  'kanagawa-dragon': 'Dark',
+}
+const themeColors: Record<string, { bg: string; accent: string }> = {
+  'rose-pine-dawn': { bg: '#FAF6F1', accent: '#B86020' },
+  'github-dark-dimmed': { bg: '#2A2A2A', accent: '#B0B0B0' },
+  'kanagawa-dragon': { bg: '#0C0804', accent: '#E89050' },
+}
 ---
 
-<button
-  id="theme-change-button"
-  class="block ml-auto"
-  data-themes={themes.join(',')}
->
-  <IconSun id="icon-theme-0" class="hidden size-6 text-accent" />
-  <IconContrast id="icon-theme-1" class="hidden size-6 text-accent" />
-  <IconMoon id="icon-theme-2" class="hidden size-6 text-accent" />
-</button>
+<div class="theme-picker-wrap" id="theme-picker-wrap">
+  <button
+    id="theme-picker-trigger"
+    class="block ml-auto"
+    aria-label="Change theme"
+    aria-expanded="false"
+    aria-haspopup="true"
+  >
+    <IconSun id="icon-theme-0" class="hidden size-6 text-accent" />
+    <IconContrast id="icon-theme-1" class="hidden size-6 text-accent" />
+    <IconMoon id="icon-theme-2" class="hidden size-6 text-accent" />
+  </button>
+  <div class="theme-picker-dropdown hidden" id="theme-picker-dropdown" role="menu">
+    {themes.map((themeId, i) => (
+      <button
+        class="theme-picker-option"
+        role="menuitem"
+        data-theme-id={themeId}
+        data-theme-index={i}
+      >
+        <span
+          class="theme-swatch"
+          style={`background: ${themeColors[themeId]?.bg || '#888'}; border-color: ${themeColors[themeId]?.accent || '#aaa'};`}
+        ></span>
+        <span class="theme-label">{themeLabels[themeId] || themeId}</span>
+      </button>
+    ))}
+  </div>
+</div>
 
 <script>
-  const themeButton = document.getElementById('theme-change-button')
-  const themes = (themeButton?.getAttribute('data-themes') || '').split(',')
-  const icons = themes.map((_, i) => themeButton?.querySelector(`#icon-theme-${i}`))
+  const wrap = document.getElementById('theme-picker-wrap')
+  const trigger = document.getElementById('theme-picker-trigger')
+  const dropdown = document.getElementById('theme-picker-dropdown')
+  const themes = (document.documentElement.getAttribute('data-themes') || '').split(',')
+  const icons = themes.map((_, i) => trigger?.querySelector(`#icon-theme-${i}`))
+  const options = dropdown?.querySelectorAll('.theme-picker-option')
 
-  const updateIcons = (theme: string) => {
+  function updateIcons(theme: string) {
     const idx = themes.indexOf(theme)
     icons.forEach((icon, i) => {
-      if (i === idx) {
-        icon?.classList.remove('hidden')
-      } else {
-        icon?.classList.add('hidden')
-      }
+      icon?.classList.toggle('hidden', i !== idx)
     })
   }
 
-  let currentTheme = localStorage.getItem('data-theme') || themes[0]
-  updateIcons(currentTheme)
+  function updateActive(theme: string) {
+    options?.forEach((opt) => {
+      const isActive = opt.getAttribute('data-theme-id') === theme
+      opt.classList.toggle('active', isActive)
+      opt.setAttribute('aria-checked', String(isActive))
+    })
+  }
 
-  themeButton?.addEventListener('click', () => {
-    const current = localStorage.getItem('data-theme') || themes[0]
-    const currentIdx = themes.indexOf(current)
-    const nextIdx = (currentIdx + 1) % themes.length
-    const newTheme = themes[nextIdx]
-    updateIcons(newTheme)
-    localStorage.setItem('data-theme', newTheme)
-    document.documentElement.setAttribute('data-theme', newTheme)
+  function applyTheme(theme: string) {
+    localStorage.setItem('data-theme', theme)
+    document.documentElement.setAttribute('data-theme', theme)
+    updateIcons(theme)
+    updateActive(theme)
+  }
+
+  // Init
+  const current = localStorage.getItem('data-theme') || themes[0]
+  updateIcons(current)
+  updateActive(current)
+
+  // Toggle dropdown
+  trigger?.addEventListener('click', () => {
+    const isOpen = !dropdown?.classList.contains('hidden')
+    dropdown?.classList.toggle('hidden', isOpen)
+    trigger.setAttribute('aria-expanded', String(!isOpen))
+  })
+
+  // Theme selection
+  options?.forEach((opt) => {
+    opt.addEventListener('click', () => {
+      const themeId = opt.getAttribute('data-theme-id')
+      if (themeId) applyTheme(themeId)
+      dropdown?.classList.add('hidden')
+      trigger?.setAttribute('aria-expanded', 'false')
+    })
+  })
+
+  // Close on click outside
+  document.addEventListener('click', (e) => {
+    if (!wrap?.contains(e.target as Node)) {
+      dropdown?.classList.add('hidden')
+      trigger?.setAttribute('aria-expanded', 'false')
+    }
+  })
+
+  // Close on Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      dropdown?.classList.add('hidden')
+      trigger?.setAttribute('aria-expanded', 'false')
+    }
   })
 </script>
+
+<style>
+  .theme-picker-wrap {
+    position: relative;
+  }
+
+  .theme-picker-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 120px;
+    padding: 6px;
+    border-radius: 10px;
+    background: var(--theme-background);
+    border: 1px solid color-mix(in srgb, var(--theme-foreground) 12%, transparent);
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--theme-foreground) 8%, transparent);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .theme-picker-dropdown.hidden {
+    display: none;
+  }
+
+  .theme-picker-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-family: 'JetBrains Mono Variable', monospace;
+    font-size: 12px;
+    color: color-mix(in srgb, var(--theme-foreground) 60%, transparent);
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .theme-picker-option:hover {
+    background: color-mix(in srgb, var(--theme-foreground) 6%, transparent);
+    color: var(--theme-foreground);
+  }
+
+  .theme-picker-option.active {
+    color: var(--theme-accent);
+    font-weight: 600;
+  }
+
+  .theme-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid;
+    flex-shrink: 0;
+  }
+</style>

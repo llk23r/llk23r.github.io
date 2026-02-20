@@ -1,0 +1,71 @@
+---
+import Layout from '~/layouts/Layout.astro'
+import { getSortedPosts, SeriesGroup } from '~/utils'
+import PageHeader from '~/components/PageHeader.astro'
+
+const sortedPosts = await getSortedPosts()
+const seriesGroup = await SeriesGroup.build(sortedPosts)
+seriesGroup.sortCollationsMostRecent()
+---
+
+<Layout
+  title="All Series"
+  description="Browse all post series"
+>
+  <div class="mt-2 sm:mt-0">
+    <PageHeader titlePieces={['series']} />
+    <ul class="series-list">
+      {seriesGroup.collations.map((series) => (
+        <li class="series-card">
+          <a href={series.url} class="series-card-link">
+            <span class="series-card-title">{series.title.toUpperCase()}</span>
+            <span class="series-card-count">{series.entries.length} {series.entries.length === 1 ? 'post' : 'posts'}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</Layout>
+
+<style>
+  .series-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .series-card {
+    border-radius: 8px;
+    border: 1px solid color-mix(in srgb, var(--theme-accent) 10%, transparent);
+    background: color-mix(in srgb, var(--theme-accent) 3%, transparent);
+    transition: border-color 0.15s, background 0.15s;
+  }
+
+  .series-card:hover {
+    border-color: color-mix(in srgb, var(--theme-accent) 25%, transparent);
+    background: color-mix(in srgb, var(--theme-accent) 6%, transparent);
+  }
+
+  .series-card-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    text-decoration: none;
+  }
+
+  .series-card-title {
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--theme-accent);
+  }
+
+  .series-card-count {
+    font-size: 0.75rem;
+    color: color-mix(in srgb, var(--theme-foreground) 40%, transparent);
+  }
+</style>

@@ -2,12 +2,10 @@
 import siteConfig from '~/site.config'
 import LightDarkAutoButton from '~/components/LightDarkAutoButton.astro'
 import Search from '~/components/Search.astro'
-import SelectTheme from '~/components/SelectTheme.astro'
 import NavLink from '~/components/NavLink.astro'
+import IconMenu from '~/icons/menu.svg'
 
 const lightDarkAutoTheme = siteConfig.themes.mode === 'light-dark-auto'
-const selectTheme =
-  siteConfig.themes.mode === 'select' && siteConfig.themes.include.length > 1
 ---
 
 <header>
@@ -22,20 +20,20 @@ const selectTheme =
     <div class="flex items-center gap-3 sm:mr-3">
       <Search trailingSlashes={siteConfig.trailingSlashes} />
       {lightDarkAutoTheme && <LightDarkAutoButton />}
-      {selectTheme && <SelectTheme />}
       <nav id="nav-mobile" aria-label="Menu" class="p-0 text-accent sm:hidden">
         <button
           id="nav-mobile-button"
-          class="px-3 py-1 h-full cursor-pointer border-2 rounded-xl bg-background"
+          class="p-2 h-full cursor-pointer rounded-xl"
           type="button"
           aria-expanded="false"
           aria-controls="nav-menu-list"
         >
-          ▾
+          <IconMenu class="size-5 text-accent" />
         </button>
         <ul
           id="nav-mobile-list"
-          class="kap-surface invisible absolute flex flex-col shadow text-accent m-0 p-2.5 top-11.5 left-auto right-0 z-50 rounded-xl"
+          class="kap-surface absolute flex flex-col shadow text-accent m-0 p-2.5 top-11.5 left-auto right-0 z-50 rounded-xl"
+          style="opacity: 0; transform: translateY(-8px); pointer-events: none; transition: opacity 150ms ease, transform 150ms ease;"
         >
           {
             siteConfig.navLinks.map((link) => (
@@ -65,21 +63,27 @@ const selectTheme =
   const navMobileButton = document.getElementById('nav-mobile-button')
   const navMobileList = document.getElementById('nav-mobile-list')
   const navMobileListItems = navMobileList?.querySelectorAll('li')
-  const toggleNavMobileMenu = (action: 'on' | 'off' | 'toggle') => {
-    let isNowOpen: boolean = false
-    if (action === 'on') {
-      isNowOpen = true
-      navMobileList?.classList.remove('invisible')
-    } else if (action === 'off') {
-      isNowOpen = false
-      navMobileList?.classList.add('invisible')
+  const setNavOpen = (open: boolean) => {
+    if (!navMobileList) return
+    if (open) {
+      navMobileList.style.opacity = '1'
+      navMobileList.style.transform = 'translateY(0)'
+      navMobileList.style.pointerEvents = 'auto'
     } else {
-      isNowOpen = !navMobileList?.classList.toggle('invisible')
+      navMobileList.style.opacity = '0'
+      navMobileList.style.transform = 'translateY(-8px)'
+      navMobileList.style.pointerEvents = 'none'
     }
-    navMobileButton?.setAttribute('aria-expanded', isNowOpen ? 'true' : 'false')
+    navMobileButton?.setAttribute('aria-expanded', open ? 'true' : 'false')
     navMobileListItems?.forEach((listItem) => {
-      listItem.setAttribute('aria-expanded', isNowOpen ? 'true' : 'false')
+      listItem.setAttribute('aria-expanded', open ? 'true' : 'false')
     })
+  }
+  const toggleNavMobileMenu = (action: 'on' | 'off' | 'toggle') => {
+    const isCurrentlyOpen = navMobileList?.style.opacity === '1'
+    if (action === 'on') setNavOpen(true)
+    else if (action === 'off') setNavOpen(false)
+    else setNavOpen(!isCurrentlyOpen)
   }
   navMobileButton?.addEventListener('click', (_ev) => {
     toggleNavMobileMenu('toggle')

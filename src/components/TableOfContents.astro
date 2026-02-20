@@ -14,17 +14,17 @@ const filteredHeadings = headings.filter(({ depth }) => depth >= 2 && depth <= 3
 
 <!-- Mobile: floating trigger button -->
 <button
-  class="toc-mobile-trigger xl:hidden kap-surface-interactive fixed z-50 bottom-3 left-3 size-11 flex items-center justify-center !rounded-full md:size-12 md:bottom-5 md:left-5"
+  class="toc-mobile-trigger lg:hidden kap-surface-interactive fixed z-50 bottom-3 left-3 size-11 flex items-center justify-center !rounded-full md:size-12 md:bottom-5 md:left-5"
   aria-label="Table of Contents"
 >
   <IconList class="text-accent/50 size-6 lg:size-7" />
 </button>
 
 <!-- Mobile: backdrop -->
-<div class="toc-mobile-backdrop xl:hidden fixed inset-0 bg-black/40 z-50 hidden" aria-hidden="true"></div>
+<div class="toc-mobile-backdrop lg:hidden fixed inset-0 bg-black/40 z-50 hidden" aria-hidden="true"></div>
 
 <!-- Mobile: bottom sheet drawer -->
-<div class="toc-mobile-drawer xl:hidden fixed bottom-0 left-0 right-0 z-50 translate-y-full transition-transform duration-300 ease-out">
+<div class="toc-mobile-drawer lg:hidden fixed bottom-0 left-0 right-0 z-50 translate-y-full transition-transform duration-300 ease-out">
   <div class="rounded-t-2xl px-6 pt-5 pb-6 max-h-[60vh] flex flex-col" style="background: var(--theme-background); border-top: 1px solid var(--kap-border-top); border-right: 1px solid var(--kap-border-right); border-left: 1px solid var(--kap-border-right);">
     <div class="flex items-center justify-between mb-4">
       <span class="text-foreground/90 font-semibold text-sm">Contents</span>
@@ -43,7 +43,7 @@ const filteredHeadings = headings.filter(({ depth }) => depth >= 2 && depth <= 3
 <!-- Desktop: fixed sidebar -->
 <details
   open
-  class="toc hidden xl:block text-foreground/90 text-sm bg-transparent px-4 py-4 rounded-xl border-none shadow-none fixed top-1/2 -translate-y-1/2 left-[calc(50%+22.5rem)] w-[274px] 2xl:left-[calc(50%+25rem)] 2xl:w-[320px] max-h-[55vh] overflow-hidden z-40"
+  class="toc hidden lg:block text-foreground/90 text-sm bg-transparent px-4 py-4 rounded-xl border-none shadow-none fixed top-1/2 -translate-y-1/2 left-[calc(50%+22.5rem)] w-[220px] xl:left-[calc(50%+22.5rem)] xl:w-[274px] 2xl:left-[calc(50%+25rem)] 2xl:w-[320px] max-h-[55vh] overflow-hidden z-40"
 >
   <summary class="list-none marker:hidden marker:content-[''] cursor-default text-foreground/90 font-semibold text-sm">Contents</summary>
   <nav class="toc-nav w-full mt-4 max-h-[calc(55vh-5rem)] overflow-y-auto">
@@ -95,7 +95,7 @@ const filteredHeadings = headings.filter(({ depth }) => depth >= 2 && depth <= 3
 
     // Close drawer on resize to desktop
     window.addEventListener('resize', () => {
-      if (window.innerWidth >= 1280) closeDrawer()
+      if (window.innerWidth >= 1024) closeDrawer()
     })
 
     // --- Active heading tracking ---
@@ -140,7 +140,7 @@ const filteredHeadings = headings.filter(({ depth }) => depth >= 2 && depth <= 3
       }
 
       // Auto-scroll desktop TOC
-      if (activeIndex >= 0 && tocNav && window.innerWidth >= 1280 && !userScrolledToc) {
+      if (activeIndex >= 0 && tocNav && window.innerWidth >= 1024 && !userScrolledToc) {
         const activeItem = desktopItems[activeIndex] as HTMLElement
         const navRect = tocNav.getBoundingClientRect()
         const itemRect = activeItem.getBoundingClientRect()

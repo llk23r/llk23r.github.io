@@ -81,7 +81,9 @@ Type `q()` and press Enter. You can then type a multi-line message, using Enter 
 Amp can read, create, update, delete files and answer questions about your current directory.
 :::
 
-![IEx Demo](/images/iex-demo.gif)
+<video autoplay loop muted playsinline>
+  <source src="/images/iex-demo.mp4" type="video/mp4" />
+</video>
 
 ## Livebook Integration
 
@@ -109,7 +111,9 @@ import AmpIEx
 In Livebook, use `q_livebook("your prompt here")` for direct queries. Like IEx, Amp can read, create, update, delete files and answer questions about your current directory.
 :::
 
-![Livebook Demo](/images/livebook-demo.gif)
+<video autoplay loop muted playsinline>
+  <source src="/images/livebook-demo.mp4" type="video/mp4" />
+</video>
 
 ## Usage Examples
 

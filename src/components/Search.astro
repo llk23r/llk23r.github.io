@@ -207,10 +207,18 @@ const { trailingSlashes = false } = Astro.props
         console.warn('Dialog not found')
         return
       }
-      // check if it's the Control+K or ⌘+K shortcut
+      // Control+K or ⌘+K shortcut
       if ((e.metaKey === true || e.ctrlKey === true) && e.key === 'k') {
         this.#dialog.open ? this.closeModal() : this.openModal()
         e.preventDefault()
+      }
+      // "/" shortcut (when not in an input/textarea)
+      if (e.key === '/' && !this.#dialog.open) {
+        const tag = (e.target as HTMLElement)?.tagName
+        if (tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT') {
+          this.openModal()
+          e.preventDefault()
+        }
       }
     }
   }

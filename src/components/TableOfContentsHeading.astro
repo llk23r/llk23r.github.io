@@ -38,6 +38,16 @@ const {
     overflow: hidden;
   }
 
+  /* Larger touch targets in mobile drawer */
+  :global(.toc-mobile-drawer) .toc-item {
+    padding-block: 10px;
+    font-size: 0.875rem;
+  }
+
+  :global(.toc-mobile-drawer) .toc-item.depth-3 {
+    font-size: 0.8rem;
+  }
+
   .toc-item a:hover {
     color: var(--theme-accent);
   }
