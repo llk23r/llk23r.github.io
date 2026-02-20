@@ -14,7 +14,7 @@ const isActive = !link.external && (
 ---
 
 <a
-  class:list={["underline", { "nav-active": isActive }]}
+  class:list={[{ "nav-active": isActive }]}
   rel={link.external ? 'noopener noreferrer' : undefined}
   target={link.external ? '_blank' : undefined}
   href={link.url}

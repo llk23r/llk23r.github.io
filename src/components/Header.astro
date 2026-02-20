@@ -8,61 +8,186 @@ import IconMenu from '~/icons/menu.svg'
 const lightDarkAutoTheme = siteConfig.themes.mode === 'light-dark-auto'
 ---
 
-<header>
-  <div class="kap-surface relative flex items-center justify-between rounded-xl">
-    <a
-      id="logo"
-      href="/"
-      class="block px-4 py-1.5 max-w-full no-underline items-center bg-accent text-background font-bold rounded-xl"
-    >
+<header class="relative z-50">
+  <div class="kap-surface header-bar">
+    <a id="logo" href="/" class="header-title">
       {siteConfig.title}
     </a>
-    <div class="flex items-center gap-3 sm:mr-3">
+
+    <nav class="header-nav" aria-label="Main navigation">
+      {siteConfig.navLinks.map((link) => (
+        <NavLink link={link} />
+      ))}
+    </nav>
+
+    <div class="header-actions">
       <Search trailingSlashes={siteConfig.trailingSlashes} />
       {lightDarkAutoTheme && <LightDarkAutoButton />}
-      <nav id="nav-mobile" aria-label="Menu" class="p-0 text-accent sm:hidden">
-        <button
-          id="nav-mobile-button"
-          class="p-2 h-full cursor-pointer rounded-xl"
-          type="button"
-          aria-expanded="false"
-          aria-controls="nav-menu-list"
-        >
-          <IconMenu class="size-5 text-accent" />
-        </button>
-        <ul
-          id="nav-mobile-list"
-          class="kap-surface absolute flex flex-col shadow text-accent m-0 p-2.5 top-11.5 left-auto right-0 z-50 rounded-xl"
-          style="opacity: 0; transform: translateY(-8px); pointer-events: none; transition: opacity 150ms ease, transform 150ms ease;"
-        >
-          {
-            siteConfig.navLinks.map((link) => (
-              <li class="p-1" aria-expanded="false">
-                <NavLink link={link} />
-              </li>
-            ))
-          }
-        </ul>
-      </nav>
+      <button
+        id="nav-mobile-button"
+        class="header-hamburger"
+        type="button"
+        aria-expanded="false"
+        aria-controls="nav-mobile-list"
+        aria-label="Toggle navigation"
+      >
+        <IconMenu class="size-5" />
+      </button>
     </div>
   </div>
-  <nav aria-label="Menu" class="p-0 mt-4 ml-0.5 text-accent hidden sm:block">
-    <ul class="flex flex-row text-accent">
-      {
-        siteConfig.navLinks.map((link) => (
-          <li class="mr-5" aria-expanded="true">
-            <NavLink link={link} />
-          </li>
-        ))
-      }
-    </ul>
-  </nav>
+
+  <ul
+    id="nav-mobile-list"
+    class="kap-surface header-mobile-nav"
+    style="opacity: 0; transform: translateY(-8px); pointer-events: none;"
+  >
+    {siteConfig.navLinks.map((link) => (
+      <li>
+        <NavLink link={link} />
+      </li>
+    ))}
+  </ul>
 </header>
+
+<style>
+  /* ── Bar ───────────────────────────────────────────────── */
+  .header-bar {
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    height: 48px;
+  }
+
+  /* ── Wordmark ─────────────────────────────────────────── */
+  .header-title {
+    font-weight: 650;
+    font-size: 0.875rem;
+    color: var(--theme-foreground);
+    text-decoration: none;
+    white-space: nowrap;
+    letter-spacing: -0.025em;
+    flex-shrink: 0;
+    transition: color 0.15s ease;
+  }
+
+  .header-title:hover {
+    color: var(--theme-accent);
+  }
+
+  /* ── Desktop nav ──────────────────────────────────────── */
+  .header-nav {
+    display: none;
+    align-items: center;
+    gap: 2px;
+    margin-left: 20px;
+  }
+
+  @media (min-width: 768px) {
+    .header-nav {
+      display: flex;
+    }
+  }
+
+  .header-nav :global(a) {
+    text-decoration: none;
+    color: color-mix(in srgb, var(--theme-foreground) 50%, transparent);
+    font-size: 0.8125rem;
+    padding: 5px 10px;
+    border-radius: 8px;
+    transition: color 0.15s ease, background-color 0.15s ease;
+  }
+
+  .header-nav :global(a:hover) {
+    color: var(--theme-foreground);
+    background: color-mix(in srgb, var(--theme-foreground) 6%, transparent);
+  }
+
+  .header-nav :global(a.nav-active) {
+    color: var(--theme-accent);
+    background: color-mix(in srgb, var(--theme-accent) 8%, transparent);
+  }
+
+  /* ── Actions (search, theme, hamburger) ───────────────── */
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  /* ── Hamburger (mobile only) ──────────────────────────── */
+  .header-hamburger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border-radius: 8px;
+    color: var(--theme-accent);
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+  }
+
+  .header-hamburger:hover {
+    background: color-mix(in srgb, var(--theme-accent) 8%, transparent);
+  }
+
+  @media (min-width: 768px) {
+    .header-hamburger {
+      display: none;
+    }
+  }
+
+  /* ── Mobile dropdown ──────────────────────────────────── */
+  .header-mobile-nav {
+    position: absolute;
+    top: 52px;
+    right: 0;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    padding: 6px;
+    margin: 0;
+    list-style: none;
+    min-width: 160px;
+    transition: opacity 150ms ease, transform 150ms ease;
+  }
+
+  .header-mobile-nav li {
+    padding: 0;
+  }
+
+  .header-mobile-nav :global(a) {
+    display: block;
+    text-decoration: none;
+    color: color-mix(in srgb, var(--theme-foreground) 60%, transparent);
+    font-size: 0.8125rem;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: color 0.15s ease, background-color 0.15s ease;
+  }
+
+  .header-mobile-nav :global(a:hover) {
+    color: var(--theme-foreground);
+    background: color-mix(in srgb, var(--theme-foreground) 6%, transparent);
+  }
+
+  .header-mobile-nav :global(a.nav-active) {
+    color: var(--theme-accent);
+    background: color-mix(in srgb, var(--theme-accent) 8%, transparent);
+  }
+
+  @media (min-width: 768px) {
+    .header-mobile-nav {
+      display: none !important;
+    }
+  }
+</style>
 
 <script>
   const navMobileButton = document.getElementById('nav-mobile-button')
   const navMobileList = document.getElementById('nav-mobile-list')
-  const navMobileListItems = navMobileList?.querySelectorAll('li')
+
   const setNavOpen = (open: boolean) => {
     if (!navMobileList) return
     if (open) {
@@ -75,17 +200,27 @@ const lightDarkAutoTheme = siteConfig.themes.mode === 'light-dark-auto'
       navMobileList.style.pointerEvents = 'none'
     }
     navMobileButton?.setAttribute('aria-expanded', open ? 'true' : 'false')
-    navMobileListItems?.forEach((listItem) => {
-      listItem.setAttribute('aria-expanded', open ? 'true' : 'false')
-    })
   }
-  const toggleNavMobileMenu = (action: 'on' | 'off' | 'toggle') => {
-    const isCurrentlyOpen = navMobileList?.style.opacity === '1'
-    if (action === 'on') setNavOpen(true)
-    else if (action === 'off') setNavOpen(false)
-    else setNavOpen(!isCurrentlyOpen)
-  }
-  navMobileButton?.addEventListener('click', (_ev) => {
-    toggleNavMobileMenu('toggle')
+
+  navMobileButton?.addEventListener('click', () => {
+    const isOpen = navMobileList?.style.opacity === '1'
+    setNavOpen(!isOpen)
+  })
+
+  // Close on outside click
+  document.addEventListener('click', (e) => {
+    if (
+      !navMobileButton?.contains(e.target as Node) &&
+      !navMobileList?.contains(e.target as Node)
+    ) {
+      setNavOpen(false)
+    }
+  })
+
+  // Close when a nav link is clicked
+  navMobileList?.addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).closest('a')) {
+      setNavOpen(false)
+    }
   })
 </script>
