@@ -16,8 +16,10 @@ const filteredHeadings = headings.filter(({ depth }) => depth >= 2 && depth <= 3
 <button
   class="toc-mobile-trigger lg:hidden kap-surface-interactive fixed z-50 bottom-3 left-3 size-11 flex items-center justify-center !rounded-full md:size-12 md:bottom-5 md:left-5"
   aria-label="Table of Contents"
+  title="Table of Contents"
 >
   <IconList class="text-accent/50 size-6 lg:size-7" />
+  <span class="toc-trigger-label">Contents</span>
 </button>
 
 <!-- Mobile: backdrop -->
@@ -296,6 +298,33 @@ const filteredHeadings = headings.filter(({ depth }) => depth >= 2 && depth <= 3
 </script>
 
 <style>
+  /* Mobile trigger label + entrance animation */
+  .toc-trigger-label {
+    position: absolute;
+    left: calc(100% + 8px);
+    font-size: 0.65rem;
+    font-weight: 600;
+    white-space: nowrap;
+    color: color-mix(in srgb, var(--theme-foreground) 50%, transparent);
+    opacity: 0;
+    transform: translateX(-4px);
+    animation: toc-label-entrance 3s 1.5s ease forwards;
+    pointer-events: none;
+  }
+
+  @keyframes toc-label-entrance {
+    0% { opacity: 0; transform: translateX(-4px); }
+    15% { opacity: 1; transform: translateX(0); }
+    70% { opacity: 1; transform: translateX(0); }
+    100% { opacity: 0; transform: translateX(-4px); }
+  }
+
+  @media (min-width: 1024px) {
+    .toc-trigger-label {
+      display: none;
+    }
+  }
+
   /* Scrollbar styling for TOC navs */
   .toc-nav::-webkit-scrollbar,
   .toc-mobile-nav::-webkit-scrollbar {

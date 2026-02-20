@@ -6,13 +6,27 @@ interface Props {
 }
 
 const { link } = Astro.props
+const isActive = !link.external && (
+  link.url === '/'
+    ? Astro.url.pathname === '/'
+    : Astro.url.pathname.startsWith(link.url)
+)
 ---
 
 <a
-  class="underline"
+  class:list={["underline", { "nav-active": isActive }]}
   rel={link.external ? 'noopener noreferrer' : undefined}
   target={link.external ? '_blank' : undefined}
   href={link.url}
+  aria-current={isActive ? 'page' : undefined}
 >
   {link.name}
 </a>
+
+<style>
+  .nav-active {
+    color: var(--theme-accent);
+    text-decoration-color: var(--theme-accent);
+    text-decoration-thickness: 2px;
+  }
+</style>

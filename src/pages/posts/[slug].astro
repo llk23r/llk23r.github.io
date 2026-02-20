@@ -224,6 +224,16 @@ const totalMinutes = minutesRead ? parseInt(minutesRead) : 0
     transition: width 100ms ease-out;
   }
 
+  .reading-progress-fill.completed {
+    animation: progress-celebrate 1.5s ease-out;
+  }
+
+  @keyframes progress-celebrate {
+    0% { height: 3px; filter: brightness(1); }
+    30% { height: 5px; filter: brightness(1.5); }
+    100% { height: 3px; filter: brightness(1); }
+  }
+
   .reading-progress-time {
     position: fixed;
     top: 6px;
@@ -415,6 +425,9 @@ const totalMinutes = minutesRead ? parseInt(minutesRead) : 0
     const article = document.querySelector('article')
     if (!fill || !article) return
 
+    let hasCompleted = false
+    const slug = window.location.pathname
+
     function update() {
       const articleRect = article.getBoundingClientRect()
       const articleTop = window.scrollY + articleRect.top
@@ -436,11 +449,187 @@ const totalMinutes = minutesRead ? parseInt(minutesRead) : 0
           timeEl.classList.remove('visible')
         }
       }
+
+      // Completion celebration
+      if (progress >= 0.98 && !hasCompleted) {
+        hasCompleted = true
+        fill.classList.add('completed')
+        // Clear saved position since they've finished
+        try { localStorage.removeItem('reading-pos:' + slug) } catch {}
+      }
+
+      // Save reading position periodically (debounced by scroll event)
+      if (progress > 0.03 && progress < 0.95) {
+        try {
+          localStorage.setItem('reading-pos:' + slug, JSON.stringify({
+            scrollY: window.scrollY,
+            progress: Math.round(progress * 100),
+            timestamp: Date.now(),
+          }))
+        } catch {}
+      }
     }
 
     window.addEventListener('scroll', update, { passive: true })
     update()
+
+    // Offer to resume reading position
+    try {
+      const saved = localStorage.getItem('reading-pos:' + slug)
+      if (saved) {
+        const data = JSON.parse(saved)
+        const age = Date.now() - data.timestamp
+        // Only offer if saved within 7 days and meaningful progress
+        if (age < 7 * 24 * 60 * 60 * 1000 && data.progress > 5) {
+          const banner = document.createElement('div')
+          banner.className = 'resume-reading-banner'
+          banner.innerHTML = `<span>Continue reading from ${data.progress}%?</span><button class="resume-yes">Resume</button><button class="resume-no">Start over</button>`
+          document.body.appendChild(banner)
+          requestAnimationFrame(() => banner.classList.add('visible'))
+
+          banner.querySelector('.resume-yes')?.addEventListener('click', () => {
+            window.scrollTo({ top: data.scrollY, behavior: 'smooth' })
+            banner.classList.remove('visible')
+            setTimeout(() => banner.remove(), 300)
+          })
+
+          banner.querySelector('.resume-no')?.addEventListener('click', () => {
+            localStorage.removeItem('reading-pos:' + slug)
+            banner.classList.remove('visible')
+            setTimeout(() => banner.remove(), 300)
+          })
+
+          // Auto-dismiss after 8 seconds
+          setTimeout(() => {
+            if (banner.parentNode) {
+              banner.classList.remove('visible')
+              setTimeout(() => banner.remove(), 300)
+            }
+          }, 8000)
+        }
+      }
+    } catch {}
   }
 
   initReadingProgress()
 </script>
+
+<script>
+  function initHeadingPermalinks() {
+    const article = document.querySelector('article')
+    if (!article) return
+
+    article.querySelectorAll('a.heading-anchor').forEach((anchor) => {
+      anchor.addEventListener('click', (e) => {
+        e.preventDefault()
+        const href = anchor.getAttribute('href')
+        if (!href) return
+        const url = new URL(href, window.location.href)
+        url.pathname = window.location.pathname
+        navigator.clipboard.writeText(url.toString()).then(() => {
+          // Brief "Copied" tooltip
+          const tip = document.createElement('span')
+          tip.textContent = 'Link copied'
+          tip.className = 'heading-copy-tip'
+          anchor.appendChild(tip)
+          requestAnimationFrame(() => tip.classList.add('visible'))
+          setTimeout(() => {
+            tip.classList.remove('visible')
+            setTimeout(() => tip.remove(), 150)
+          }, 1200)
+        })
+        // Also update the URL hash
+        history.replaceState(null, '', url.toString())
+      })
+    })
+  }
+
+  initHeadingPermalinks()
+</script>
+
+<style>
+  /* Resume reading banner */
+  :global(.resume-reading-banner) {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    z-index: 250;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-family: 'JetBrains Mono Variable', monospace;
+    background: var(--kap-surface-bg);
+    border: 1px solid color-mix(in srgb, var(--theme-accent) 20%, transparent);
+    box-shadow: var(--kap-shadow-card);
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+  }
+
+  :global(.resume-reading-banner.visible) {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
+  }
+
+  :global(.resume-reading-banner span) {
+    color: color-mix(in srgb, var(--theme-foreground) 70%, transparent);
+  }
+
+  :global(.resume-reading-banner button) {
+    all: unset;
+    cursor: pointer;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 6px;
+    transition: background 0.15s ease;
+  }
+
+  :global(.resume-reading-banner .resume-yes) {
+    background: var(--theme-accent);
+    color: var(--theme-background);
+  }
+
+  :global(.resume-reading-banner .resume-yes:hover) {
+    filter: brightness(1.1);
+  }
+
+  :global(.resume-reading-banner .resume-no) {
+    color: color-mix(in srgb, var(--theme-foreground) 40%, transparent);
+  }
+
+  :global(.resume-reading-banner .resume-no:hover) {
+    color: color-mix(in srgb, var(--theme-foreground) 60%, transparent);
+    background: color-mix(in srgb, var(--theme-foreground) 5%, transparent);
+  }
+
+  :global(.heading-copy-tip) {
+    position: absolute;
+    top: -1.75rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.65rem;
+    font-weight: 500;
+    color: var(--theme-background);
+    background: var(--theme-accent);
+    padding: 2px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    pointer-events: none;
+  }
+
+  :global(.heading-copy-tip.visible) {
+    opacity: 1;
+  }
+
+  :global(h2, h3, h4, h5, h6) {
+    position: relative;
+  }
+</style>

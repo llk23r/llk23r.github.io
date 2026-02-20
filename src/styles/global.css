@@ -376,6 +376,10 @@ article img {
     a {
       @apply underline-offset-3 text-inherit no-underline;
     }
+
+    &:hover a.heading-anchor::after {
+      opacity: 1;
+    }
   }
 
   h1 {
@@ -453,7 +457,16 @@ article img {
       color: inherit;
 
       &:hover {
-        text-decoration: underline;
+        text-decoration: none;
+      }
+
+      &::after {
+        content: ' #';
+        opacity: 0;
+        color: color-mix(in srgb, var(--theme-accent) 50%, transparent);
+        font-weight: 400;
+        font-size: 0.75em;
+        transition: opacity 0.15s ease;
       }
     }
   }

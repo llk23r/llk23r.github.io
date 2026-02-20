@@ -1,7 +1,39 @@
 ---
 import siteConfig from '~/site.config'
+import IconGithub from '~/icons/github.svg'
+import IconRss from '~/icons/rss.svg'
 ---
 
-<footer class="mt-auto pt-8 pb-2 text-center text-foreground/25 text-xs">
-  {siteConfig.author} &copy; {new Date().getFullYear()}
+<footer class="mt-auto pt-8 pb-4 flex flex-col items-center gap-3 text-foreground/25 text-xs">
+  <div class="flex items-center gap-4">
+    {siteConfig.socialLinks.github && (
+      <a
+        href={siteConfig.socialLinks.github}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="footer-link"
+        aria-label="GitHub"
+      >
+        <IconGithub class="size-4" />
+      </a>
+    )}
+    {siteConfig.socialLinks.rss && (
+      <a href="/rss.xml" class="footer-link" aria-label="RSS Feed">
+        <IconRss class="size-4" />
+      </a>
+    )}
+  </div>
+  <span>{siteConfig.author} &copy; {new Date().getFullYear()}</span>
 </footer>
+
+<style>
+  .footer-link {
+    color: color-mix(in srgb, var(--theme-foreground) 30%, transparent);
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+
+  .footer-link:hover {
+    color: var(--theme-accent);
+  }
+</style>
