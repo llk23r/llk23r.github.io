@@ -170,7 +170,7 @@
 <style>
   .trace-viz {
     --viz-text: var(--theme-foreground, #ccc);
-    --viz-text-muted: var(--theme-separator, #888);
+    --viz-text-muted: var(--theme-foreground, #888);
     margin: 1.5rem 0;
     border-radius: 8px;
     overflow: hidden;

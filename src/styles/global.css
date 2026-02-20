@@ -43,6 +43,264 @@
   --default-mono-font-family: var(--theme-font), monospace;
 }
 
+/* ==========================================================================
+   Kapsicum Visual Language — CSS Variables
+   ========================================================================== */
+
+/* Ember Chamber (dark) — firelight amber */
+:root[data-theme="kanagawa-dragon"] {
+  color-scheme: dark;
+
+  /* Atmosphere */
+  --kap-bg-from: #0C0804;
+  --kap-bg-to: #14100A;
+
+  /* Surfaces — no haze, just a warm tint */
+  --kap-surface-bg: rgba(224, 136, 64, 0.035);
+  --kap-surface-blur: 8px;
+
+  /* Borders — amber ember glow on right, deep char on bottom */
+  --kap-border-right: rgba(224, 136, 64, 0.3);
+  --kap-border-bottom: rgba(40, 24, 10, 0.7);
+  --kap-border-top: rgba(245, 237, 228, 0.06);
+  --kap-border-left: rgba(245, 237, 228, 0.03);
+
+  /* Shadows — deep and warm, not diffuse */
+  --kap-shadow-card:
+    0 1px 3px rgba(0,0,0,0.5),
+    0 4px 16px rgba(0,0,0,0.35);
+  --kap-shadow-button:
+    0 2px 8px rgba(12,8,4,0.6),
+    0 4px 12px rgba(224,136,64,0.12);
+
+  /* Text */
+  --kap-text-shadow-title: 1px 1px 2px rgba(0,0,0,0.7);
+  --kap-text-secondary: rgba(245,237,228,0.7);
+  --kap-text-tertiary: rgba(245,237,228,0.5);
+  --kap-text-muted: rgba(245,237,228,0.3);
+
+  /* Buttons — amber gradient */
+  --kap-btn-gradient: linear-gradient(135deg, #E89050 0%, #C07030 100%);
+  --kap-btn-hover-shadow:
+    0 4px 16px rgba(12,8,4,0.5),
+    0 8px 24px rgba(224,136,64,0.2);
+  --kap-btn-active-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+
+  /* Atmosphere orbs — warm amber nebulae */
+  --kap-orb-1: radial-gradient(ellipse 600px 400px at 10% 15%, rgba(224,136,64,0.05), transparent 70%);
+  --kap-orb-2: radial-gradient(ellipse 500px 500px at 90% 50%, rgba(200,152,80,0.035), transparent 70%);
+  --kap-orb-3: radial-gradient(ellipse 400px 300px at 50% 85%, rgba(184,96,32,0.03), transparent 70%);
+}
+
+/* Grayscale (mid) — pure monochrome, no color */
+:root[data-theme="github-dark-dimmed"] {
+  color-scheme: dark;
+
+  /* Atmosphere */
+  --kap-bg-from: #2A2A2A;
+  --kap-bg-to: #252525;
+
+  /* Surfaces — neutral, no tint */
+  --kap-surface-bg: rgba(255, 255, 255, 0.03);
+  --kap-surface-blur: 8px;
+
+  /* Borders — pure neutral, slightly higher contrast */
+  --kap-border-right: rgba(255, 255, 255, 0.15);
+  --kap-border-bottom: rgba(0, 0, 0, 0.45);
+  --kap-border-top: rgba(255, 255, 255, 0.08);
+  --kap-border-left: rgba(255, 255, 255, 0.04);
+
+  /* Shadows — deep neutral */
+  --kap-shadow-card:
+    0 1px 3px rgba(0,0,0,0.4),
+    0 4px 16px rgba(0,0,0,0.25);
+  --kap-shadow-button:
+    0 2px 8px rgba(0,0,0,0.4),
+    0 4px 12px rgba(0,0,0,0.15);
+
+  /* Text */
+  --kap-text-shadow-title: 1px 1px 2px rgba(0,0,0,0.5);
+  --kap-text-secondary: rgba(216,216,216,0.7);
+  --kap-text-tertiary: rgba(216,216,216,0.5);
+  --kap-text-muted: rgba(216,216,216,0.3);
+
+  /* Buttons — neutral gray gradient */
+  --kap-btn-gradient: linear-gradient(135deg, #808080 0%, #606060 100%);
+  --kap-btn-hover-shadow:
+    0 4px 16px rgba(0,0,0,0.4),
+    0 8px 24px rgba(255,255,255,0.05);
+  --kap-btn-active-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+
+  /* Atmosphere — no color, subtle neutral glow */
+  --kap-orb-1: radial-gradient(ellipse 600px 400px at 10% 15%, rgba(255,255,255,0.015), transparent 70%);
+  --kap-orb-2: radial-gradient(ellipse 500px 500px at 90% 50%, rgba(255,255,255,0.01), transparent 70%);
+  --kap-orb-3: radial-gradient(ellipse 400px 300px at 50% 85%, rgba(255,255,255,0.008), transparent 70%);
+
+  /* Extra color vars not in theme key system — ensure gray for components using them */
+  --theme-orange: #C8C8C8;
+  --theme-pink: #B0B0B0;
+}
+
+/* Grayscale: desaturate non-color-critical simulations and code blocks.
+   Components with data-preserves-color keep their actual wavelength/spectrum colors. */
+:root[data-theme="github-dark-dimmed"] .trace-viz:not([data-preserves-color]),
+:root[data-theme="github-dark-dimmed"] .prose div.expressive-code {
+  filter: grayscale(1);
+}
+
+/* Grayscale: override viz-specific vars for high-contrast charts */
+:root[data-theme="github-dark-dimmed"] .trace-viz {
+  /* Structure: subtle grid, visible axes */
+  --viz-grid: #3D3D3D;
+  --viz-axis: #909090;
+  --viz-bg: #2A2A2A;
+
+  /* Text: bright labels, readable muted */
+  --viz-text: #D8D8D8;
+  --viz-text-muted: #A0A0A0;
+
+  /* Data curves: wide brightness spread for distinction */
+  --viz-curve-planck: #E8E8E8;
+  --viz-curve-classical: #909090;
+  --viz-wien: #C8C8C8;
+  --viz-catastrophe: #E0E0E0;
+
+  /* Field/circuit components */
+  --viz-positive: #E0E0E0;
+  --viz-negative: #808080;
+  --viz-coil: #D0D0D0;
+  --viz-field: #808080;
+  --viz-voltage: #B8B8B8;
+  --viz-propagation: #C0C0C0;
+  --viz-wire: #C8C8C8;
+  --viz-electron: #A0A0A0;
+
+  /* Neuron/action potential */
+  --viz-waveform: #E0E0E0;
+  --viz-na: #D8D8D8;
+  --viz-k: #888888;
+  --viz-resting: #C0C0C0;
+  --viz-threshold: #A8A8A8;
+  --viz-refractory: #909090;
+
+  /* Timeline/general colors */
+  --viz-accent: #B0B0B0;
+  --viz-purple: #B0B0B0;
+  --viz-yellow: #D0D0D0;
+  --viz-orange: #C0C0C0;
+  --viz-cyan: #A0A0A0;
+  --viz-blue: #888888;
+  --viz-red: #D8D8D8;
+  --viz-green: #B8B8B8;
+  --viz-pink: #A8A8A8;
+
+  /* PhotoelectricEffect UI indicators (not wavelength data) */
+  --viz-reject: #B0B0B0;
+  --viz-accept: #A0A0A0;
+  --viz-electron-fill: #909090;
+}
+
+/* Warm Parchment (light) — aged paper, no haze */
+:root[data-theme="rose-pine-dawn"] {
+  color-scheme: light;
+
+  --kap-bg-from: #FAF6F1;
+  --kap-bg-to: #F2EBE2;
+
+  /* Surfaces — barely tinted, no glassmorphism fog */
+  --kap-surface-bg: rgba(184, 96, 32, 0.035);
+  --kap-surface-blur: 0px;
+
+  /* Borders — crisp, architectural. Amber accent right edge like a book spine */
+  --kap-border-right: rgba(184, 96, 32, 0.18);
+  --kap-border-bottom: rgba(44, 26, 14, 0.1);
+  --kap-border-top: rgba(250, 244, 236, 0.7);
+  --kap-border-left: rgba(250, 244, 236, 0.4);
+
+  /* Shadows — subtle but defined, not cloudy */
+  --kap-shadow-card:
+    0 1px 2px rgba(44,26,14,0.06),
+    0 2px 8px rgba(44,26,14,0.04);
+  --kap-shadow-button:
+    0 1px 3px rgba(44,26,14,0.12),
+    0 2px 6px rgba(184,96,32,0.08);
+
+  --kap-text-shadow-title: none;
+  --kap-text-secondary: rgba(44,26,14,0.65);
+  --kap-text-tertiary: rgba(44,26,14,0.45);
+  --kap-text-muted: rgba(44,26,14,0.3);
+
+  /* Buttons — burnt sienna gradient */
+  --kap-btn-gradient: linear-gradient(135deg, #B86020 0%, #9A4C18 100%);
+  --kap-btn-hover-shadow:
+    0 2px 8px rgba(44,26,14,0.12),
+    0 4px 12px rgba(184,96,32,0.12);
+  --kap-btn-active-shadow: inset 0 2px 3px rgba(44,26,14,0.2);
+
+  /* Atmosphere — barely-there warmth */
+  --kap-orb-1: radial-gradient(ellipse 600px 400px at 10% 15%, rgba(184,96,32,0.025), transparent 70%);
+  --kap-orb-2: radial-gradient(ellipse 500px 500px at 90% 50%, rgba(154,122,32,0.02), transparent 70%);
+  --kap-orb-3: radial-gradient(ellipse 400px 300px at 50% 85%, rgba(82,122,58,0.015), transparent 70%);
+}
+
+/* ==========================================================================
+   Kapsicum — Glassmorphism Surfaces
+   ========================================================================== */
+
+/* Clean surfaces — no ::before haze, just material + borders */
+.kap-surface {
+  background: var(--kap-surface-bg);
+  border-right: 1px solid var(--kap-border-right);
+  border-bottom: 1px solid var(--kap-border-bottom);
+  border-top: 1px solid var(--kap-border-top);
+  border-left: 1px solid var(--kap-border-left);
+  border-radius: 12px;
+  box-shadow: var(--kap-shadow-card);
+}
+
+.kap-surface-interactive {
+  background: var(--kap-surface-bg);
+  border-right: 1px solid var(--kap-border-right);
+  border-bottom: 1px solid var(--kap-border-bottom);
+  border-top: 1px solid var(--kap-border-top);
+  border-left: 1px solid var(--kap-border-left);
+  border-radius: 12px;
+  box-shadow: var(--kap-shadow-card);
+  transition:
+    transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (hover: hover) {
+  .kap-surface-interactive:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--kap-btn-hover-shadow);
+  }
+}
+
+.kap-surface-interactive:active {
+  transform: translateY(1px);
+  box-shadow: var(--kap-btn-active-shadow);
+  transition-duration: 60ms;
+}
+
+@media (hover: none) {
+  .kap-surface-interactive:hover {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kap-surface-interactive {
+    transition: none;
+  }
+}
+
+/* Atmosphere layer */
+.kap-atmosphere {
+  view-transition-name: none;
+}
+
 header {
   view-transition-name: none;
 }
@@ -93,7 +351,32 @@ a {
 }
 
 a.button {
-  @apply inline-flex text-accent border-3 border-accent/30 border-double py-1.5 px-3 whitespace-nowrap hover:bg-accent/8 rounded-xl transition-colors;
+  @apply inline-flex py-2 px-4 whitespace-nowrap rounded-xl font-semibold no-underline;
+  background: var(--kap-btn-gradient);
+  color: #fff;
+  box-shadow: var(--kap-shadow-button);
+  transition:
+    transform 0.2s cubic-bezier(0.34, 1.2, 0.64, 1),
+    box-shadow 0.2s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+
+@media (hover: hover) {
+  a.button:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: var(--kap-btn-hover-shadow);
+  }
+}
+
+a.button:active {
+  transform: translateY(1px);
+  box-shadow: var(--kap-btn-active-shadow);
+  transition-duration: 60ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  a.button {
+    transition: none;
+  }
 }
 
 header button,
@@ -106,7 +389,12 @@ button {
 }
 
 article img {
-  @apply block max-w-full border-8 border-foreground/10 rounded-xl overflow-hidden mx-auto;
+  @apply block max-w-full rounded-xl overflow-hidden mx-auto;
+  border-right: 1px solid var(--kap-border-right);
+  border-bottom: 1px solid var(--kap-border-bottom);
+  border-top: 1px solid var(--kap-border-top);
+  border-left: 1px solid var(--kap-border-left);
+  box-shadow: var(--kap-shadow-card);
 
   &[data-pixelated] {
     image-rendering: pixelated;
@@ -146,8 +434,12 @@ article img {
     }
 
     figure {
-      @apply border-2 border-foreground/8 !rounded-xl;
-      box-shadow: none !important;
+      @apply !rounded-xl;
+      border-right: 1px solid var(--kap-border-right) !important;
+      border-bottom: 1px solid var(--kap-border-bottom) !important;
+      border-top: 1px solid var(--kap-border-top) !important;
+      border-left: 1px solid var(--kap-border-left) !important;
+      box-shadow: var(--kap-shadow-card) !important;
 
       &.has-title div.copy,
       &.is-terminal div.copy {
@@ -211,6 +503,7 @@ article img {
   h5,
   h6 {
     @apply my-6.5 font-semibold;
+    text-shadow: var(--kap-text-shadow-title);
 
     a {
       @apply underline-offset-3 text-inherit no-underline;
@@ -374,11 +667,22 @@ article img {
   }
 
   blockquote {
-    @apply relative bg-foreground/5 before:content-['>'] before:block before:absolute before:text-accent before:font-bold before:left-3;
+    @apply relative before:content-['>'] before:block before:absolute before:text-accent before:font-bold before:left-3;
+    background: var(--kap-surface-bg);
+    border-right: 1px solid var(--kap-border-right);
+    border-bottom: 1px solid var(--kap-border-bottom);
+    border-top: 1px solid var(--kap-border-top);
+    border-left: 1px solid var(--kap-border-left);
+    box-shadow: var(--kap-shadow-card);
   }
 
   aside {
-    @apply bg-foreground/7;
+    background: var(--kap-surface-bg);
+    border-right: 1px solid var(--kap-border-right);
+    border-bottom: 1px solid var(--kap-border-bottom);
+    border-top: 1px solid var(--kap-border-top);
+    border-left: 1px solid var(--kap-border-left);
+    box-shadow: var(--kap-shadow-card);
 
     &.character-dialogue {
       @apply sm:bg-transparent flex items-center sm:items-start justify-center sm:justify-start gap-3 py-4 px-2 md:px-5;
@@ -561,7 +865,8 @@ article img {
   table,
   th,
   td {
-    @apply border-2 border-foreground/80 p-2.5;
+    @apply border-2 p-2.5;
+    border-color: var(--kap-border-bottom);
   }
 
   th {

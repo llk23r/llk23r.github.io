@@ -48,105 +48,89 @@ const config: SiteConfig = {
   ],
   // The theming configuration for the site.
   themes: {
-    // The theming mode. One of "single" | "select" | "light-dark-auto".
-    mode: 'select',
-    // The default theme identifier, used when themeMode is "select" or "light-dark-auto".
-    // Make sure this is one of the themes listed in `themes` or "auto" for "light-dark-auto" mode.
-    default: 'catppuccin-mocha',
-    // Shiki themes to bundle with the site.
-    // https://expressive-code.com/guides/themes/#using-bundled-themes
-    // These will be used to theme the entire site along with syntax highlighting.
-    // To use light-dark-auto mode, only include a light and a dark theme in that order.
-    // include: [
-    //   'github-light',
-    //   'github-dark',
-    // ]
-    include: [
-      'andromeeda',
-      'aurora-x',
-      'ayu-dark',
-      'catppuccin-frappe',
-      'catppuccin-latte',
-      'catppuccin-macchiato',
-      'catppuccin-mocha',
-      'dark-plus',
-      'dracula',
-      'dracula-soft',
-      'everforest-dark',
-      'everforest-light',
-      'github-dark',
-      'github-dark-default',
-      'github-dark-dimmed',
-      'github-dark-high-contrast',
-      'github-light',
-      'github-light-default',
-      'github-light-high-contrast',
-      'gruvbox-dark-hard',
-      'gruvbox-dark-medium',
-      'gruvbox-dark-soft',
-      'gruvbox-light-hard',
-      'gruvbox-light-medium',
-      'gruvbox-light-soft',
-      'houston',
-      'kanagawa-dragon',
-      'kanagawa-lotus',
-      'kanagawa-wave',
-      'laserwave',
-      'light-plus',
-      'material-theme',
-      'material-theme-darker',
-      'material-theme-lighter',
-      'material-theme-ocean',
-      'material-theme-palenight',
-      'min-dark',
-      'min-light',
-      'monokai',
-      'night-owl',
-      'nord',
-      'one-dark-pro',
-      'one-light',
-      'plastic',
-      'poimandres',
-      'red',
-      'rose-pine',
-      'rose-pine-dawn',
-      'rose-pine-moon',
-      'slack-dark',
-      'slack-ochin',
-      'snazzy-light',
-      'solarized-dark',
-      'solarized-light',
-      'synthwave-84',
-      'tokyo-night',
-      'vesper',
-      'vitesse-black',
-      'vitesse-dark',
-      'vitesse-light',
-    ],
-    // Optional overrides for specific themes to customize colors.
-    // Their values can be either a literal color (hex, rgb, hsl) or another theme key.
-    // See themeKeys list in src/types.ts for available keys to override and reference.
+    mode: 'light-dark-auto',
+    default: 'rose-pine-dawn',
+    include: ['rose-pine-dawn', 'github-dark-dimmed', 'kanagawa-dragon'],
     overrides: {
-      // Improve readability for aurora-x theme
-      // 'aurora-x': {
-      //   background: '#292929FF',
-      //   foreground: '#DDDDDDFF',
-      //   warning: '#FF7876FF',
-      //   important: '#FF98FFFF',
-      //   note: '#83AEFFFF',
-      // },
-      // Make the GitHub dark theme a little cuter
-      // 'github-light': {
-      //   accent: 'magenta',
-      //   heading1: 'magenta',
-      //   heading2: 'magenta',
-      //   heading3: 'magenta',
-      //   heading4: 'magenta',
-      //   heading5: 'magenta',
-      //   heading6: 'magenta',
-      //   separator: 'magenta',
-      //   link: 'list',
-      // },
+      // Ember Chamber (dark) — ember to ash
+      'kanagawa-dragon': {
+        background: '#0C0804',
+        foreground: '#F5EDE4',
+        accent: '#E89050',
+        heading1: '#F0A050',       // bright amber — the flame
+        heading2: '#E08840',       // deep amber
+        heading3: '#C87838',       // burnt sienna — the coal
+        heading4: '#B06830',       // dark umber
+        heading5: '#A08060',       // warm taupe — the ash
+        heading6: '#907868',       // warm gray-brown
+        separator: '#2A1C10',
+        link: '#F0A050',
+        list: '#E89050',
+        note: '#6AACC4',          // warm steel blue
+        tip: '#80A868',           // warm olive
+        important: '#B888A8',     // warm mauve
+        caution: '#E8C85A',       // golden ochre
+        warning: '#D08050',       // burnt orange
+        red: '#D08050',
+        green: '#80A868',
+        yellow: '#E8C85A',
+        blue: '#6AACC4',
+        magenta: '#B888A8',
+        cyan: '#68B8A8',          // warm teal
+      },
+      // Grayscale (mid) — pure monochrome, no color anywhere
+      // All values must clear 3:1 contrast against #2A2A2A bg (min ~#707070)
+      'github-dark-dimmed': {
+        background: '#2A2A2A',
+        foreground: '#D8D8D8',
+        accent: '#B0B0B0',
+        heading1: '#E8E8E8',
+        heading2: '#D8D8D8',
+        heading3: '#C8C8C8',
+        heading4: '#B8B8B8',
+        heading5: '#A8A8A8',
+        heading6: '#989898',
+        separator: '#707070',
+        link: '#D0D0D0',
+        list: '#B0B0B0',
+        note: '#A0A0A0',
+        tip: '#A8A8A8',
+        important: '#B0B0B0',
+        caution: '#989898',
+        warning: '#909090',
+        red: '#D0D0D0',
+        green: '#A8A8A8',
+        yellow: '#C0C0C0',
+        blue: '#909090',
+        magenta: '#B8B8B8',
+        cyan: '#A0A0A0',
+      },
+      // Warm Parchment (light) — hierarchy through contrast
+      'rose-pine-dawn': {
+        background: '#FAF6F1',
+        foreground: '#2C1A0E',
+        accent: '#B86020',
+        heading1: '#8B4513',       // saddle brown — commanding
+        heading2: '#A05520',       // burnt sienna
+        heading3: '#B06830',       // lighter sienna
+        heading4: '#9A7050',       // warm mid-brown
+        heading5: '#887868',       // warm gray
+        heading6: '#787070',       // warm charcoal
+        separator: '#E0D0BC',
+        link: '#9A5020',
+        list: '#B86020',
+        note: '#3A7098',          // deep warm steel
+        tip: '#527A3A',           // dark olive
+        important: '#7A5A72',     // warm plum
+        caution: '#9A7A20',       // deep golden
+        warning: '#B85830',       // warm brick
+        red: '#B85830',
+        green: '#527A3A',
+        yellow: '#9A7A20',
+        blue: '#3A7098',
+        magenta: '#7A5A72',
+        cyan: '#2A7A70',          // warm dark teal
+      },
     },
   },
   // Social links to display in the footer.

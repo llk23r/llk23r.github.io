@@ -10,32 +10,48 @@ const {
 } = Astro.props
 ---
 
-<li class="flex items-stretch border-foreground/20">
-  <div class="flex items-stretch">
-    {
-      Array.from({ length: depth - 1 }, (_v, _k) => (
-        <div class="toc-lines flex flex-col items-stretch">
-          <span class="top-box w-4 xl:w-3 basis-4 border-b-1 border-foreground/20 xl:border-foreground/15" />
-          <span class="bottom-box w-4 min-h-1/2 xl:w-3 flex-1 border-t-1 border-foreground/20 xl:border-foreground/15" />
-        </div>
-      ))
-    }
-  </div>
-  <a
-    class="inline-block line-clamp-2 ml-3 xl:ml-2 py-1 ps-1 hover:text-accent"
-    href={`#${slug}`}>{text}</a
-  >
+<li class={`toc-item depth-${depth}`} data-heading-id={slug}>
+  <a href={`#${slug}`}>{text}</a>
 </li>
 
 <style>
-  .toc-lines:first-child span {
-    border-left-width: 2px;
+  .toc-item {
+    border-left: 2px solid var(--theme-separator);
+    padding-left: 14px;
+    padding-block: 6px;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    transition:
+      border-color 0.2s,
+      color 0.2s;
   }
-  li:last-child .toc-lines:first-child span.bottom-box {
-    border-left-width: 0 !important;
+
+  .toc-item.depth-3 {
+    padding-left: 28px;
+    font-size: 0.75rem;
   }
-  li.active-heading a {
+
+  .toc-item a {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .toc-item a:hover {
     color: var(--theme-accent);
+  }
+
+  .toc-item.past {
+    border-left-color: var(--theme-accent);
+  }
+
+  .toc-item.active-heading {
+    border-left: 3px solid var(--theme-accent);
     font-weight: 600;
+  }
+
+  .toc-item.active-heading a {
+    color: var(--theme-accent);
   }
 </style>

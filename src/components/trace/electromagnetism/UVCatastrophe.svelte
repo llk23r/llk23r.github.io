@@ -361,7 +361,7 @@
   })
 </script>
 
-<figure class="trace-viz" role="img" aria-label="Ultraviolet catastrophe: Rayleigh-Jeans classical prediction diverges at short wavelengths while Planck quantum prediction remains bounded">
+<figure class="trace-viz" data-preserves-color role="img" aria-label="Ultraviolet catastrophe: Rayleigh-Jeans classical prediction diverges at short wavelengths while Planck quantum prediction remains bounded">
   <div class="canvas-wrap">
     <canvas bind:this={canvas}></canvas>
   </div>

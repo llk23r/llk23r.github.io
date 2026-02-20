@@ -1,13 +1,22 @@
 ---
 import IconChevronUp from '~/icons/chevron-up.svg'
+import IconChevronDown from '~/icons/chevron-down.svg'
 ---
 
-<button
-  hidden
-  class="scroll-up size-11 fixed flex items-center justify-center bg-background z-100 bottom-3 right-3 rounded-full border-2 border-accent/20 hover:bg-accent/10 md:size-12 md:bottom-5 md:right-5 lg:size-13 lg:bottom-6 lg:right-6"
->
-  <IconChevronUp class="text-accent/50 size-8 lg:size-9" />
-</button>
+<div class="scroll-buttons fixed z-100 bottom-3 right-3 flex flex-col gap-2 md:bottom-5 md:right-5 lg:bottom-6 lg:right-6">
+  <button
+    hidden
+    class="kap-surface-interactive scroll-down size-11 flex items-center justify-center !rounded-full md:size-12 lg:size-13"
+  >
+    <IconChevronDown class="text-accent/50 size-8 lg:size-9" />
+  </button>
+  <button
+    hidden
+    class="kap-surface-interactive scroll-up size-11 flex items-center justify-center !rounded-full md:size-12 lg:size-13"
+  >
+    <IconChevronUp class="text-accent/50 size-8 lg:size-9" />
+  </button>
+</div>
 
 <script>
   function transitionHiddenElement(
@@ -25,7 +34,6 @@ import IconChevronUp from '~/icons/chevron-up.svg'
       show() {
         element.removeEventListener('transitionend', listener)
         element.removeAttribute('hidden')
-        // Force a browser re-paint
         const _reflow = element.offsetHeight
         element.classList.add(transitionClass)
       },
@@ -37,50 +45,81 @@ import IconChevronUp from '~/icons/chevron-up.svg'
   }
 
   function init() {
-    const button = document.querySelector('button.scroll-up') as HTMLButtonElement
+    const scrollUpBtn = document.querySelector('button.scroll-up') as HTMLButtonElement
+    const scrollDownBtn = document.querySelector('button.scroll-down') as HTMLButtonElement
     const topHeading = document.querySelector('h1')
     const topOffset = topHeading ? topHeading.offsetTop : 0
-    if (!button) {
-      console.warn('Scroll up button not found in the document.')
-      return
-    }
-    button.addEventListener('click', () => {
+
+    if (!scrollUpBtn || !scrollDownBtn) return
+
+    const prose = document.querySelector('article div.prose')
+    if (!prose) return
+
+    // Scroll-up: go to top
+    scrollUpBtn.addEventListener('click', () => {
       window.scrollTo({ top: topOffset, behavior: 'smooth' })
     })
-    // Use IntersectionObserver to show/hide the button
-    const prose = document.querySelector('article div.prose')
-    if (!prose) {
-      console.warn('Prose element not found in the article.')
-      return
-    }
 
-    const btnControl = transitionHiddenElement(button, 'opacity', 'active')
+    // Scroll-down: go to bottom of prose
+    scrollDownBtn.addEventListener('click', () => {
+      const proseBottom = prose.getBoundingClientRect().bottom + window.scrollY
+      window.scrollTo({ top: proseBottom - window.innerHeight + 80, behavior: 'smooth' })
+    })
 
-    const observer = new IntersectionObserver(
+    const upControl = transitionHiddenElement(scrollUpBtn, 'opacity', 'active')
+    const downControl = transitionHiddenElement(scrollDownBtn, 'opacity', 'active')
+
+    // Scroll-up observer: show when prose top enters the top 5% of viewport
+    const upObserver = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            btnControl.show()
+            upControl.show()
           } else {
-            btnControl.hide()
+            upControl.hide()
           }
         })
       },
-      // Only consider the top 5% of the viewport
       { rootMargin: `0px 0px -95% 0px` },
     )
-    observer.observe(prose)
+    upObserver.observe(prose)
+
+    // Scroll-down observer: show when prose bottom is NOT visible in the bottom 5% of viewport
+    const downObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            downControl.hide()
+          } else {
+            // Only show scroll-down if we haven't scrolled past prose
+            const proseRect = prose.getBoundingClientRect()
+            if (proseRect.bottom > 0) {
+              downControl.show()
+            } else {
+              downControl.hide()
+            }
+          }
+        })
+      },
+      { rootMargin: `-95% 0px 0px 0px` },
+    )
+
+    // Observe the last child of prose (or prose itself as sentinel)
+    const lastProseChild = prose.lastElementChild as HTMLElement
+    if (lastProseChild) {
+      downObserver.observe(lastProseChild)
+    } else {
+      downObserver.observe(prose)
+    }
   }
 
   init()
 </script>
 
 <style>
-  /* When button appears, slide it in from the bottom */
-  button.scroll-up {
-    /* also add a translate effect */
+  button.scroll-up,
+  button.scroll-down {
     transform: translateY(0px);
-    /* and a transition */
     opacity: 1;
     transition:
       transform 0.3s ease-in-out,
@@ -89,6 +128,10 @@ import IconChevronUp from '~/icons/chevron-up.svg'
   }
   button.scroll-up:not(.active) {
     transform: translateY(10px);
+    opacity: 0;
+  }
+  button.scroll-down:not(.active) {
+    transform: translateY(-10px);
     opacity: 0;
   }
 </style>

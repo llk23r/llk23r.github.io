@@ -78,7 +78,7 @@
 <style>
   .trace-viz {
     --viz-text: var(--theme-foreground, #ccc);
-    --viz-text-muted: var(--theme-separator, #888);
+    --viz-text-muted: var(--theme-foreground, #888);
     --viz-positive: var(--theme-red, #ef4444);
     --viz-negative: var(--theme-blue, #3b82f6);
     margin: 1.5rem 0;

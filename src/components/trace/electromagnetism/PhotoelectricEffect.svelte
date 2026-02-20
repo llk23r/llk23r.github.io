@@ -98,7 +98,7 @@
   let threshBarW = $derived((workFunction / maxDisplayEv) * eBarMax)
 </script>
 
-<figure class="trace-viz" role="img" aria-label="Interactive photoelectric effect: adjust frequency and intensity to see electron ejection">
+<figure class="trace-viz" data-preserves-color role="img" aria-label="Interactive photoelectric effect: adjust frequency and intensity to see electron ejection">
   <svg viewBox="0 0 700 400" width="100%">
     <defs>
       <!-- Photon wave pattern -->
@@ -137,7 +137,7 @@
 
     <!-- Threshold indicator line -->
     <line x1={plateX - 4} y1={plateY1 - 8} x2={plateX - 4} y2={plateY2 + 4}
-      stroke={aboveThreshold ? '#10b981' : '#ef4444'}
+      stroke={aboveThreshold ? 'var(--viz-accept)' : 'var(--viz-reject)'}
       stroke-width="1.5" stroke-dasharray="4,3" opacity="0.5" />
 
     <!-- Incoming photons (animated waves/arrows) -->
@@ -169,7 +169,7 @@
       <!-- If photon has hit plate and below threshold, show bounce/stop -->
       {#if !aboveThreshold && px > plateX - 20}
         <text x={plateX + plateW + 20} y={py + 4} font-size="10"
-          font-family="'JetBrains Mono', monospace" fill="#ef4444" opacity="0.7">
+          font-family="'JetBrains Mono', monospace" fill="var(--viz-reject)" opacity="0.7">
           &cross;
         </text>
       {/if}
@@ -182,7 +182,7 @@
         {@const ey = electronY(i, time)}
 
         <!-- Electron circle -->
-        <circle cx={ex} cy={ey} r="8" fill="#3b82f6" opacity="0.8" />
+        <circle cx={ex} cy={ey} r="8" fill="var(--viz-electron-fill)" opacity="0.8" />
         <text x={ex} y={ey + 1} text-anchor="middle" dominant-baseline="central"
           font-size="8" font-weight="700"
           font-family="'JetBrains Mono', monospace" fill="#fff">
@@ -191,14 +191,14 @@
 
         <!-- Speed lines -->
         <line x1={ex - 14} y1={ey - 2} x2={ex - 22} y2={ey - 2}
-          stroke="#3b82f6" stroke-width="1" opacity="0.4" />
+          stroke="var(--viz-electron-fill)" stroke-width="1" opacity="0.4" />
         <line x1={ex - 14} y1={ey + 2} x2={ex - 20} y2={ey + 2}
-          stroke="#3b82f6" stroke-width="1" opacity="0.3" />
+          stroke="var(--viz-electron-fill)" stroke-width="1" opacity="0.3" />
       {/each}
     {:else}
       <!-- "No ejection" indicator -->
       <text x="530" y="190" text-anchor="middle" font-size="18"
-        font-family="'JetBrains Mono', monospace" fill="#ef4444" opacity="0.5">
+        font-family="'JetBrains Mono', monospace" fill="var(--viz-reject)" opacity="0.5">
         No ejection!
       </text>
       <text x="530" y="210" text-anchor="middle" font-size="9"
@@ -213,9 +213,9 @@
 
     <!-- Threshold line in energy diagram -->
     <line x1="500" y1="340" x2="670" y2="340"
-      stroke="#ef4444" stroke-width="1" stroke-dasharray="3,2" opacity="0.4" />
+      stroke="var(--viz-reject)" stroke-width="1" stroke-dasharray="3,2" opacity="0.4" />
     <text x="672" y="343" text-anchor="start" font-size="7"
-      font-family="'JetBrains Mono', monospace" fill="#ef4444" opacity="0.5">
+      font-family="'JetBrains Mono', monospace" fill="var(--viz-reject)" opacity="0.5">
       W
     </text>
 
@@ -230,9 +230,9 @@
     {#if aboveThreshold}
       <!-- Kinetic energy portion -->
       <rect x={505 + threshBarW} y="350" width={photonBarW - threshBarW} height={eBarH} rx="2"
-        fill="#3b82f6" opacity="0.7" />
+        fill="var(--viz-electron-fill)" opacity="0.7" />
       <text x="505" y="366" font-size="7"
-        font-family="'JetBrains Mono', monospace" fill="#3b82f6" opacity="0.6">
+        font-family="'JetBrains Mono', monospace" fill="var(--viz-electron-fill)" opacity="0.6">
         KE = {kineticEnergy} eV
       </text>
     {/if}
@@ -288,7 +288,10 @@
 <style>
   .trace-viz {
     --viz-text: var(--theme-foreground, #ccc);
-    --viz-text-muted: var(--theme-separator, #888);
+    --viz-text-muted: var(--theme-foreground, #888);
+    --viz-reject: var(--theme-red, #ef4444);
+    --viz-accept: var(--theme-green, #10b981);
+    --viz-electron-fill: var(--theme-blue, #3b82f6);
     margin: 1.5rem 0;
     border-radius: 8px;
     overflow: hidden;
@@ -357,11 +360,11 @@
   }
 
   .status.above {
-    background: rgba(16, 185, 129, 0.05);
+    background: color-mix(in srgb, var(--viz-accept) 5%, transparent);
   }
 
   .status.below {
-    background: rgba(239, 68, 68, 0.05);
+    background: color-mix(in srgb, var(--viz-reject) 5%, transparent);
   }
 
   .status strong {
@@ -369,7 +372,7 @@
   }
 
   .status .ejected {
-    color: #3b82f6;
+    color: var(--viz-electron-fill);
   }
 
   .sep {

@@ -43,26 +43,14 @@ let themeMode = siteConfig.themes.mode
 if (siteConfig.themes.include.length < 1) {
   throw new Error('No themes defined in site.config. Please add at least one theme.')
 }
-if (themeMode === 'light-dark-auto' && siteConfig.themes.include.length < 2) {
-  console.warn(
-    'Theme mode "dark-light-auto" requires at least two themes. Defaulting to "single".',
-  )
-  themeMode = 'single'
-}
 let defaultTheme = siteConfig.themes.default || siteConfig.themes.include[0]
 let includedThemes = siteConfig.themes.include as string[]
-const themeNotIncluded = !includedThemes.includes(defaultTheme)
-if (
-  (themeMode !== 'light-dark-auto' && themeNotIncluded) ||
-  (themeMode === 'light-dark-auto' && defaultTheme !== 'auto' && themeNotIncluded)
-) {
+if (defaultTheme !== 'auto' && !includedThemes.includes(defaultTheme)) {
   console.warn(
     `Default theme "${defaultTheme}" not found in themes. Using first theme: "${siteConfig.themes.include[0]}".`,
   )
   defaultTheme = siteConfig.themes.include[0]
 }
-let lightTheme = themeMode === 'light-dark-auto' ? includedThemes[0] : undefined
-let darkTheme = themeMode === 'light-dark-auto' ? includedThemes[1] : undefined
 
 // Generate a hash to use for cache busting the theme settings in localStorage.
 const themeHash = crypto
@@ -117,8 +105,7 @@ let generatedCss: string = cssLines.join('\n')
 <html
   lang="en"
   data-theme={defaultTheme}
-  data-dark-theme={darkTheme}
-  data-light-theme={lightTheme}
+  data-themes={includedThemes.join(',')}
   data-theme-mode={themeMode}
   data-theme-hash={themeHash}
 >
@@ -154,7 +141,10 @@ let generatedCss: string = cssLines.join('\n')
     {themeMode === 'light-dark-auto' && <LightDarkAutoThemeLoader />}
     {themeMode === 'select' && <SelectThemeLoader />}
   </head>
-  <body class="w-full h-full m-0 bg-background text-foreground">
+  <body class="w-full h-full m-0 text-foreground" style="background: linear-gradient(180deg, var(--kap-bg-from, var(--theme-background)) 0%, var(--kap-bg-to, var(--theme-background)) 100%); background-attachment: fixed;">
+    <div class="kap-atmosphere fixed inset-0 pointer-events-none -z-1" aria-hidden="true"
+      style="background: var(--kap-orb-1, none), var(--kap-orb-2, none), var(--kap-orb-3, none);"
+    ></div>
     <div
       class="flex flex-col max-w-3xl min-h-screen border-accent/10 m-auto p-3 sm:py-5 sm:px-6 md:py-10"
     >

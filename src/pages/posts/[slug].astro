@@ -88,7 +88,7 @@ if (postData.tags && postData.tags.length > 0) {
       <h1 id={post.id} class="mb-4 text-[1.75rem] text-heading1 font-semibold">
         # {postData.title}
       </h1>
-      <div class="my-2 border-l-2 border-accent/80 pl-4 py-2">
+      <div class="my-2 pl-4 py-2" style="border-left: 2px solid var(--kap-border-right);">
         <PostInfo post={post} class="mb-1" />
         {
           tags && (
@@ -98,6 +98,13 @@ if (postData.tags && postData.tags.length > 0) {
           )
         }
       </div>
+      {
+        postData.series && (
+          <p class="text-foreground/50 text-sm italic mt-4">
+            This post is AI-assisted and written as a personal learning exercise. It may contain errors and shouldn't be treated as an authoritative source.
+          </p>
+        )
+      }
     </div>
     <!-- <hr class="border-accent/10 border-2 rounded-xl hidden lg:block" /> -->
     <div class="flex flex-col xl:gap-1 2xl:gap-18 xl:flex-row xl:items-start">

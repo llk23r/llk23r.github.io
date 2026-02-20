@@ -1,6 +1,7 @@
 ---
 import type { MarkdownHeading } from 'astro'
 import TOCHeading from '~/components/TableOfContentsHeading.astro'
+import IconList from '~/icons/list.svg'
 
 interface Props {
   headings: MarkdownHeading[]
@@ -11,44 +12,165 @@ const { headings } = Astro.props
 const filteredHeadings = headings.filter(({ depth }) => depth >= 2 && depth <= 3)
 ---
 
+<!-- Mobile: floating trigger button -->
+<button
+  class="toc-mobile-trigger xl:hidden kap-surface-interactive fixed z-50 bottom-3 left-3 size-11 flex items-center justify-center !rounded-full md:size-12 md:bottom-5 md:left-5"
+  aria-label="Table of Contents"
+>
+  <IconList class="text-accent/50 size-6 lg:size-7" />
+</button>
+
+<!-- Mobile: backdrop -->
+<div class="toc-mobile-backdrop xl:hidden fixed inset-0 bg-black/40 z-50 hidden" aria-hidden="true"></div>
+
+<!-- Mobile: bottom sheet drawer -->
+<div class="toc-mobile-drawer xl:hidden fixed bottom-0 left-0 right-0 z-50 translate-y-full transition-transform duration-300 ease-out">
+  <div class="rounded-t-2xl px-6 pt-5 pb-6 max-h-[60vh] flex flex-col" style="background: var(--theme-background); border-top: 1px solid var(--kap-border-top); border-right: 1px solid var(--kap-border-right); border-left: 1px solid var(--kap-border-right);">
+    <div class="flex items-center justify-between mb-4">
+      <span class="text-foreground/90 font-semibold text-sm">Contents</span>
+      <button class="toc-mobile-close text-foreground/50 hover:text-foreground/80 p-1" aria-label="Close">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+    <nav class="toc-mobile-nav overflow-y-auto flex-1 min-h-0">
+      <ul class="flex flex-col gap-0.5">
+        {filteredHeadings.map((heading) => <TOCHeading heading={heading} />)}
+      </ul>
+    </nav>
+  </div>
+</div>
+
+<!-- Desktop: fixed sidebar -->
 <details
   open
-  class="toc relative md:mx-2 xl:mx-0 text-foreground/90 text-sm bg-foreground/5 xl:bg-transparent px-8 xl:pr-0 py-6 mt-5 xl:mt-0 xl:w-full rounded-xl border-3 xl:border-none border-accent/10 xl:sticky xl:top-10 xl:basis-[274px] 2xl:basis-[320px] xl:order-2 xl:shrink-0 xl:opacity-90"
+  class="toc hidden xl:block text-foreground/90 text-sm bg-transparent px-4 py-4 rounded-xl border-none shadow-none fixed top-1/2 -translate-y-1/2 left-[calc(50%+22.5rem)] w-[274px] 2xl:left-[calc(50%+25rem)] 2xl:w-[320px] max-h-[55vh] overflow-hidden z-40"
 >
-  <summary
-    class="list-none marker:hidden marker:content-[''] before:content-['>'] before:text-accent before:font-semibold before:absolute before:left-3 cursor-pointer"
-    >Table of Contents</summary
-  >
-  <nav class="w-full text-sm xl:-ml-1">
-    <ul class="mt-4 flex flex-col max-w-full">
+  <summary class="list-none marker:hidden marker:content-[''] cursor-default text-foreground/90 font-semibold text-sm">Contents</summary>
+  <nav class="toc-nav w-full mt-4 max-h-[calc(55vh-5rem)] overflow-y-auto">
+    <ul class="toc-list flex flex-col gap-0.5 max-w-full">
       {filteredHeadings.map((heading) => <TOCHeading heading={heading} />)}
     </ul>
   </nav>
 </details>
 
 <script>
-  const anchors = document.querySelectorAll('h2[id], h3[id]')
-  const links = document.querySelectorAll('details.toc > nav > ul > li')
-  if (anchors.length === links.length && anchors.length > 0) {
-    window.addEventListener('scroll', (_event) => {
-      let scrollTop = window.scrollY
-      let highlighted = false
-      // then iterate backwards, on the first match highlight it and break
-      for (var i = anchors.length - 1; i >= 0; i--) {
+  function initToc() {
+    const anchors = document.querySelectorAll('h2[id], h3[id]')
+    const desktopItems = document.querySelectorAll('details.toc .toc-item')
+    const mobileItems = document.querySelectorAll('.toc-mobile-drawer .toc-item')
+    const tocNav = document.querySelector('details.toc .toc-nav')
+
+    if (anchors.length === 0) return
+
+    // --- Mobile drawer ---
+    const trigger = document.querySelector('.toc-mobile-trigger') as HTMLElement
+    const backdrop = document.querySelector('.toc-mobile-backdrop') as HTMLElement
+    const drawer = document.querySelector('.toc-mobile-drawer') as HTMLElement
+    const closeBtn = document.querySelector('.toc-mobile-close') as HTMLElement
+
+    function openDrawer() {
+      if (!backdrop || !drawer) return
+      backdrop.classList.remove('hidden')
+      drawer.classList.remove('translate-y-full')
+      document.body.style.overflow = 'hidden'
+    }
+
+    function closeDrawer() {
+      if (!backdrop || !drawer) return
+      backdrop.classList.add('hidden')
+      drawer.classList.add('translate-y-full')
+      document.body.style.overflow = ''
+    }
+
+    trigger?.addEventListener('click', openDrawer)
+    backdrop?.addEventListener('click', closeDrawer)
+    closeBtn?.addEventListener('click', closeDrawer)
+
+    // Close drawer on heading link click
+    mobileItems.forEach((item) => {
+      item.querySelector('a')?.addEventListener('click', () => {
+        closeDrawer()
+      })
+    })
+
+    // Close drawer on resize to desktop
+    window.addEventListener('resize', () => {
+      if (window.innerWidth >= 1280) closeDrawer()
+    })
+
+    // --- Active heading tracking ---
+    let userScrolledToc = false
+    let userScrollTimer: ReturnType<typeof setTimeout>
+    if (tocNav) {
+      tocNav.addEventListener('scroll', () => {
+        userScrolledToc = true
+        clearTimeout(userScrollTimer)
+        userScrollTimer = setTimeout(() => { userScrolledToc = false }, 2000)
+      }, { passive: true })
+    }
+
+    function applyActiveState(items: NodeListOf<Element>, activeIndex: number) {
+      items.forEach((item, i) => {
+        item.classList.remove('active-heading', 'past')
+        if (i === activeIndex) {
+          item.classList.add('active-heading')
+        } else if (activeIndex >= 0 && i < activeIndex) {
+          item.classList.add('past')
+        }
+      })
+    }
+
+    function updateActiveHeading() {
+      const scrollTop = window.scrollY
+      let activeIndex = -1
+
+      for (let i = anchors.length - 1; i >= 0; i--) {
         const anchor = anchors[i] as HTMLElement
-        if (!highlighted && scrollTop > anchor.offsetTop - 75) {
-          links[i].classList.add('active-heading')
-          highlighted = true
-        } else {
-          links[i].classList.remove('active-heading')
+        if (scrollTop > anchor.offsetTop - 75) {
+          activeIndex = i
+          break
         }
       }
-    })
+
+      if (desktopItems.length === anchors.length) {
+        applyActiveState(desktopItems, activeIndex)
+      }
+      if (mobileItems.length === anchors.length) {
+        applyActiveState(mobileItems, activeIndex)
+      }
+
+      // Auto-scroll desktop TOC
+      if (activeIndex >= 0 && tocNav && window.innerWidth >= 1280 && !userScrolledToc) {
+        const activeItem = desktopItems[activeIndex] as HTMLElement
+        const navRect = tocNav.getBoundingClientRect()
+        const itemRect = activeItem.getBoundingClientRect()
+
+        if (itemRect.top < navRect.top || itemRect.bottom > navRect.bottom) {
+          activeItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+        }
+      }
+    }
+
+    window.addEventListener('scroll', updateActiveHeading, { passive: true })
+    updateActiveHeading()
   }
+
+  initToc()
 </script>
 
 <style>
-  details[open] summary:before {
-    transform: rotate(90deg);
+  /* Scrollbar styling for TOC navs */
+  .toc-nav::-webkit-scrollbar,
+  .toc-mobile-nav::-webkit-scrollbar {
+    width: 3px;
+  }
+  .toc-nav::-webkit-scrollbar-track,
+  .toc-mobile-nav::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .toc-nav::-webkit-scrollbar-thumb,
+  .toc-mobile-nav::-webkit-scrollbar-thumb {
+    background: var(--theme-separator);
+    border-radius: 3px;
   }
 </style>

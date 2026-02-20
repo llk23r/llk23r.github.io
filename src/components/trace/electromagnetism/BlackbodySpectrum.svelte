@@ -334,7 +334,7 @@
   })
 </script>
 
-<figure class="trace-viz" role="img" aria-label="Blackbody spectrum: Planck distribution curve with temperature slider, visible spectrum band, and Wien peak marker">
+<figure class="trace-viz" data-preserves-color role="img" aria-label="Blackbody spectrum: Planck distribution curve with temperature slider, visible spectrum band, and Wien peak marker">
   <div class="canvas-wrap">
     <canvas bind:this={canvas}></canvas>
   </div>
