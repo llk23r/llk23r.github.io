@@ -1,71 +1,174 @@
 ---
 import IconSun from '~/icons/sun.svg'
 import IconMoon from '~/icons/moon.svg'
-import IconSunMoon from '~/icons/sun-moon.svg'
+import IconContrast from '~/icons/contrast.svg'
 import siteConfig from '~/site.config'
-let lightTheme = siteConfig.themes.include[0]
-let darkTheme = siteConfig.themes.include[1]
+
+const themes = siteConfig.themes.include
 ---
 
-<button
-  id="theme-change-button"
-  class="block ml-auto"
-  data-light={lightTheme}
-  data-dark={darkTheme}
->
-  <IconSun id="icon-light" class="hidden size-6 text-accent" />
-  <IconMoon id="icon-dark" class="hidden size-6 text-accent" />
-  <IconSunMoon id="icon-auto" class="hidden size-6 text-accent" />
-</button>
+<div class="theme-picker-wrap" id="theme-picker-wrap">
+  <button
+    id="theme-picker-trigger"
+    class="block ml-auto"
+    aria-label="Change theme"
+    aria-expanded="false"
+    aria-haspopup="true"
+  >
+    {/* Icons shown based on current theme's colorScheme */}
+    <IconSun class="hidden size-6 text-accent trigger-icon" data-scheme="light" />
+    <IconContrast class="hidden size-6 text-accent trigger-icon" data-scheme="other" />
+    <IconMoon class="hidden size-6 text-accent trigger-icon" data-scheme="dark" />
+  </button>
+  <div class="theme-picker-dropdown hidden" id="theme-picker-dropdown" role="menu">
+    {themes.map((theme) => (
+      <button
+        class="theme-picker-option"
+        role="menuitem"
+        data-theme-id={theme.shikiTheme}
+        data-color-scheme={theme.colorScheme}
+      >
+        <span
+          class="theme-swatch"
+          style={`background: ${theme.colors.background}; border-color: ${theme.colors.accent};`}
+        ></span>
+        <span class="theme-label">{theme.label}</span>
+      </button>
+    ))}
+  </div>
+</div>
 
 <script>
-  const themeButton = document.getElementById('theme-change-button')
-  const lightThemeId = themeButton?.getAttribute('data-light')
-  const darkThemeId = themeButton?.getAttribute('data-dark')
-  const sunIcon = themeButton?.querySelector('#icon-light')
-  const moonIcon = themeButton?.querySelector('#icon-dark')
-  const sunMoonIcon = themeButton?.querySelector('#icon-auto')
-  const updateIcons = (theme: string) => {
-    if (theme === lightThemeId) {
-      sunIcon?.classList.remove('hidden')
-      moonIcon?.classList.add('hidden')
-      sunMoonIcon?.classList.add('hidden')
-    } else if (theme === darkThemeId) {
-      sunIcon?.classList.add('hidden')
-      moonIcon?.classList.remove('hidden')
-      sunMoonIcon?.classList.add('hidden')
-    } else {
-      sunIcon?.classList.add('hidden')
-      moonIcon?.classList.add('hidden')
-      sunMoonIcon?.classList.remove('hidden')
-    }
-  }
-  let currentTheme = localStorage.getItem('data-theme') || 'auto'
-  updateIcons(currentTheme)
-  themeButton?.addEventListener('click', () => {
-    // Toggle between light, dark, and auto themes
-    // Only need to update localStorage because there should be a listener in Layout.astro
-    const currentTheme = localStorage.getItem('data-theme') || darkThemeId
-    let newTheme
-    if (currentTheme === lightThemeId) {
-      newTheme = darkThemeId
-    } else if (currentTheme === darkThemeId) {
-      newTheme = 'auto'
-    } else {
-      newTheme = lightThemeId
-    }
-    if (newTheme) {
-      updateIcons(newTheme)
-      localStorage.setItem('data-theme', newTheme)
-      if (newTheme === 'auto') {
-        const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)')
-        document.documentElement.setAttribute(
-          'data-theme',
-          prefersDarkScheme.matches ? darkThemeId || 'auto' : lightThemeId || 'auto',
-        )
-      } else {
-        document.documentElement.setAttribute('data-theme', newTheme)
+  const wrap = document.getElementById('theme-picker-wrap')
+  const trigger = document.getElementById('theme-picker-trigger')
+  const dropdown = document.getElementById('theme-picker-dropdown')
+  const themes = (document.documentElement.getAttribute('data-themes') || '').split(',')
+  const options = dropdown?.querySelectorAll('.theme-picker-option')
+  const triggerIcons = trigger?.querySelectorAll('.trigger-icon')
+
+  function updateIcon(theme: string) {
+    // Find colorScheme from the matching option's data attribute
+    let scheme = 'other'
+    options?.forEach((opt) => {
+      if (opt.getAttribute('data-theme-id') === theme) {
+        scheme = opt.getAttribute('data-color-scheme') || 'other'
       }
+    })
+    triggerIcons?.forEach((icon) => {
+      const forScheme = (icon as HTMLElement).dataset.scheme
+      icon.classList.toggle('hidden', forScheme !== scheme)
+    })
+  }
+
+  function updateActive(theme: string) {
+    options?.forEach((opt) => {
+      const isActive = opt.getAttribute('data-theme-id') === theme
+      opt.classList.toggle('active', isActive)
+      opt.setAttribute('aria-checked', String(isActive))
+    })
+  }
+
+  function applyTheme(theme: string) {
+    localStorage.setItem('data-theme', theme)
+    document.documentElement.setAttribute('data-theme', theme)
+    updateIcon(theme)
+    updateActive(theme)
+  }
+
+  // Init
+  const current = localStorage.getItem('data-theme') || themes[0]
+  updateIcon(current)
+  updateActive(current)
+
+  // Toggle dropdown
+  trigger?.addEventListener('click', () => {
+    const isOpen = !dropdown?.classList.contains('hidden')
+    dropdown?.classList.toggle('hidden', isOpen)
+    trigger.setAttribute('aria-expanded', String(!isOpen))
+  })
+
+  // Theme selection
+  options?.forEach((opt) => {
+    opt.addEventListener('click', () => {
+      const themeId = opt.getAttribute('data-theme-id')
+      if (themeId) applyTheme(themeId)
+      dropdown?.classList.add('hidden')
+      trigger?.setAttribute('aria-expanded', 'false')
+    })
+  })
+
+  // Close on click outside
+  document.addEventListener('click', (e) => {
+    if (!wrap?.contains(e.target as Node)) {
+      dropdown?.classList.add('hidden')
+      trigger?.setAttribute('aria-expanded', 'false')
+    }
+  })
+
+  // Close on Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      dropdown?.classList.add('hidden')
+      trigger?.setAttribute('aria-expanded', 'false')
     }
   })
 </script>
+
+<style>
+  .theme-picker-wrap {
+    position: relative;
+  }
+
+  .theme-picker-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 120px;
+    padding: 6px;
+    border-radius: 10px;
+    background: var(--theme-background);
+    border: 1px solid color-mix(in srgb, var(--theme-foreground) 12%, transparent);
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--theme-foreground) 8%, transparent);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .theme-picker-dropdown.hidden {
+    display: none;
+  }
+
+  .theme-picker-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-family: 'JetBrains Mono Variable', monospace;
+    font-size: 12px;
+    color: color-mix(in srgb, var(--theme-foreground) 60%, transparent);
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .theme-picker-option:hover {
+    background: color-mix(in srgb, var(--theme-foreground) 6%, transparent);
+    color: var(--theme-foreground);
+  }
+
+  .theme-picker-option.active {
+    color: var(--theme-accent);
+    font-weight: 600;
+  }
+
+  .theme-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid;
+    flex-shrink: 0;
+  }
+</style>

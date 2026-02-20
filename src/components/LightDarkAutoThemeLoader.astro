@@ -5,44 +5,28 @@
 <script is:inline>
   ;(function loadTheme() {
     const pageDefaultTheme = document.documentElement.getAttribute('data-theme')
-    const pageDarkTheme = document.documentElement.getAttribute('data-dark-theme')
-    const pageLightTheme = document.documentElement.getAttribute('data-light-theme')
+    const pageThemes = (document.documentElement.getAttribute('data-themes') || '').split(',')
     const pageThemeHash = document.documentElement.getAttribute('data-theme-hash')
-    if (!pageDefaultTheme || !pageDarkTheme || !pageLightTheme || !pageThemeHash) {
+    if (!pageDefaultTheme || !pageThemeHash || pageThemes.length < 1) {
       throw new Error('Theme attributes are required.')
     }
-    const getStoredTheme = () => localStorage.getItem('data-theme')
-    let storedTheme = getStoredTheme()
+    const storedTheme = localStorage.getItem('data-theme')
     const storedThemeHash = localStorage.getItem('data-theme-hash')
     const themeHashMatches = storedThemeHash === pageThemeHash
 
     if (!storedTheme || !storedThemeHash || !themeHashMatches) {
-      // Should be the first time loading the website
-      localStorage.setItem('data-theme', pageDefaultTheme)
+      // First load or config changed — auto-detect OS preference
+      var detected = pageDefaultTheme
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // Prefer the last theme (darkest) when OS is dark
+        detected = pageThemes[pageThemes.length - 1]
+      }
+      localStorage.setItem('data-theme', detected)
       localStorage.setItem('data-theme-hash', pageThemeHash)
-    }
-
-    if (
-      themeHashMatches &&
-      storedTheme &&
-      storedTheme !== 'auto' &&
-      storedTheme !== pageDefaultTheme
-    ) {
-      // The stored theme is different from the default theme, apply it
+      document.documentElement.setAttribute('data-theme', detected)
+    } else if (themeHashMatches && pageThemes.includes(storedTheme)) {
+      // Stored theme is valid — apply it
       document.documentElement.setAttribute('data-theme', storedTheme)
-    } else if (pageDefaultTheme === 'auto' || storedTheme === 'auto') {
-      // If the default or stored theme is 'auto', apply the system preference
-      const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)')
-      document.documentElement.setAttribute(
-        'data-theme',
-        prefersDarkScheme.matches ? pageDarkTheme : pageLightTheme,
-      )
-      prefersDarkScheme.addEventListener('change', (e) => {
-        if (getStoredTheme() === 'auto') {
-          const newTheme = e.matches ? pageDarkTheme : pageLightTheme
-          document.documentElement.setAttribute('data-theme', newTheme)
-        }
-      })
     }
   })()
 </script>

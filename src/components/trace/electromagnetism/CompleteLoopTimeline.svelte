@@ -254,7 +254,7 @@
 <style>
   .trace-viz {
     --viz-text: var(--theme-foreground, #ccc);
-    --viz-text-muted: var(--theme-separator, #888);
+    --viz-text-muted: var(--theme-foreground, #888);
     --viz-bg: var(--theme-background, #1a1a2e);
     --viz-accent: var(--theme-accent, #8b5cf6);
     --viz-purple: var(--theme-accent, #8b5cf6);

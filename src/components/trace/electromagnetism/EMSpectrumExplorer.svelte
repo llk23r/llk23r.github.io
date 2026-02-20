@@ -41,7 +41,7 @@
   ]
 </script>
 
-<figure class="trace-viz" role="img" aria-label="Electromagnetic spectrum from radio waves to gamma rays with visible light highlighted">
+<figure class="trace-viz" data-preserves-color role="img" aria-label="Electromagnetic spectrum from radio waves to gamma rays with visible light highlighted">
   <svg viewBox="0 0 {SVG_W} {SVG_H}" width="100%">
     <defs>
       <!-- Rainbow gradient for visible light -->
@@ -185,7 +185,7 @@
 <style>
   .trace-viz {
     --viz-text: var(--theme-foreground, #ccc);
-    --viz-text-muted: var(--theme-separator, #888);
+    --viz-text-muted: var(--theme-foreground, #888);
     margin: 1.5rem 0;
     border-radius: 8px;
     overflow: hidden;

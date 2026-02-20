@@ -44,6 +44,13 @@ if (seriesFrontmatter) {
     <div class="shrink-0 pl-0.5 text-[17px] sm:text-base">
       <time>{dateString(post.data.published)}</time>
       {
+        post.data.updated && (
+          <span class="before:content-['·'] before:inline-block before:mx-0.5 text-foreground/50" title={`Updated ${dateString(post.data.updated)}`}>
+            updated {dateString(post.data.updated)}
+          </span>
+        )
+      }
+      {
         post.data.author && (
           <span class="before:content-['·'] before:font-bold before:inline-block before:mx-0.5">
             {post.data.author}

@@ -56,7 +56,7 @@ We're going to trace every step.
 
 Here's everything that happens between your finger and your brain:
 
-<JourneyMap steps={journeySteps} current={0} client:visible />
+<JourneyMap steps={journeySteps} current={0} client:only="svelte" />
 *Note:* The highlighted node marks where we are in the journey right now.
 
 ---
@@ -174,7 +174,7 @@ $$E = \frac{1}{4\pi\varepsilon_0} \frac{Q}{r^2}$$
 
 Numerically, ε₀ ≈ 8.854 × 10⁻¹² C²/(N·m²); it governs how strongly charges interact.
 
-<ElectricFieldLines client:visible />
+<ElectricFieldLines client:only="svelte" />
 *Note:* Field lines show direction and strength; denser lines mean a stronger field.
 
 Is this field real? This was not an academic question. For decades, most physicists believed the field was a mathematical convenience; a bookkeeping device. Michael Faraday insisted it was a real physical entity. He could see it, he said. In the patterns iron filings made around magnets, in the way charges distributed themselves on conductors. The field was there.
@@ -237,7 +237,7 @@ Alessandro Volta built the first true battery (the "voltaic pile") in 1800; stac
 
 If a low-resistance path bypasses the filament; a nail falls across the terminals, a wire insulation cracks; current surges. At 120 volts through near-zero resistance, current can reach hundreds of amperes. The wire heats instantly. This is a short circuit. A typical household breaker trips at 15 to 20 amperes. Below that threshold, the wire is on its own.
 
-<JourneyMap steps={journeySteps} current={1} client:visible />
+<JourneyMap steps={journeySteps} current={1} client:only="svelte" />
 *Note:* We’ve completed the switch and are now inside the circuit.
 
 ---
@@ -272,7 +272,7 @@ Seventy-five billionths of a second. The field arrives at the filament and tells
 
 Sixteen days. Versus 75 nanoseconds. The same wire. Two completely different velocities. One is matter drifting. The other is a field propagating.
 
-<DriftVsSignal client:visible />
+<DriftVsSignal client:only="svelte" />
 *Note:* Compare the slow drift of electrons with the fast-moving field signal.
 
 A telephone call across the Atlantic; 5,500 km; takes about 27 milliseconds at the speed of the field. If the signal traveled at electron drift speed, the same call would take roughly 14 million years.
@@ -292,7 +292,7 @@ Wilhelm Weber and Rudolf Kohlrausch first measured the propagation speed of elec
 | Time for electron to travel 15 m | ~16 days |
 :::
 
-<JourneyMap steps={journeySteps} current={2} client:visible />
+<JourneyMap steps={journeySteps} current={2} client:only="svelte" />
 *Note:* We’re now at the “field propagation” step.
 
 ---
@@ -368,7 +368,7 @@ The filament at 2,700 K peaks in the near-infrared; still invisible. But the emi
 
 Only about 5% of the filament's total radiation falls in the visible band. The rest is infrared; heat you can feel on your face from across the room, but cannot see. An incandescent bulb is a heater that happens to also produce a small amount of light.
 
-<BlackbodySpectrum client:visible />
+<BlackbodySpectrum client:only="svelte" />
 *Note:* As temperature rises, the curve shifts left (bluer) and grows taller (more power).
 
 The shape of this emission curve; how much radiation at each wavelength; follows a universal function that depends only on temperature. It does not depend on the material. A tungsten filament, an iron bar, and a ceramic pot at the same temperature all produce the same spectrum. This universal curve is called the blackbody spectrum.
@@ -392,7 +392,7 @@ Josef Stefan measured the T⁴ law experimentally in 1879 by comparing the radia
 | Visible light produced | ~3 watts |
 :::
 
-<JourneyMap steps={journeySteps} current={3} client:visible />
+<JourneyMap steps={journeySteps} current={3} client:only="svelte" />
 *Note:* The heat-and-glow step is where the filament becomes a light source.
 
 ---
@@ -413,7 +413,7 @@ Your coffee cup should be blasting you with ultraviolet radiation. And X-rays. A
 
 Paul Ehrenfest later named this the ultraviolet catastrophe. It was not a minor discrepancy. The most fundamental theories of physics; mechanics, electromagnetism, and thermodynamics; combined correctly, applied honestly, producing a prediction that was infinitely wrong.
 
-<UVCatastrophe client:visible />
+<UVCatastrophe client:only="svelte" />
 *Note:* The classical curve blows up at short wavelengths; the quantum curve stays finite.
 
 :::tip[How We Know]
@@ -480,7 +480,7 @@ At 2,700 K, the thermal energy (0.23 eV) can easily excite infrared quanta (0.12
 
 If Planck's constant were zero, energy would be continuous, and we'd be back to the ultraviolet catastrophe. If it were much larger, even infrared quanta would require enormous energy. Room-temperature objects would be invisible even in infrared. The value of h; 6.626 × 10⁻³⁴; is the quantization of nature.
 
-<JourneyMap steps={journeySteps} current={4} client:visible />
+<JourneyMap steps={journeySteps} current={4} client:only="svelte" />
 *Note:* This marks the transition from classical physics to quantization.
 
 ---
@@ -509,7 +509,7 @@ $$K_{\text{max}} = hf - \phi$$
 
 If hf < φ: nothing happens, regardless of brightness. Each photon lacks enough energy, and photons do not pool their resources. If hf > φ: instant ejection, even with dim light. One photon is enough.
 
-<PhotoelectricEffect client:visible />
+<PhotoelectricEffect client:only="svelte" />
 *Note:* Increase frequency to cross the threshold; intensity changes count, not energy per photon.
 
 Robert Millikan spent ten years performing precision photoelectric measurements, explicitly intending to disprove Einstein's equation. His data confirmed it to high precision instead. The value of h he measured agreed with Planck's value to within 1%.
@@ -531,7 +531,7 @@ Millikan's decade of experiments, designed to disprove Einstein, produced the mo
 | Time delay for electron ejection | < 10⁻⁹ s (effectively instant) |
 :::
 
-<JourneyMap steps={journeySteps} current={5} client:visible />
+<JourneyMap steps={journeySteps} current={5} client:only="svelte" />
 *Note:* Photons are now part of the story.
 
 ---
@@ -589,7 +589,7 @@ A photon is also quantized. It has a definite energy (E = hf) and momentum (p = 
 
 It is not a particle. It is not a wave. It is something with no classical analogue. Wave-particle duality is not a compromise or an approximation. It is the fundamental nature of light; and of all quantum objects.
 
-<EMWavePropagation client:visible />
+<EMWavePropagation client:only="svelte" />
 *Note:* E and B fields oscillate perpendicular to each other and to the direction of travel.
 
 For our journey, the key fact: the photon crosses your 5-meter room at 299,792,458 m/s. That takes about 17 nanoseconds. In those 17 nanoseconds, a green photon (550 nm) completes roughly 9,000 oscillations of its electric and magnetic fields.
@@ -600,7 +600,7 @@ Thomas Young demonstrated the wave nature of light with the double-slit experime
 — Compton, A.H. (1923), ["A Quantum Theory of the Scattering of X-Rays"](https://doi.org/10.1103/PhysRev.21.483), *Physical Review* 21(5), 483–502.
 :::
 
-<JourneyMap steps={journeySteps} current={6} client:visible />
+<JourneyMap steps={journeySteps} current={6} client:only="svelte" />
 *Note:* We’re following the photon across the room.
 
 ---
@@ -657,7 +657,7 @@ $$\mathcal{E} = -\frac{d\Phi_B}{dt}$$
 
 The negative sign (Lenz's law) means the induced current opposes the change that caused it; a manifestation of energy conservation. Push a magnet into a coil, and the induced current creates a magnetic field that pushes back against the magnet. You have to do work to move it. That work becomes electrical energy. Nothing is free.
 
-<FaradayInduction client:visible />
+<FaradayInduction client:only="svelte" />
 *Note:* Move the magnet to change flux and watch the induced current reverse direction.
 
 Every electric generator on Earth works on this principle. The turbines in power plants; spun by steam, water, or wind; rotate magnets past coils of wire, converting mechanical rotation into electric current. The power plant that lit your bulb uses Faraday's discovery from 1831.
@@ -750,7 +750,7 @@ In plain English: charges are sources of E; magnetic field lines never start or 
 
 These four equations, plus the Lorentz force law (F = qE + qv × B), describe every electromagnetic phenomenon at the classical level. Every circuit. Every radio wave. Every photon crossing your room.
 
-<MaxwellEquations client:visible />
+<MaxwellEquations client:only="svelte" />
 *Note:* The four equations are the compact rules for how E and B are sourced and swirl.
 
 Each equation was discovered separately. Coulomb and Gauss established the first. Nobody has ever found a magnetic monopole, establishing the second. Faraday found the third in 1831. Ampère found half the fourth in 1826; Maxwell completed it in 1865.
@@ -766,7 +766,7 @@ Each law was verified independently before Maxwell unified them. Coulomb's torsi
 
 Remove Gauss's electric law and charges don't create fields; no electrostatics, no chemistry. Remove Faraday's law and there is no induction; no generators, no power grid. Remove the displacement current and there are no electromagnetic waves; no light. Each equation is independently necessary.
 
-<JourneyMap steps={journeySteps} current={7} client:visible />
+<JourneyMap steps={journeySteps} current={7} client:only="svelte" />
 *Note:* We’re at the unification of electricity, magnetism, and light.
 
 ---
@@ -791,7 +791,7 @@ There are no hard boundaries. The spectrum is continuous. "Microwave" blends int
 
 Your body emits infrared. Your router emits microwaves. The Sun emits across the entire spectrum. A dental X-ray machine and a radio station are doing the same thing at vastly different frequencies.
 
-<EMSpectrumExplorer client:visible />
+<EMSpectrumExplorer client:only="svelte" />
 *Note:* Visible light is a tiny slice of the full electromagnetic spectrum.
 
 Visible light occupies less than one millionth of one percent of the electromagnetic spectrum by wavelength range. We see this sliver and nothing else.
@@ -853,7 +853,7 @@ The experimental measurement uses a Penning trap (pioneered by Hans Dehmelt, Nob
 
 There is one tantalizing crack. The muon; a heavier cousin of the electron; shows a g − 2 value that may disagree with QED at the 4–5 sigma level, reported by the Muon g − 2 experiment at Fermilab. If confirmed, it could indicate physics beyond QED. This is one of the most active areas of current research.
 
-<JourneyMap steps={journeySteps} current={8} client:visible />
+<JourneyMap steps={journeySteps} current={8} client:only="svelte" />
 *Note:* This is the deepest, quantum-level explanation.
 
 ---
@@ -864,7 +864,7 @@ In the 1960s, Sheldon Glashow, Abdus Salam, and Steven Weinberg showed that elec
 
 This was confirmed in 1983 when the W and Z bosons were discovered at CERN, with exactly the masses the theory predicted. The Higgs boson; the particle associated with the symmetry-breaking mechanism; was found at CERN in 2012.
 
-<FourForces client:visible />
+<FourForces client:only="svelte" />
 *Note:* This situates electromagnetism among the other three fundamental forces.
 
 The four fundamental forces: strong nuclear, electromagnetic, weak nuclear, and gravity. The strong force holds quarks together inside protons and holds protons together in nuclei. The weak force governs certain radioactive decays and is essential for stellar fusion. Gravity shapes the large-scale structure of the universe.
@@ -896,7 +896,7 @@ The optical properties of the eye were measured by Hermann von Helmholtz startin
 — Helmholtz, H. von (1867), *Handbuch der physiologischen Optik*. Leipzig: Leopold Voss.
 :::
 
-<JourneyMap steps={journeySteps} current={9} client:visible />
+<JourneyMap steps={journeySteps} current={9} client:only="svelte" />
 *Note:* The photon has reached the eye.
 
 ---
@@ -920,7 +920,7 @@ This tiny shape change triggers a massive amplification cascade:
 
 One photon. 200 femtoseconds. A million ions. The cell's voltage changes by about 1 millivolt. A nerve signal fires.
 
-<RhodopsinCascade client:visible />
+<RhodopsinCascade client:only="svelte" />
 *Note:* Each step multiplies the signal, turning one photon into a large electrical response.
 
 This cascade is why your eyes can detect single photons. Experiments confirm that a dark-adapted human can perceive a flash of as few as 5–7 photons reaching the retina; perhaps 1–2 actually absorbed by rod cells.
@@ -947,7 +947,7 @@ This is not an electric current flowing through the nerve like current through a
 
 In bare nerve fibers, this wave travels at about 1 m/s. But the optic nerve is wrapped in myelin; a fatty insulating sheath with periodic gaps. The signal jumps between gaps (saltatory conduction), reaching about 50 m/s. Distance from retina to brain: about 15 cm. Transit time: about 3 milliseconds.
 
-<ActionPotential client:visible />
+<ActionPotential client:only="svelte" />
 *Note:* The spike is a traveling voltage change, not a bulk flow of electrons.
 
 :::tip[How We Know]
@@ -957,7 +957,7 @@ Alan Hodgkin and Andrew Huxley worked out the ionic basis of the action potentia
 
 Multiple sclerosis strips the myelin sheath from nerve fibers. Without it, signal speed drops from ~50 m/s to ~1 m/s, and many signals are lost entirely. Vision problems are often the first symptom.
 
-<JourneyMap steps={journeySteps} current={10} client:visible />
+<JourneyMap steps={journeySteps} current={10} client:only="svelte" />
 *Note:* The signal is now traveling through the nervous system.
 
 ---
@@ -1027,10 +1027,10 @@ Every step. Every single one. The same force talking to itself.
 
 Total time from decision to perception: about half a second.
 
-<CompleteLoopTimeline client:visible />
+<CompleteLoopTimeline client:only="svelte" />
 *Note:* This is the time budget from your decision to your perception.
 
-<JourneyMap steps={journeySteps} current={-1} client:visible />
+<JourneyMap steps={journeySteps} current={-1} client:only="svelte" />
 *Note:* The loop is complete; we’re back at human perception.
 
 ## Electromagnetism at Every Level

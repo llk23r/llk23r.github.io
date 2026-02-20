@@ -24,6 +24,9 @@ const { posts, seriesTitle } = Astro.props
 >
   <div class="mt-2 sm:mt-0">
     <PageHeader titlePieces={['series', seriesTitle]} />
+    <p class="text-foreground/50 text-sm italic mb-6">
+      These posts are AI-assisted and written as a personal learning exercise. They may contain errors and shouldn't be treated as authoritative sources.
+    </p>
     {posts.map((post) => <PostPreview post={post} />)}
   </div>
 </Layout>

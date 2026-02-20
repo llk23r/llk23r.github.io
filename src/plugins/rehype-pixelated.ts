@@ -6,6 +6,10 @@ const plugin: Plugin<[], Root> = () => {
   return function transformer(tree) {
     visit(tree, 'element', (el) => {
       if (el.tagName === 'img') {
+        // Lazy load all images
+        el.properties.loading = 'lazy'
+        el.properties.decoding = 'async'
+
         const alt = el.properties?.alt
         if (alt && typeof alt === 'string' && alt.endsWith('#pixelated')) {
           el.properties['data-pixelated'] = true

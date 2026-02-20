@@ -259,7 +259,7 @@
 <style>
   .trace-viz {
     --viz-text: var(--theme-foreground, #ccc);
-    --viz-text-muted: var(--theme-separator, #888);
+    --viz-text-muted: var(--theme-foreground, #888);
     --viz-grid: var(--theme-separator, #555);
     --viz-waveform: var(--theme-green, #10b981);
     --viz-na: var(--theme-red, #ef4444);

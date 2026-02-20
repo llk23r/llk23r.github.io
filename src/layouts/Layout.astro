@@ -3,9 +3,8 @@ import '~/styles/global.css'
 import Header from '~/components/Header.astro'
 import Footer from '~/components/Footer.astro'
 import LightDarkAutoThemeLoader from '~/components/LightDarkAutoThemeLoader.astro'
-import SelectThemeLoader from '~/components/SelectThemeLoader.astro'
 import siteConfig from '~/site.config'
-import { pick, resolveThemeColorStyles } from '~/utils'
+import { resolveKapsicum } from '~/themes/utils'
 import crypto from 'crypto'
 
 interface Props {
@@ -13,9 +12,10 @@ interface Props {
   description?: string
   tags?: string[]
   author?: string
+  wide?: boolean
 }
 
-const { title, description, tags, author } = Astro.props
+const { title, description, tags, author, wide } = Astro.props
 const pageUrl = new URL(Astro.url.pathname, Astro.site).href.replace(/\/$/, '') // Remove trailing slash for consistency
 const pageType = Astro.url.pathname.startsWith('/posts') ? 'article' : 'website'
 const pageTitle = title ? `${title} - ${siteConfig.title}` : siteConfig.title
@@ -39,76 +39,53 @@ const baseCssVars: { [key: string]: string } = {
   'ec-brdCol': 'color-mix(in srgb, var(--theme-foreground), 10%, transparent)',
 }
 
+const themes = siteConfig.themes.include
 let themeMode = siteConfig.themes.mode
-if (siteConfig.themes.include.length < 1) {
+if (themes.length < 1) {
   throw new Error('No themes defined in site.config. Please add at least one theme.')
 }
-if (themeMode === 'light-dark-auto' && siteConfig.themes.include.length < 2) {
-  console.warn(
-    'Theme mode "dark-light-auto" requires at least two themes. Defaulting to "single".',
-  )
-  themeMode = 'single'
-}
-let defaultTheme = siteConfig.themes.default || siteConfig.themes.include[0]
-let includedThemes = siteConfig.themes.include as string[]
-const themeNotIncluded = !includedThemes.includes(defaultTheme)
-if (
-  (themeMode !== 'light-dark-auto' && themeNotIncluded) ||
-  (themeMode === 'light-dark-auto' && defaultTheme !== 'auto' && themeNotIncluded)
-) {
-  console.warn(
-    `Default theme "${defaultTheme}" not found in themes. Using first theme: "${siteConfig.themes.include[0]}".`,
-  )
-  defaultTheme = siteConfig.themes.include[0]
-}
-let lightTheme = themeMode === 'light-dark-auto' ? includedThemes[0] : undefined
-let darkTheme = themeMode === 'light-dark-auto' ? includedThemes[1] : undefined
+const themeIds = themes.map((t) => t.shikiTheme)
+const defaultThemeDef =
+  themes.find((t) => t.shikiTheme === siteConfig.themes.default) || themes[0]
+let defaultTheme = defaultThemeDef.shikiTheme
 
 // Generate a hash to use for cache busting the theme settings in localStorage.
 const themeHash = crypto
   .createHash('md5')
-  .update(themeMode + defaultTheme + includedThemes.join(''))
+  .update(themeMode + defaultTheme + themeIds.join(''))
   .digest('hex')
-  .slice(0, 8) // Truncate to the first 8 characters
+  .slice(0, 8)
 
-const resolvedThemes = await resolveThemeColorStyles(
-  siteConfig.themes.include,
-  siteConfig.themes.overrides,
-)
-
+// Generate CSS for all themes: --theme-* colors + --kap-* visual language
 let cssLines: string[] = []
-for (const [themeId, themeStyles] of Object.entries(resolvedThemes)) {
-  const relevantStyles = pick(themeStyles, [
-    'foreground',
-    'background',
-    'accent',
-    'heading1',
-    'heading2',
-    'heading3',
-    'heading4',
-    'heading5',
-    'heading6',
-    'list',
-    'italic',
-    'link',
-    'separator',
-    'note',
-    'tip',
-    'important',
-    'caution',
-    'warning',
-    'blue',
-    'green',
-    'red',
-    'yellow',
-    'magenta',
-    'cyan',
-  ])
-  cssLines.push(`:root[data-theme="${themeId}"] {`)
-  for (const [key, value] of Object.entries(relevantStyles)) {
+for (const theme of themes) {
+  cssLines.push(`:root[data-theme="${theme.shikiTheme}"] {`)
+  cssLines.push(`color-scheme: ${theme.colorScheme};`)
+
+  // Base colors → --theme-*
+  for (const [key, value] of Object.entries(theme.colors)) {
     cssLines.push(`--theme-${key}: ${value};`)
   }
-  cssLines.push(`}`)
+
+  // Kapsicum visual language → --kap-*
+  const kap = resolveKapsicum(theme.colors, theme.colorScheme, theme.kapsicum)
+  for (const [key, value] of Object.entries(kap)) {
+    cssLines.push(`--kap-${key}: ${value};`)
+  }
+
+  // Extra vars (e.g., --theme-orange for special use)
+  if (theme.extraVars) {
+    for (const [key, value] of Object.entries(theme.extraVars)) {
+      cssLines.push(`${key}: ${value};`)
+    }
+  }
+
+  cssLines.push('}')
+
+  // Extra CSS rules (e.g., grayscale filters)
+  if (theme.extraCss) {
+    cssLines.push(theme.extraCss)
+  }
 }
 let generatedCss: string = cssLines.join('\n')
 ---
@@ -117,8 +94,7 @@ let generatedCss: string = cssLines.join('\n')
 <html
   lang="en"
   data-theme={defaultTheme}
-  data-dark-theme={darkTheme}
-  data-light-theme={lightTheme}
+  data-themes={themeIds.join(',')}
   data-theme-mode={themeMode}
   data-theme-hash={themeHash}
 >
@@ -152,17 +128,42 @@ let generatedCss: string = cssLines.join('\n')
     <style is:global define:vars={baseCssVars}></style>
     <style is:inline set:html={generatedCss}></style>
     {themeMode === 'light-dark-auto' && <LightDarkAutoThemeLoader />}
-    {themeMode === 'select' && <SelectThemeLoader />}
   </head>
-  <body class="w-full h-full m-0 bg-background text-foreground">
+  <body class="w-full h-full m-0 text-foreground" style="background: linear-gradient(180deg, var(--kap-bg-from, var(--theme-background)) 0%, var(--kap-bg-to, var(--theme-background)) 100%); background-attachment: fixed;">
+    <a href="#main-content" class="skip-to-content">Skip to content</a>
+    <div class="kap-atmosphere fixed inset-0 pointer-events-none -z-1" aria-hidden="true"
+      style="background: var(--kap-orb-1, none), var(--kap-orb-2, none), var(--kap-orb-3, none);"
+    ></div>
     <div
-      class="flex flex-col max-w-3xl min-h-screen border-accent/10 m-auto p-3 sm:py-5 sm:px-6 md:py-10"
+      class:list={[
+        "flex flex-col min-h-screen m-auto p-4 sm:py-5 sm:px-6 md:py-10",
+        wide ? "max-w-7xl" : "max-w-4xl"
+      ]}
     >
-      <Header />
-      <main class="flex flex-col py-1">
-        <slot />
-      </main>
-      <Footer />
+      {wide ? (
+        <div class="lg:flex lg:gap-6 lg:items-start flex-1">
+          <div class="flex-1 min-w-0 flex flex-col">
+            <div class="content-grid">
+              <Header />
+            </div>
+            <main id="main-content" class="flex flex-col py-1 flex-1">
+              <slot />
+            </main>
+            <div class="content-grid">
+              <Footer />
+            </div>
+          </div>
+          <slot name="sidebar" />
+        </div>
+      ) : (
+        <Fragment>
+          <Header />
+          <main id="main-content" class="flex flex-col py-1 flex-1">
+            <slot />
+          </main>
+          <Footer />
+        </Fragment>
+      )}
     </div>
   </body>
 </html>
