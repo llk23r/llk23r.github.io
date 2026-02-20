@@ -1,31 +1,323 @@
 ---
 import type { GetStaticPaths } from 'astro'
 import Layout from '~/layouts/Layout.astro'
-import { getSortedPosts } from '~/utils'
-import Pagination from '~/components/Pagination.astro'
-import siteConfig from '~/site.config'
-import PostPreview from '~/components/PostPreview.astro'
-import PageHeader from '~/components/PageHeader.astro'
+import { getSortedPosts, TagsGroup } from '~/utils'
+import { render } from 'astro:content'
 
-// Note: Pagination like '/', '/2', '/3' only works with spread param like [...page]
-export const getStaticPaths = (async ({ paginate }) => {
-  const sortedPosts = await getSortedPosts()
-  return paginate(sortedPosts.reverse(), { pageSize: siteConfig.pageSize })
+// Single page with all posts (client-side filtering/sorting)
+export const getStaticPaths = (async () => {
+  return [{ params: { page: undefined } }]
 }) satisfies GetStaticPaths
 
-const { page } = Astro.props
-const pageTitle = 'Archive' + (page.currentPage > 1 ? ` - Page ${page.currentPage}` : '')
+const sortedPosts = await getSortedPosts()
+const allPosts = [...sortedPosts].reverse()
+
+const readTimeMap = new Map<string, string>()
+for (const post of allPosts) {
+  const { remarkPluginFrontmatter } = await render(post)
+  if (remarkPluginFrontmatter?.minutesRead) {
+    readTimeMap.set(post.id, remarkPluginFrontmatter.minutesRead)
+  }
+}
+
+const tagsGroup = await TagsGroup.build(sortedPosts)
+const allTags = tagsGroup.collations
+  .filter(t => t.entries.length > 0)
+  .sort((a, b) => b.entries.length - a.entries.length)
+
+function formatDate(date: Date): string {
+  return date.toISOString().slice(0, 10)
+}
 ---
 
-<Layout title={pageTitle} description="All posts in the archive">
-  <div class="mt-2 sm:mt-0">
-    <PageHeader />
-    {page.data.map((post) => <PostPreview post={post} />)}
-    <Pagination
-      prevLink={page.url.prev ? page.url.prev : undefined}
-      prevText="Newer Posts"
-      nextLink={page.url.next ? page.url.next : undefined}
-      nextText="Older Posts"
-    />
+<Layout title="Archive" description="All posts in the archive">
+  <div class="md:mx-2">
+    <div class="archive-header">
+      <h1 class="archive-title">ARCHIVE</h1>
+      <span class="archive-count" id="archive-count">{allPosts.length} posts</span>
+    </div>
+
+    <div class="archive-controls">
+      <div class="archive-control-row" id="archive-sort">
+        <span class="archive-control-label">Sort</span>
+        <button class="archive-ctrl-btn active" data-sort="newest">newest</button>
+        <span class="archive-sep">&middot;</span>
+        <button class="archive-ctrl-btn" data-sort="oldest">oldest</button>
+        <span class="archive-sep">&middot;</span>
+        <button class="archive-ctrl-btn" data-sort="title">title</button>
+      </div>
+
+      {allTags.length > 0 && (
+        <div class="archive-control-row" id="archive-tags-filter">
+          <span class="archive-control-label">Tags</span>
+          <button class="archive-ctrl-btn active" data-tag="all">all</button>
+          {allTags.map(tag => (
+            <>
+              <span class="archive-sep">&middot;</span>
+              <button class="archive-ctrl-btn" data-tag={tag.titleSlug}>{tag.title}</button>
+            </>
+          ))}
+        </div>
+      )}
+    </div>
+
+    <ul class="archive-list" id="archive-list">
+      {allPosts.map((post) => {
+        const postTags = post.data.tags?.length
+          ? tagsGroup.matchMany(post.data.tags)
+          : undefined
+        const tagSlugs = postTags?.map(t => t.titleSlug).join(',') || ''
+        return (
+          <li
+            class="archive-row"
+            data-date={post.data.published.toISOString()}
+            data-title={post.data.title}
+            data-tags={tagSlugs}
+          >
+            <time datetime={post.data.published.toISOString()}>
+              {formatDate(post.data.published)}
+            </time>
+            <div class="archive-info">
+              <a href={`/posts/${post.id}`}>{post.data.title}</a>
+              {post.data.description && (
+                <p class="archive-desc">{post.data.description}</p>
+              )}
+              {postTags && postTags.length > 0 && (
+                <div class="archive-inline-tags">
+                  {postTags.map((tag, i) => (
+                    <>
+                      {i > 0 && <span class="archive-inline-tag-sep">&middot;</span>}
+                      <a href={tag.url} class="archive-inline-tag">{tag.title}</a>
+                    </>
+                  ))}
+                </div>
+              )}
+            </div>
+            {readTimeMap.get(post.id) && (
+              <span class="archive-readtime">{readTimeMap.get(post.id)}</span>
+            )}
+          </li>
+        )
+      })}
+    </ul>
+
+    <p class="archive-empty" id="archive-empty">No posts match this filter.</p>
   </div>
 </Layout>
+
+<style>
+  .archive-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .archive-title {
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    color: color-mix(in srgb, var(--theme-accent) 50%, transparent);
+  }
+
+  .archive-count {
+    font-size: 0.75rem;
+    color: color-mix(in srgb, var(--theme-foreground) 30%, transparent);
+  }
+
+  /* ── Controls ──────────────────────────────────────────── */
+  .archive-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--theme-foreground) 6%, transparent);
+  }
+
+  .archive-control-row {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+  }
+
+  .archive-control-label {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    color: color-mix(in srgb, var(--theme-foreground) 30%, transparent);
+    letter-spacing: 0.02em;
+    min-width: 2.5rem;
+    flex-shrink: 0;
+  }
+
+  .archive-ctrl-btn {
+    all: unset;
+    font-family: inherit;
+    font-size: 0.6875rem;
+    color: color-mix(in srgb, var(--theme-foreground) 35%, transparent);
+    cursor: pointer;
+    transition: color 0.15s ease;
+    padding: 1px 0;
+  }
+
+  .archive-ctrl-btn:hover {
+    color: color-mix(in srgb, var(--theme-foreground) 70%, transparent);
+  }
+
+  .archive-ctrl-btn.active {
+    color: var(--theme-accent);
+    font-weight: 500;
+  }
+
+  .archive-sep {
+    color: color-mix(in srgb, var(--theme-foreground) 12%, transparent);
+    font-size: 0.6875rem;
+  }
+
+  /* ── Post list ─────────────────────────────────────────── */
+  .archive-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .archive-row {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 0.625rem 0;
+    font-size: 0.875rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--theme-foreground) 5%, transparent);
+  }
+
+  .archive-row:last-child {
+    border-bottom: none;
+  }
+
+  .archive-row time {
+    color: color-mix(in srgb, var(--theme-foreground) 40%, transparent);
+    font-size: 0.8125rem;
+    flex-shrink: 0;
+    align-self: flex-start;
+    margin-top: 0.125rem;
+  }
+
+  .archive-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .archive-info > a {
+    color: var(--theme-accent);
+    text-decoration: none;
+  }
+
+  .archive-info > a:hover {
+    text-decoration: underline;
+  }
+
+  .archive-desc {
+    font-size: 0.75rem;
+    color: color-mix(in srgb, var(--theme-foreground) 40%, transparent);
+    margin-top: 0.125rem;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .archive-inline-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-top: 0.25rem;
+    font-size: 0.6875rem;
+  }
+
+  .archive-inline-tag {
+    color: color-mix(in srgb, var(--theme-accent) 40%, transparent);
+    text-decoration: none;
+  }
+
+  .archive-inline-tag:hover {
+    color: var(--theme-accent);
+  }
+
+  .archive-inline-tag-sep {
+    color: color-mix(in srgb, var(--theme-foreground) 15%, transparent);
+  }
+
+  .archive-readtime {
+    color: color-mix(in srgb, var(--theme-foreground) 25%, transparent);
+    font-size: 0.75rem;
+    flex-shrink: 0;
+    margin-left: auto;
+    display: none;
+    align-self: flex-start;
+    margin-top: 0.125rem;
+  }
+
+  @media (min-width: 640px) {
+    .archive-readtime {
+      display: inline;
+    }
+  }
+
+  /* ── Empty state ───────────────────────────────────────── */
+  .archive-empty {
+    display: none;
+    text-align: center;
+    padding: 3rem 0;
+    font-size: 0.8125rem;
+    color: color-mix(in srgb, var(--theme-foreground) 30%, transparent);
+  }
+</style>
+
+<script>
+  function initArchive() {
+    const list = document.getElementById('archive-list')
+    const countEl = document.getElementById('archive-count')
+    const emptyEl = document.getElementById('archive-empty')
+    const sortBtns = document.querySelectorAll<HTMLButtonElement>('#archive-sort .archive-ctrl-btn')
+    const tagBtns = document.querySelectorAll<HTMLButtonElement>('#archive-tags-filter .archive-ctrl-btn')
+
+    if (!list) return
+
+    let activeTag = 'all'
+
+    function applySort(sort: string) {
+      sortBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.sort === sort))
+      const items = [...list.children] as HTMLElement[]
+      items.sort((a, b) => {
+        if (sort === 'newest') return new Date(b.dataset.date!).getTime() - new Date(a.dataset.date!).getTime()
+        if (sort === 'oldest') return new Date(a.dataset.date!).getTime() - new Date(b.dataset.date!).getTime()
+        return (a.dataset.title || '').localeCompare(b.dataset.title || '')
+      })
+      items.forEach(item => list.appendChild(item))
+    }
+
+    function applyFilter(tag: string) {
+      activeTag = tag
+      tagBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.tag === tag))
+
+      let visible = 0
+      ;(list.querySelectorAll('.archive-row') as NodeListOf<HTMLElement>).forEach(row => {
+        const tags = (row.dataset.tags || '').split(',').filter(Boolean)
+        const show = tag === 'all' || tags.includes(tag)
+        row.style.display = show ? '' : 'none'
+        if (show) visible++
+      })
+
+      if (countEl) countEl.textContent = `${visible} post${visible !== 1 ? 's' : ''}`
+      if (emptyEl) emptyEl.style.display = visible === 0 ? 'block' : 'none'
+    }
+
+    sortBtns.forEach(btn => btn.addEventListener('click', () => applySort(btn.dataset.sort!)))
+    tagBtns.forEach(btn => btn.addEventListener('click', () => applyFilter(btn.dataset.tag!)))
+  }
+
+  initArchive()
+</script>
