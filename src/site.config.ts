@@ -1,5 +1,6 @@
 import type { SiteConfig } from './types'
 import parchment from './themes/parchment'
+import liquidGlass from './themes/liquid-glass'
 import grayscale from './themes/grayscale'
 import emberChamber from './themes/ember-chamber'
 
@@ -54,7 +55,7 @@ const config: SiteConfig = {
   themes: {
     mode: 'light-dark-auto',
     default: 'rose-pine-dawn',
-    include: [parchment, grayscale, emberChamber],
+    include: [parchment, liquidGlass, grayscale, emberChamber],
   },
   // Social links to display in the footer.
   socialLinks: {
