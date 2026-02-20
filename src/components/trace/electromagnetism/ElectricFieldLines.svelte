@@ -45,7 +45,7 @@
 </script>
 
 <figure class="trace-viz" role="img" aria-label="Electric field lines from positive charge to negative charge">
-  <svg viewBox="0 0 800 400" width="100%">
+  <svg viewBox="0 0 800 440" width="100%">
     <!-- Field lines -->
     {#each lines as { dy, spread }}
       <path d={getPath(dy, spread)} fill="none" stroke="var(--viz-text-muted)" stroke-width="1.5" opacity="0.6" />
@@ -71,7 +71,7 @@
     <text x={negX} y={cy} text-anchor="middle" dominant-baseline="central" font-size="26" font-weight="700" fill="#fff">&minus;</text>
 
     <!-- Bottom label -->
-    <text x="400" y="380" text-anchor="middle" font-size="14" font-family="'JetBrains Mono', monospace" fill="var(--viz-text)">Electric field lines point from + to &minus;</text>
+    <text x="400" y="425" text-anchor="middle" font-size="14" font-family="'JetBrains Mono', monospace" fill="var(--viz-text)">Electric field lines point from + to &minus;</text>
   </svg>
 </figure>
 
