@@ -4,6 +4,8 @@ import liquidGlass from './themes/liquid-glass'
 import grayscale from './themes/grayscale'
 import emberChamber from './themes/ember-chamber'
 import newspaper from './themes/newspaper'
+import candy from './themes/candy'
+import studio from './themes/studio'
 
 const config: SiteConfig = {
   // Absolute URL to the root of your published site, used for generating links and sitemaps.
@@ -56,7 +58,7 @@ const config: SiteConfig = {
   themes: {
     mode: 'light-dark-auto',
     default: 'rose-pine-dawn',
-    include: [parchment, liquidGlass, newspaper, grayscale, emberChamber],
+    include: [parchment, liquidGlass, newspaper, candy, studio, grayscale, emberChamber],
   },
   // Social links to display in the footer.
   socialLinks: {
