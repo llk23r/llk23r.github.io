@@ -110,6 +110,12 @@ export interface ThemeDefinition {
   colorScheme: 'light' | 'dark'
   /** 25 base semantic colors (become --theme-* CSS vars) */
   colors: ColorStyles
+  /** Override the site-wide font for this theme (e.g., 'Lora Variable').
+   *  Omit to use siteConfig.font. */
+  font?: string
+  /** CSS font-family fallback stack for this theme (e.g., 'serif').
+   *  Omit to use 'monospace'. */
+  fontFallback?: string
   /** Kapsicum visual language overrides (become --kap-* CSS vars).
    *  Omitted values are auto-derived from colors + colorScheme. */
   kapsicum?: Partial<KapsicumVars>

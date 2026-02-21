@@ -31,7 +31,6 @@ const pageKeywords = [
   ...new Set(siteConfig.tags.concat(tags || []).map((word) => word.toLowerCase())),
 ].join(', ')
 const baseCssVars: { [key: string]: string } = {
-  'theme-font': siteConfig.font,
   'ec-frm-frameBoxShdCssVal': 'none',
   'ec-frm-edTabBrdRad': '0',
   'ec-frm-edTabBarBrdCol':
@@ -61,6 +60,12 @@ let cssLines: string[] = []
 for (const theme of themes) {
   cssLines.push(`:root[data-theme="${theme.shikiTheme}"] {`)
   cssLines.push(`color-scheme: ${theme.colorScheme};`)
+
+  // Font — per-theme override or site-wide default
+  const themeFont = theme.font || siteConfig.font
+  const themeFontFallback = theme.fontFallback || 'monospace'
+  cssLines.push(`--theme-font: '${themeFont}';`)
+  cssLines.push(`--theme-font-fallback: ${themeFontFallback};`)
 
   // Base colors → --theme-*
   for (const [key, value] of Object.entries(theme.colors)) {

@@ -2,17 +2,17 @@
   /** @type {{ steps: Array<{label: string, depth: string}>, current: number }} */
   let { steps = [], current = 0 } = $props()
 
-  const depthColors = {
-    human: '#f59e0b',
-    hardware: '#06b6d4',
-    physics: '#10b981',
-    protocol: '#8b5cf6',
-    network: '#f97316',
-    system: '#ec4899',
+  const depthColorVars = {
+    human: 'var(--theme-yellow, #f59e0b)',
+    hardware: 'var(--theme-cyan, #06b6d4)',
+    physics: 'var(--theme-green, #10b981)',
+    protocol: 'var(--theme-magenta, #8b5cf6)',
+    network: 'var(--theme-caution, #f97316)',
+    system: 'var(--theme-red, #ec4899)',
   }
 
   function getColor(depth) {
-    return depthColors[depth] || '#888'
+    return depthColorVars[depth] || 'var(--theme-foreground, #888)'
   }
 
   function isCompleted(i) {
