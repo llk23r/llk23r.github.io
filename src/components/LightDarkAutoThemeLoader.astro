@@ -15,12 +15,8 @@
     const themeHashMatches = storedThemeHash === pageThemeHash
 
     if (!storedTheme || !storedThemeHash || !themeHashMatches) {
-      // First load or config changed — auto-detect OS preference
+      // First load or config changed — use configured default
       var detected = pageDefaultTheme
-      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        // Prefer the last theme (darkest) when OS is dark
-        detected = pageThemes[pageThemes.length - 1]
-      }
       localStorage.setItem('data-theme', detected)
       localStorage.setItem('data-theme-hash', pageThemeHash)
       document.documentElement.setAttribute('data-theme', detected)

@@ -58,7 +58,7 @@ const config: SiteConfig = {
   // To add a theme: create a new file in src/themes/, import it here, and add to include[].
   themes: {
     mode: 'light-dark-auto',
-    default: 'github-dark-dimmed',
+    default: 'min-light',
     include: [parchment, liquidGlass, newspaper, candy, studio, gram, grayscale, emberChamber],
   },
   // Social links to display in the footer.
