@@ -6,7 +6,7 @@ tags: ["mental-models", "discovery", "knowledge", "innovation", "sparse-territor
 toc: true
 ---
 
-August 11, 1973. A back-to-school party at 1520 Sedgwick Avenue in the Bronx. An 18-year-old Jamaican immigrant named Clive Campbell set up two turntables. He called himself DJ Kool Herc. He extended the drum breaks from funk records so people could dance longer.[^4][^5]
+August 11, 1973. A back-to-school party at 1520 Sedgwick Avenue in the Bronx. An 18-year-old Jamaican immigrant named Clive Campbell set up two turntables. He called himself DJ Kool Herc. He extended the drum breaks from funk records so people could dance longer.[^4]
 
 He knew maybe 10 or 15 other DJs doing something similar. To him, this was a scene.[^1][^2][^3]
 
@@ -34,27 +34,27 @@ This gap between local and global perspective creates a systematic illusion. You
 
 ## What Sparse Territory Feels Like
 
-In the 1980s, Geoffrey Hinton was working on neural networks.[^8][^9] The first AI winter had collapsed funding. His peers had moved on to symbolic AI, the approach that actually worked, the one that got grants. He kept publishing papers on backpropagation to small audiences.
+In the 1980s, Geoffrey Hinton was working on neural networks.[^7] The first AI winter had collapsed funding. His peers had moved on to symbolic AI, the approach that actually worked, the one that got grants. He kept publishing papers on backpropagation to small audiences.
 
-From his perspective, there was a research community. From the world's perspective, he was in sparse territory. The question "how do we recognize patterns at scale?" wasn't urgent yet.[^6][^7]
+From his perspective, there was a research community. From the world's perspective, he was in sparse territory. The question "how do we recognize patterns at scale?" wasn't urgent yet.[^5][^6]
 
-Three decades later, it became urgent. The search found everything he'd been building.[^10]
+Three decades later, it became urgent. The search found everything he'd been building.[^9]
 
 ---
 
-Katalin Karikó spent the 1990s working on mRNA as a therapeutic platform. Penn demoted her in 1995, cut her salary.[^12][^13] Her grant applications kept getting rejected. The work was too speculative, the applications too uncertain.
+Katalin Karikó spent the 1990s working on mRNA as a therapeutic platform. Penn demoted her in 1995, cut her salary.[^11][^12] Her grant applications kept getting rejected. The work was too speculative, the applications too uncertain.
 
 She had collaborators. Drew Weissman was working with her. It felt like progress.
 
 But from the world's view, mRNA therapeutics was sparse territory. Nobody was searching that region of the space because no question demanded it.
 
-Then COVID arrived. Suddenly the question "how do we make vaccines faster than ever before?" became the most urgent question on Earth. The search swept through decades of obscure immunology research and found Karikó and Weissman's foundational work on modified nucleosides.[^14][^15]
+Then COVID arrived. Suddenly the question "how do we make vaccines faster than ever before?" became the most urgent question on Earth. The search swept through decades of obscure immunology research and found Karikó and Weissman's foundational work on modified nucleosides.[^13][^14]
 
 Within months, their techniques were being injected into billions of arms.
 
 ---
 
-Vincent van Gogh sold one painting while he was alive. It went for 400 francs, four months before his death.[^16][^17][^18]
+Vincent van Gogh sold one painting while he was alive. It went for 400 francs, four months before his death.[^15][^16][^17]
 
 He wrote letters to his brother describing his vision, his certainty that post-impressionism would matter. He could see a handful of others working in similar territory. It felt like a movement to him.
 
@@ -62,7 +62,7 @@ The art market wasn't searching that region of the space. Not yet.
 
 ---
 
-In the early 1980s, a young driver named Keiichi Tsuchiya started pushing his Toyota AE86 sideways through the mountain passes outside Tokyo. The touge roads were narrow, unlit, technically illegal to race on. He and maybe a dozen other drivers would meet at night, drifting through switchbacks at speeds that should have killed them.
+In the early 1980s, a young driver named Keiichi Tsuchiya started pushing his Toyota AE86 sideways through the mountain passes outside Tokyo.[^38][^39] The touge roads were narrow, unlit, technically illegal to race on. He and maybe a dozen other drivers would meet at night, drifting through switchbacks at speeds that should have killed them.
 
 Someone started filming. VHS tapes of Tsuchiya's runs circulated through underground car culture. He called himself the Drift King. To him and his small crew, this was a scene.
 
@@ -74,7 +74,7 @@ Then the Fast and Furious franchise needed something new. The search swept throu
 
 In 1997, a group of nine teenagers in Lisses, a suburb south of Paris, spent their afternoons at a concrete sculpture called La Dame Du Lac. They jumped between structures, vaulted walls, climbed buildings. They called themselves the Yamakasi, a Lingala word meaning "strong man, strong spirit."
 
-One of them, David Belle, had learned movement techniques from his father Raymond, a French special forces veteran who'd adapted Georges Hébert's "méthode naturelle" for urban environments. The group developed what they called "l'art du déplacement." The art of movement through obstacles.
+One of them, David Belle, had learned movement techniques from his father Raymond, a French special forces veteran who'd adapted Georges Hébert's "méthode naturelle" for urban environments.[^40][^41][^42] The group developed what they called "l'art du déplacement." The art of movement through obstacles.
 
 They knew each other. A handful of related practitioners in nearby towns. To them, this was a discipline.
 
@@ -92,7 +92,7 @@ They knew maybe a few hundred people doing this. Forums, IRC channels, a website
 
 To the gaming industry, it was invisible. No tournaments. No prize money. Just nerds in forums arguing about frame-perfect inputs.
 
-Then Twitch emerged. Suddenly the question "what does superhuman game mastery look like?" became streamable. The first Games Done Quick marathon ran from the founder's mother's basement in 2010. Now GDQ events draw millions of viewers and have raised over $50 million for charity. Speedrunning went from demo files passed between forum users to a cultural force with its own celebrities and language.
+Then Twitch emerged. Suddenly the question "what does superhuman game mastery look like?" became streamable. The first Games Done Quick marathon ran from the founder's mother's basement in 2010. Now GDQ events draw millions of viewers and have raised over $50 million for charity. Speedrunning went from demo files passed between forum users to a cultural force with its own celebrities and language.[^43][^44][^45]
 
 ---
 
@@ -114,11 +114,11 @@ Science searches through citation networks and replication. Technology searches 
 
 But the dynamic is the same. Urgency triggers search. Search finds what's positioned.
 
-Mendel sat for 34 years before biology needed him.[^9][^10][^11] CRISPR editing was discovered in the 1980s but the breakthrough came in 2012 when the question got urgent.[^19][^20][^21] Continental drift waited 50 years for seafloor spreading to provide the mechanism.[^22][^23][^24]
+Mendel sat for 34 years before biology needed him.[^8][^9][^10] CRISPR editing was discovered in the 1980s but the breakthrough came in 2012 when the question got urgent.[^18][^19][^20] Continental drift waited 50 years for seafloor spreading to provide the mechanism.[^21][^22][^23]
 
-TCP/IP was positioned in the 1970s and found in the 1990s. Bitcoin emerged from cypherpunk circles in 2008 when "trustless digital money" became searchable.[^37][^38] Remote work tech existed for decades before 2020 made it mandatory.[^39][^40][^41]
+TCP/IP was positioned in the 1970s and found in the 1990s. Bitcoin emerged from cypherpunk circles in 2008 when "trustless digital money" became searchable.[^27][^28] Remote work tech existed for decades before 2020 made it mandatory.[^29][^30]
 
-Gandhi positioned nonviolent resistance. King found it and adapted it.[^42][^43][^44][^45] Bogle's index funds were ridiculed as "un-American" in 1976. Now they're dominant.[^34][^35][^36]
+Gandhi positioned nonviolent resistance. King found it and adapted it.[^31][^32][^33][^34] Bogle's index funds were ridiculed as "un-American" in 1976. Now they're dominant.[^24][^25][^26]
 
 The lag varies. Years, decades, sometimes centuries. The pattern doesn't.
 
@@ -126,7 +126,7 @@ The lag varies. Years, decades, sometimes centuries. The pattern doesn't.
 
 Some people don't wait for urgency. They manufacture it.
 
-Rachel Carson didn't wait for "are pesticides killing wildlife?" to become urgent. She made it urgent with Silent Spring in 1962, rigorous science wrapped in prose that regular people could feel.[^46][^47][^48] She pulled the search toward sparse territory by making the question impossible to ignore.
+Rachel Carson didn't wait for "are pesticides killing wildlife?" to become urgent. She made it urgent with Silent Spring in 1962, rigorous science wrapped in prose that regular people could feel.[^35][^36][^37] She pulled the search toward sparse territory by making the question impossible to ignore.
 
 Musk doesn't wait for space colonization to become urgent. He manufactures urgency through spectacle and narrative, forcing the question into consciousness before it would naturally arrive.
 
@@ -176,60 +176,48 @@ It has to.
 
 ## References
 
-[^1]: Britannica. (2023). DJ Kool Herc | Hip-hop, Merry-go-round, History, & Biography.
-[^2]: Wikipedia. (2003). DJ Kool Herc.
-[^3]: PBS. Birthplace Of Hip Hop | History Detectives.
-[^4]: Rolling Stone. (2023). Kool Herc and the History (and Mystery) of Hip-Hop's First Day.
-[^5]: DW. (2023). How teenagers from the Bronx invented hip-hop 50 years ago.
-[^6]: Crevier, D. (1993). AI: The Tumultuous History of the Search for Artificial Intelligence. Basic Books.
-[^7]: NVIDIA Developer. (2022). Deep Learning in a Nutshell: History and Training.
-[^8]: Rumelhart, D. E., Hinton, G. E., & Williams, R. J. (1986). Learning Representations by Back-Propagating Errors. Nature, 323(6088), 533–536.
-[^9]: National Institutes of Health. (2002). Mendel—Both Ignored and Forgotten.
-[^10]: Wikipedia. (2001). Gregor Mendel.
-[^11]: Genome.gov. (2013). 1900: Rediscovery of Mendel's Work.
-[^12]: Forbes. (2023). Researcher Demoted By University Of Pennsylvania Wins Nobel Prize.
-[^13]: Genetic Literacy Project. (2024). After demoting a scientist and cutting her pay, University of Pennsylvania honored for mRNA research used in COVID vaccines.
-[^14]: Wikipedia. (2020). Katalin Karikó.
-[^15]: STAO. (2024). The Resilient Journey of Katalin Karikó.
-[^16]: My Modern Met. (2025). The One Painting van Gogh Is Known to Have Sold During His Lifetime.
-[^17]: The Art Newspaper. (2025). How did the only painting sold by Van Gogh in his lifetime end up in Russia?
-[^18]: Artnet News. (2024). The Only Known Painting Van Gogh Sold During His Lifetime.
-[^19]: Nobel Prize. (2020). Press release: The Nobel Prize in Chemistry 2020.
-[^20]: PMC. (2022). CRISPR–Cas9: A History of Its Discovery and Ethical Considerations.
-[^21]: Berkeley News. (2019). CRISPR Timeline.
-[^22]: American Physical Society. (2025). January 6, 1912: Alfred Wegener Presents His Theory of Continental Drift.
-[^23]: UC Berkeley Geosciences. (2025). Alfred Wegener's Continental Drift Hypothesis.
-[^24]: History of Information. (2020). Alfred H. Wegener Proposes the Theory of Continental Drift.
-[^25]: Wikipedia. (2002). Homebrew Computer Club.
-[^26]: Cult of Mac. (2025). Today in Apple history: Homebrew Computer Club meets for first time.
-[^27]: Smithsonian National Museum of American History. (2015). Apple I Microcomputer.
-[^28]: Hypebae. (2019). A Timeline of How K-Pop Became a Global Phenomenon in the 2010s.
-[^29]: Wikipedia. (2004). K-pop.
-[^30]: Korean Cultural Centre UK. (2019). Hallyu (Korean Wave).
-[^31]: The Whole U - University of Washington. (2021). The Westernization of Yoga.
-[^32]: Awakened Spirit Yoga. (2023). How Yoga Was Brought to the West.
-[^33]: Yoga International. (2015). Why We Practice: A Short History of Yoga in the West.
-[^34]: Vanguard. (2024). Vanguard's history.
-[^35]: Wikipedia. (2005). John C. Bogle.
-[^36]: Commoncog. (2025). The Creation of the Index Fund.
-[^37]: Trust Machines. (2008). Bitcoin in 2009: Genesis Block and the First BTC Transaction.
-[^38]: Wikipedia. (2010). Satoshi Nakamoto.
-[^39]: Bureau of Labor Statistics. (2024). The rise in remote work since the pandemic and its impact on productivity.
-[^40]: Federal Reserve Bank of St. Louis. (2024). The Evolution of Remote Work across Industries.
-[^41]: Forbes. (2022). The Past, Present And Future Of Remote Work.
-[^42]: Teach Democracy. (2025). Bringing Down an Empire: Gandhi and Civil Disobedience.
-[^43]: LINCS. (2019). Martin Luther King Jr.'s use of nonviolence inspired by Gandhi.
-[^44]: Biography.com. (2021). How Martin Luther King Jr. Took Inspiration From Gandhi on Nonviolent Resistance.
-[^45]: Westmont College. (2011). Civil Disobedience and the Legacy of Martin Luther King Jr.
-[^46]: Wikipedia. (2002). Silent Spring.
-[^47]: Environment & Society Portal. (2020). Silent Spring.
-[^48]: American Chemical Society. (2023). Legacy of Rachel Carson's Silent Spring.
-[^49]: The Drift Culture. (2023). The History of Drifting.
-[^50]: TopSpeed. (2023). Keiichi Tsuchiya: The Drift King.
-[^51]: Hagerty. (2023). How Keiichi Tsuchiya Became the Drift King.
-[^52]: Wikipedia. David Belle.
-[^53]: Parkour UK. The History of Parkour.
-[^54]: Flow Legends. (2023). David Belle and the Origins of Parkour.
-[^55]: Wikipedia. Speedrunning.
-[^56]: Wikipedia. Games Done Quick.
-[^57]: EGM Now. (2020). The History of Games Done Quick.
+[^1]: [Britannica. (2023). DJ Kool Herc | Hip-hop, Merry-go-round, History, & Biography.](https://www.britannica.com/biography/Kool-Herc)
+[^2]: [Wikipedia. (2003). DJ Kool Herc.](https://en.wikipedia.org/wiki/DJ_Kool_Herc)
+[^3]: [PBS. Birthplace Of Hip Hop | History Detectives.](https://www.pbs.org/opb/historydetectives/investigation/birthplace-of-hip-hop/)
+[^4]: [Rolling Stone. (2023). Kool Herc and the History (and Mystery) of Hip-Hop's First Day.](https://www.rollingstone.com/music/music-features/kool-herc-hip-hop-50-august-11-1973-1234802035/)
+[^5]: [Crevier, D. (1993). AI: The Tumultuous History of the Search for Artificial Intelligence. Basic Books.](https://archive.org/details/aitumultuoushist00crev)
+[^6]: [NVIDIA Developer. (2022). Deep Learning in a Nutshell: History and Training.](https://developer.nvidia.com/blog/deep-learning-nutshell-history-training/)
+[^7]: [Rumelhart, D. E., Hinton, G. E., & Williams, R. J. (1986). Learning Representations by Back-Propagating Errors. Nature, 323(6088), 533–536.](https://www.nature.com/articles/323533a0)
+[^8]: [National Institutes of Health. (2002). Mendel—Both Ignored and Forgotten.](https://pmc.ncbi.nlm.nih.gov/articles/PMC1279276/)
+[^9]: [Wikipedia. (2001). Gregor Mendel.](https://en.wikipedia.org/wiki/Gregor_Mendel)
+[^10]: [Genome.gov. (2013). 1900: Rediscovery of Mendel's Work.](https://www.genome.gov/25520238/online-education-kit-1900-rediscovery-of-mendels-work)
+[^11]: [Forbes. (2023). Researcher Demoted By University Of Pennsylvania Wins Nobel Prize.](https://www.forbes.com/sites/conormurray/2023/10/03/researcher-demoted-by-university-of-pennsylvania-wins-nobel-prize-for-mrna-discoveries/)
+[^12]: [Genetic Literacy Project. (2024). After demoting a scientist and cutting her pay, University of Pennsylvania honored for mRNA research used in COVID vaccines.](https://geneticliteracyproject.org/2024/01/10/after-demoting-a-scientist-and-cutting-her-pay-university-of-pennsylvania-makes-millions-from-her-mrna-breakthroughs/)
+[^13]: [Wikipedia. (2020). Katalin Karikó.](https://en.wikipedia.org/wiki/Katalin_Karik%C3%B3)
+[^14]: [STAO. (2024). The Resilient Journey of Katalin Karikó.](https://stao.ca/the-resilient-journey-of-katalin-kariko/)
+[^15]: [My Modern Met. (2025). The One Painting van Gogh Is Known to Have Sold During His Lifetime.](https://mymodernmet.com/vincent-van-gogh-only-painting-sold-lifetime/)
+[^16]: [The Art Newspaper. (2025). How did the only painting sold by Van Gogh in his lifetime end up in Russia?](https://www.theartnewspaper.com/2025/08/15/how-did-the-only-painting-sold-by-van-gogh-in-his-lifetime-end-up-in-russia)
+[^17]: [Artnet News. (2024). The Only Known Painting Van Gogh Sold During His Lifetime.](https://news.artnet.com/art-world/story-only-known-painting-van-gogh-sold-2432275)
+[^18]: [Nobel Prize. (2020). Press release: The Nobel Prize in Chemistry 2020.](https://www.nobelprize.org/prizes/chemistry/2020/press-release/)
+[^19]: [PMC. (2022). CRISPR–Cas9: A History of Its Discovery and Ethical Considerations.](https://pmc.ncbi.nlm.nih.gov/articles/PMC9377665/)
+[^20]: [Berkeley News. (2019). CRISPR Timeline.](https://news.berkeley.edu/2019/06/25/crispr-timeline/)
+[^21]: [American Physical Society. (2025). January 6, 1912: Alfred Wegener Presents His Theory of Continental Drift.](https://www.aps.org/apsnews/2019/01/alfred-wegener-theory-continental-drift)
+[^22]: [UC Berkeley Geosciences. (2025). Alfred Wegener's Continental Drift Hypothesis.](https://ucmp.berkeley.edu/history/wegener.html)
+[^23]: [History of Information. (2020). Alfred H. Wegener Proposes the Theory of Continental Drift.](https://historyofinformation.com/detail.php?entryid=3352)
+[^24]: [Vanguard. (2024). Vanguard's history.](https://corporate.vanguard.com/content/corporatesite/us/en/corp/why-vanguard/who-we-are/our-history.html)
+[^25]: [Wikipedia. (2005). John C. Bogle.](https://en.wikipedia.org/wiki/John_C._Bogle)
+[^26]: [Commoncog. (2025). The Creation of the Index Fund.](https://commoncog.com/c/cases/vanguard-creation-index-fund/)
+[^27]: [Trust Machines. (2008). Bitcoin in 2009: Genesis Block and the First BTC Transaction.](https://trustmachines.co/blog/bitcoin-in-2009-genesis-block-and-the-first-btc-transaction/)
+[^28]: [Wikipedia. (2010). Satoshi Nakamoto.](https://en.wikipedia.org/wiki/Satoshi_Nakamoto)
+[^29]: [Bureau of Labor Statistics. (2024). The rise in remote work since the pandemic and its impact on productivity.](https://www.bls.gov/opub/btn/volume-13/remote-work-productivity.htm)
+[^30]: [Federal Reserve Bank of St. Louis. (2024). The Evolution of Remote Work across Industries.](https://www.stlouisfed.org/on-the-economy/2024/dec/evolution-remote-work-industries-potential-practice)
+[^31]: [Teach Democracy. (2025). Bringing Down an Empire: Gandhi and Civil Disobedience.](https://teachdemocracy.org/online-lesson/bringing-down-an-empire-gandhi-and-civil-disobedience/)
+[^32]: [LINCS. (2019). Martin Luther King Jr.'s use of nonviolence inspired by Gandhi.](https://lincs.ed.gov/sites/default/files/TSTMCivEd-LsPln1stAmRgReadB-508.pdf)
+[^33]: [Biography.com. (2021). How Martin Luther King Jr. Took Inspiration From Gandhi on Nonviolent Resistance.](https://www.biography.com/activists/martin-luther-king-jr-gandhi-nonviolence-inspiration)
+[^34]: [Westmont College. (2011). Civil Disobedience and the Legacy of Martin Luther King Jr.](https://www.westmont.edu/civil-disobedience-and-legacy-martin-luther-king-jr)
+[^35]: [Wikipedia. (2002). Silent Spring.](https://en.wikipedia.org/wiki/Silent_Spring)
+[^36]: [Environment & Society Portal. (2020). Silent Spring.](https://www.environmentandsociety.org/exhibitions/rachel-carsons-silent-spring)
+[^37]: [American Chemical Society. (2023). Legacy of Rachel Carson's Silent Spring.](https://www.acs.org/education/whatischemistry/landmarks/rachel-carson-silent-spring.html)
+[^38]: [The Drift Culture. (2023). The History of Drifting.](https://thedriftculture.com/drifting-origins-and-evolution/)
+[^39]: [Hagerty. (2023). How Keiichi Tsuchiya Became the Drift King.](https://www.hagerty.com/media/motorsports/drift-king-the-story-of-modern-motorsports-legend-keiichi-tsuchiya/)
+[^40]: [Wikipedia. David Belle.](https://en.wikipedia.org/wiki/David_Belle)
+[^41]: [Parkour UK. The History of Parkour.](https://parkour.uk/hub/a-brief-history-of-parkour)
+[^42]: [Flow Legends. (2023). David Belle and the Origins of Parkour.](https://flowlegends.com/en/the-history-of-parkour-from-survival-skills-to-modern-movement/)
+[^43]: [Wikipedia. Speedrunning.](https://en.wikipedia.org/wiki/Speedrunning)
+[^44]: [Wikipedia. Games Done Quick.](https://en.wikipedia.org/wiki/Games_Done_Quick)
+[^45]: [EGM Now. (2020). The History of Games Done Quick.](https://egmnow.com/the-origins-of-awesome-games-done-quick/)

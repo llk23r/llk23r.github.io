@@ -685,6 +685,11 @@ article img {
     border-bottom: none;
   }
 
+  /* Separate adjacent footnote references so e.g. ¹³¹⁴ reads as ¹³ ¹⁴ */
+  sup:has(> a[data-footnote-ref]) + sup:has(> a[data-footnote-ref]) {
+    margin-left: 0.15em;
+  }
+
   .katex-display {
     @apply overflow-x-auto;
   }
