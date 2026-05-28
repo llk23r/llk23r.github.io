@@ -1,0 +1,984 @@
+---
+title: 'What Happens When You Chat with an LLM?'
+published: 2026-05-28
+description: 'You type a question. A model answers one token at a time. Under that: TLS, gateways, prompt assembly, tokenization, transformer layers, KV cache, GPU kernels, batching, routing, streaming, and fleet-scale failure handling.'
+series: 'trace'
+tags: [trace, llms, transformers, gpu, inference, distributed-systems, ai-infra, systems]
+toc: true
+draft: false
+disclaimer: "Note: this is an AI-assisted exploration written for my own understanding, not a description of any one company's proprietary serving stack. It explains the common mechanisms used by large-scale LLM systems and cites public sources where possible."
+---
+
+import JourneyMap from '~/components/trace/shared/JourneyMap.svelte'
+import RequestJourney from '~/components/trace/llm-scale/RequestJourney.svelte'
+import ServingStackDiagram from '~/components/trace/llm-scale/ServingStackDiagram.svelte'
+import PostTrainingLoop from '~/components/trace/llm-scale/PostTrainingLoop.svelte'
+import TrainingStepTrace from '~/components/trace/llm-scale/TrainingStepTrace.svelte'
+import PostTrainingTrace from '~/components/trace/llm-scale/PostTrainingTrace.svelte'
+import RequestEnvelopeTrace from '~/components/trace/llm-scale/RequestEnvelopeTrace.svelte'
+import AdmissionControlTrace from '~/components/trace/llm-scale/AdmissionControlTrace.svelte'
+import RequestReservationTrace from '~/components/trace/llm-scale/RequestReservationTrace.svelte'
+import PromptAssemblyPath from '~/components/trace/llm-scale/PromptAssemblyPath.svelte'
+import PromptEvidenceTrace from '~/components/trace/llm-scale/PromptEvidenceTrace.svelte'
+import GroundedClaimTrace from '~/components/trace/llm-scale/GroundedClaimTrace.svelte'
+import TokenizationLab from '~/components/trace/llm-scale/TokenizationLab.svelte'
+import TokenMergeTrace from '~/components/trace/llm-scale/TokenMergeTrace.svelte'
+import EmbeddingLookupTrace from '~/components/trace/llm-scale/EmbeddingLookupTrace.svelte'
+import AttentionKvCache from '~/components/trace/llm-scale/AttentionKvCache.svelte'
+import KvCacheTrace from '~/components/trace/llm-scale/KvCacheTrace.svelte'
+import TransformerPass from '~/components/trace/llm-scale/TransformerPass.svelte'
+import BatchingSimulator from '~/components/trace/llm-scale/BatchingSimulator.svelte'
+import GpuMemoryBudget from '~/components/trace/llm-scale/GpuMemoryBudget.svelte'
+import ReplicaPlacement from '~/components/trace/llm-scale/ReplicaPlacement.svelte'
+import ReplicaWarmupTrace from '~/components/trace/llm-scale/ReplicaWarmupTrace.svelte'
+import ModelArtifactTrace from '~/components/trace/llm-scale/ModelArtifactTrace.svelte'
+import KernelRooflineTrace from '~/components/trace/llm-scale/KernelRooflineTrace.svelte'
+import DeploymentPlanTrace from '~/components/trace/llm-scale/DeploymentPlanTrace.svelte'
+import DistributedSync from '~/components/trace/llm-scale/DistributedSync.svelte'
+import TensorParallelTrace from '~/components/trace/llm-scale/TensorParallelTrace.svelte'
+import SchedulerState from '~/components/trace/llm-scale/SchedulerState.svelte'
+import SchedulerTickTrace from '~/components/trace/llm-scale/SchedulerTickTrace.svelte'
+import SamplingTrace from '~/components/trace/llm-scale/SamplingTrace.svelte'
+import TestTimeCompute from '~/components/trace/llm-scale/TestTimeCompute.svelte'
+import SingleTokenTrace from '~/components/trace/llm-scale/SingleTokenTrace.svelte'
+import StreamLifecycle from '~/components/trace/llm-scale/StreamLifecycle.svelte'
+import StreamTokenReleaseTrace from '~/components/trace/llm-scale/StreamTokenReleaseTrace.svelte'
+import FleetControlLoop from '~/components/trace/llm-scale/FleetControlLoop.svelte'
+import FleetIncidentTrace from '~/components/trace/llm-scale/FleetIncidentTrace.svelte'
+import FleetRolloutTrace from '~/components/trace/llm-scale/FleetRolloutTrace.svelte'
+import IncidentTimelineTrace from '~/components/trace/llm-scale/IncidentTimelineTrace.svelte'
+import StabilityControlTrace from '~/components/trace/llm-scale/StabilityControlTrace.svelte'
+import CompleteLoopTrace from '~/components/trace/llm-scale/CompleteLoopTrace.svelte'
+
+export const journeySteps = [
+  {
+    label: 'Months earlier: training and post-training made the weights',
+    depth: 'system',
+  },
+  { label: 'You type a message', depth: 'human' },
+  { label: 'The browser opens a secure stream', depth: 'network' },
+  { label: 'The edge and gateway admit the request', depth: 'system' },
+  {
+    label: 'The product assembles memory, retrieval, tools, images, and text',
+    depth: 'system',
+  },
+  { label: 'Text becomes token ids', depth: 'protocol' },
+  { label: 'A router chooses model, region, and replica', depth: 'system' },
+  { label: 'The scheduler batches your request with others', depth: 'system' },
+  { label: 'Prefill reads the whole context', depth: 'system' },
+  { label: 'Transformer layers turn tokens into logits', depth: 'hardware' },
+  { label: 'Attention reads earlier tokens through KV cache', depth: 'system' },
+  { label: 'GPU kernels move through HBM, SRAM, tensor cores', depth: 'hardware' },
+  { label: 'Sampling chooses the next token', depth: 'protocol' },
+  { label: 'Decode repeats one token at a time', depth: 'system' },
+  { label: 'Tokens stream back through the network', depth: 'network' },
+  { label: 'The browser paints the answer', depth: 'human' },
+  { label: 'Meanwhile, the fleet handles everyone else', depth: 'system' },
+]
+
+You type:
+
+> Explain how LLMs work at large scale.
+
+The answer starts appearing before it is finished.
+
+That detail should bother you. The machine is not writing a hidden essay and sending it back in one piece. It is deciding on a first token, sending it, deciding on a second token, sending it, and repeating that loop while thousands or millions of other conversations are doing the same thing. Your private little chat box is sitting on top of a distributed queueing system, a memory allocator, a fleet of GPUs, a pile of network protocols, and a mathematical object with billions of learned numbers.
+
+This post traces that whole trip. From your fingers to the model's numbers, down into GPU memory and tensor cores, back through streamed bytes and pixels, then sideways into the harder question: what changes when everyone else is chatting too?
+
+## The Journey
+
+<JourneyMap steps={journeySteps} current={0} client:visible />
+
+<RequestJourney client:visible />
+
+We will follow one request. Whenever the one-request story lies by omission, we will stop and widen the frame to the fleet.
+
+---
+
+## Q0: What Was Already Waiting Before You Pressed Enter?
+
+The most expensive part of this answer happened before you arrived.
+
+Trace one sentence from a training corpus.
+
+At first it is just text sitting in storage. The training pipeline cleans it, filters it, mixes it with other data, and eventually cuts it into token ids, the integer labels the model uses instead of raw text. The model sees a prefix of those ids and is asked one narrow question over and over:
+
+> Given the previous tokens, what token comes next?
+
+The model guesses by producing one score for every possible next token. Those scores are logits. The training code turns the logits into probabilities and measures how much probability the model assigned to the actual next token. The common loss is cross-entropy: punish the model when it assigns low probability to the right continuation. Practical systems compute this with numerically stable softmax logic, often subtracting the largest logit before exponentiation. This is the log-sum-exp trick in everyday clothing: keep the same probabilities, but avoid numerical overflow.
+
+Now the arrow reverses. Backpropagation walks backward through the same machinery inference will later run forward: final token scores, transformer blocks, attention blocks that compare token positions, MLP blocks that transform each position, and embedding rows that were read for the input ids. It computes gradients, which are directions saying how weights should move to make the correct next token more likely next time. An optimizer turns those gradients into a small update. One training row has now left a tiny mark on many learned numbers.
+
+That one row is not enough. The whole point of training is repetition at scale: many token sequences, large batches, many GPUs, many checkpoints, many failures, many restarts. The amount of data and compute is not arbitrary. Scaling-law work found predictable relationships between model size, data size, and compute. The Chinchilla result changed the default intuition: for a fixed training budget, many older large models were too parameter-heavy and too data-light. A smaller model trained on more tokens can beat a larger undertrained one.
+
+Follow one batch through the machine.
+
+First, text is tokenized, just like your chat will be tokenized later. The model reads a sequence of token ids and produces logits for the next token at every position. The training program compares those logits with the actual next tokens. That gives a scalar loss, one number that says "how wrong was this batch?" Backpropagation walks backward through the same operations that inference will later run forward: logits, MLPs, attention, embeddings. It accumulates gradients, which are directions saying how each weight should move to reduce the loss. The optimizer converts gradients into a weight update, often using extra state such as momentum or variance estimates.
+
+<TrainingStepTrace client:visible />
+
+The toy numbers above hide the size but not the shape. In a real model, that little logit-gradient vector is only the seed. Backpropagation carries it into the final projection, the transformer layers, and eventually the embedding and attention weights that contributed to the wrong probability. Data-parallel workers compute gradients on different batches and then synchronize them so the update reflects more than one worker's slice of data. Tensor-parallel shards split large matrix multiplications. Pipeline stages hold different layer ranges. The training step finishes only when the distributed system has agreed on the update.
+
+This is the training mirror of inference. Inference asks, "what token now?" Training asks, "how should the weights have been different so the right token was more likely?" Inference must be fast for a waiting user. Training can spend much more time, but it must keep an enormous distributed update coherent. If any shard fails or straggles, the step waits. A checkpoint records enough state to resume: model weights, optimizer state, scheduler state, and often random-number-generator state so training can be made reproducible enough to debug.
+
+That base model still is not necessarily a good assistant. It is good at continuing text. A second family of training steps makes continuation behave like help.
+
+Trace one post-training prompt.
+
+The prompt is chosen because it represents behavior the product wants: answer a question, use a tool, refuse a harmful request, solve a math problem, cite a source. A model snapshot produces candidate answers. Those candidates are not final user answers yet; they are training material. A human may choose the better answer. A reward model may assign a score. A verifier may check whether a math result is correct. A written constitution may guide critique and revision. That preference or score becomes a loss. The loss becomes another weight update. The updated snapshot then has to survive evals before it can be served.
+
+<PostTrainingLoop client:visible />
+
+The loop above is still a little too clean. Real post-training is not one magic "alignment" operation. It is a sequence of smaller conversions: a prompt becomes candidate answers, candidate answers become a signal, the signal becomes a loss, the loss becomes a weight update, and the updated snapshot has to survive evals before it can be served.
+
+<PostTrainingTrace client:visible />
+
+The names map onto that path:
+
+- **SFT**, or supervised fine-tuning, shows the model examples of instructions and good answers.
+- **RLHF** trains a reward model from preferences, then uses reinforcement learning, often PPO with a KL penalty, to make answers score better without drifting too far from the reference model.
+- **DPO** removes the separate online reinforcement-learning loop and trains directly from preferred-versus-rejected answer pairs.
+- **GRPO** is another policy-optimization variant used in public reasoning work; instead of relying on a separate value model in the PPO style, it compares generated answers within a group.
+- **Rollouts** are sampled completions from the model. In post-training, a rollout is not the final user answer; it is training material used to score, compare, or improve the policy.
+- **LoRA** and **QLoRA** adapt a model by training small low-rank update matrices, with QLoRA also using quantized base weights to reduce memory.
+
+As of May 2026, the public frontier has also made one more distinction impossible to ignore: training-time compute and inference-time compute are separate knobs. Reasoning-oriented systems such as OpenAI's o1 family and the public DeepSeek-R1 work made it normal to spend extra compute at answer time: more internal tokens, more candidate answers, more verification, or more tool loops. That does not break the journey. It inserts more loops inside decode before the final answer is released.
+
+Different labs use different recipes. The invariant is simpler: serving starts with a frozen artifact, not with an open training loop. A deployed snapshot is a set of weight tensors and configuration files loaded into an inference runtime. Your chat may produce logs or feedback for future training, but the answer you are reading is generated by the weights already loaded for this request.
+
+That artifact carries more than raw weights. It carries a tokenizer version, chat template, context-length contract, tool-call format, safety envelope, quantization format, parallelism plan, and eval record. If any of those are mismatched, the model can fail before the first real answer token is possible. A post-trained snapshot is therefore not "a file with intelligence inside." It is a bundle of learned numbers plus the exact rules needed to interpret your request and judge whether the output is acceptable.
+
+So when you press Enter, you are not "training the model." You are asking a fixed deployed snapshot to run a forward pass conditioned on your current prompt. The future training loop may learn from aggregate feedback later, after logging, privacy filtering, sampling, labeling, and evaluation. It is not secretly updating the model while you watch the answer stream.
+
+:::note[The Numbers]
+| Quantity | Public example |
+|---|---:|
+| GPT-3 largest model | 175 billion parameters |
+| GPT-3 largest context window | 2,048 tokens |
+| InstructGPT preference result | 1.3B model preferred over 175B GPT-3 on the paper's prompt distribution |
+| Transformer paper training run | 3.5 days on 8 GPUs for WMT14 English-to-French |
+| Chinchilla training recommendation | train compute-optimal models with far more tokens per parameter than many earlier large models |
+:::
+
+:::tip[How We Know]
+The transformer architecture was introduced by Vaswani et al., [Attention Is All You Need](https://arxiv.org/abs/1706.03762) (2017). Brown et al., [Language Models are Few-Shot Learners](https://arxiv.org/abs/2005.14165) (2020), describes GPT-3's 175B-parameter autoregressive setup. Hoffmann et al., [Training Compute-Optimal Large Language Models](https://arxiv.org/abs/2203.15556) (2022), is the public Chinchilla scaling-law paper. Ouyang et al., [Training language models to follow instructions with human feedback](https://arxiv.org/abs/2203.02155) (2022), documents the public InstructGPT pipeline and the 1.3B-versus-175B preference result. Rafailov et al., [Direct Preference Optimization](https://arxiv.org/abs/2305.18290) (2023), Hu et al., [LoRA](https://arxiv.org/abs/2106.09685) (2021), Dettmers et al., [QLoRA](https://arxiv.org/abs/2305.14314) (2023), and Shao et al., [DeepSeekMath](https://arxiv.org/abs/2402.03300) (2024), document several public post-training and adaptation techniques. OpenAI's [Learning to reason with LLMs](https://openai.com/index/learning-to-reason-with-llms/) (2024) discusses train-time and test-time compute for o1, and Guo et al., [DeepSeek-R1](https://arxiv.org/abs/2501.12948) (2025), documents a public reasoning-oriented RL pipeline.
+:::
+
+Failure here shows up later as behavior, not infrastructure: a model that learned stale facts, brittle reasoning habits, unsafe completions, or bad tool-use patterns. Serving can make it faster or slower. Serving cannot magically make the frozen weights know something they never learned or never receive in the prompt.
+
+This distinction matters for hallucinations. Some hallucinations are training failures: the model learned a pattern of plausible continuation without reliable grounding. Some are prompt failures: the needed fact was not in the context. Some are decoding failures: sampling chose an unsupported continuation. Some are system failures: retrieval found the wrong chunk or a tool result was ignored. You diagnose them by locating which part of the journey supplied, distorted, or failed to supply the evidence.
+
+<JourneyMap steps={journeySteps} current={1} client:visible />
+
+## Q1: What Leaves Your Browser?
+
+You press Enter.
+
+The browser does not send "your question" by itself. It sends an HTTP request: method, path, headers, cookies or bearer tokens, a body, and enough metadata for the service to know who you are, what conversation this belongs to, and which product surface you are using.
+
+If the product uses streaming, the client usually asks for a response format that can arrive in pieces. Two common choices are **Server-Sent Events** over HTTP or **WebSockets**. The user-visible difference is small: text appears incrementally. The systems difference matters: the server must hold the connection open while the model is still generating.
+
+Before any of that application data moves, the browser needs a secure channel. DNS turns a hostname into an address. TCP or QUIC creates a transport. TLS authenticates the server and derives encryption keys. Only then does the chat request cross the internet.
+
+This part looks like normal web infrastructure because it is normal web infrastructure. For this post, we will not wander into the full internet stack. The LLM-specific reason to care is narrower: the stream has identity, cancellation, ordering, and backpressure. A request id must follow your prompt into logs and scheduler state. A disconnect must eventually free KV cache. A stalled client should not make a GPU keep generating tokens forever. The web leg is the control surface for the model leg.
+
+The payload also starts carrying model-specific intent. It says, explicitly or implicitly: this conversation id, this model alias, this maximum output length, this stream preference, this tool set, this safety context, and this cancel handle. Those fields look like product metadata at the browser boundary. A few milliseconds later they become accounting inputs, routing constraints, scheduler state, and memory lifetime.
+
+<RequestEnvelopeTrace client:visible />
+
+This is why the browser boundary is not just "send text to server." If the request says `stream: true`, the backend must preserve a live release path. If it says `tools: search`, the router must choose a model and product loop that can emit and execute tool calls. If it asks for thousands of output tokens, the scheduler has to budget future decode work before the first token is generated. If the cancel handle is missing or broken, stopping the UI may not stop the expensive backend sequence.
+
+:::tip[How We Know]
+TLS 1.3 is specified in [RFC 8446](https://www.rfc-editor.org/rfc/rfc8446) (2018), and HTTP/2 streaming behavior is specified in [RFC 9113](https://www.rfc-editor.org/rfc/rfc9113) (2022). Server-Sent Events are defined by the [HTML Living Standard](https://html.spec.whatwg.org/multipage/server-sent-events.html). The web leg of an LLM request is not special magic; it is built from these same public protocols.
+:::
+
+:::note[The Numbers]
+| Measurement | Typical value |
+|---|---:|
+| Fresh TCP plus TLS 1.3 connection | about 2 network round trips |
+| Reused HTTP/2 or HTTP/3 connection | 0 extra setup round trips |
+| Streamed token chunk | often tens to hundreds of bytes before framing |
+| Human-visible latency target | first token matters more than full completion |
+:::
+
+Failure here feels boring: DNS errors, TLS errors, expired auth, dropped connections, stalled streams. The model may be perfectly healthy and you still see "network error."
+
+<JourneyMap steps={journeySteps} current={2} client:visible />
+
+## Q2: What Does the Gateway Do Before the Model Sees Anything?
+
+The request reaches an edge service or API gateway. This is the front door, and front doors are suspicious.
+
+The gateway checks identity: is this session valid, is this API key real, has this account paid, is the organization allowed to use the requested model? It checks quotas: requests per minute, tokens per minute, spend caps, abuse limits. It attaches a request id so every downstream log line can be correlated. It may run input filters or policy classifiers before expensive inference begins. It may reject obvious abuse before a GPU ever sees a token.
+
+Now make that concrete. Suppose your request contains 8,000 prompt tokens and asks for a reasoning model. The gateway cannot just count "one request." It estimates prompt tokens, requested maximum output tokens, hidden reasoning budget if exposed by the product, tool availability, account tier, and region. It checks whether accepting the request would exceed tokens-per-minute, not just requests-per-minute. It also asks a capacity question: can any warm replica group accept the prompt without blowing its KV-cache budget? If not, the honest answer might be a queue, a smaller model, a lower reasoning budget, a different region, or a rejection before any GPU work starts.
+
+<AdmissionControlTrace client:visible />
+
+This is the first place where flops and memory become product behavior. A long prompt creates prefill work. A long requested answer creates decode work. A reasoning setting may create hidden sampled tokens or verification loops before the final visible answer. Every accepted request also asks the KV-cache allocator for future memory, not just current compute. Admission control is therefore protecting the next minute of the fleet, not merely checking whether a user is allowed through the door.
+
+Trace one gateway decision as a reservation. The request id is born. The account budget is charged in estimated tokens. The prompt estimate asks for prefill slots. The output limit asks for future decode iterations. The reasoning setting asks for extra hidden work. The tool list asks for permissions and timeouts. The router asks whether a warm replica exists with the right weights, enough KV blocks, and a healthy queue. Only after those checks does the request deserve to become model work.
+
+<RequestReservationTrace client:visible />
+
+The key word is **reserve**. If the gateway admits a request without reserving future tokens, a later decode loop may discover that the fleet promised more work than it can finish. If it reserves too pessimistically, GPUs sit idle while users wait outside. Admission control is therefore an early prediction problem: convert a human message into enough estimated compute, memory, policy, and routing state that the rest of the system can keep its promises.
+
+That makes admission control part of correctness. A system that admits too much traffic creates timeouts and retries, which create more traffic. A system that rejects too eagerly wastes expensive GPUs and frustrates users. The gateway is the first control loop in the model's path.
+
+Then comes routing. The product name the user sees is not necessarily a single model binary on a single machine. A model alias might map to different snapshots, safety envelopes, tool configurations, regions, or capacity pools. A router chooses a backend using a mix of:
+
+- requested model and features
+- account tier and latency objective
+- data residency constraints
+- current regional load
+- warm replicas with the right weights already loaded
+- cache locality for repeated prefixes
+- brownout or incident state
+
+This is the first place where "an LLM" becomes "a distributed system."
+
+<ServingStackDiagram client:visible />
+
+:::tip[How We Know]
+The public literature on production LLM serving uses the same decomposition: frontend admission, request scheduling, model workers, KV-cache management, and distributed GPU execution. See [ORCA: A Distributed Serving System for Transformer-Based Generative Models](https://www.usenix.org/conference/osdi22/presentation/yu) (OSDI 2022) and [Efficient Memory Management for Large Language Model Serving with PagedAttention](https://arxiv.org/abs/2309.06180) (Kwon et al., 2023).
+:::
+
+Failure here is political as much as technical. A user can be denied by quota even when GPUs are idle. A router can send traffic to the wrong pool and cause high latency. A safety precheck can false-positive. A region can have capacity while another region is overloaded because policy says the request cannot move.
+
+## Q3: What Is the Prompt, Really?
+
+You typed one message. The model usually receives more than that.
+
+A chat product constructs a **prompt**: the full input sequence given to the model for this turn. It may include a system instruction, developer instruction, tool definitions, safety policy snippets, conversation history, retrieved documents, images converted into internal representations, and your newest message. In an API product, some of these parts are explicit. In a consumer chat product, some are invisible product machinery.
+
+The model does not have memory in the human sense during a plain inference call. The immediate mechanism is simpler: the relevant past must be placed back into the context. If the old conversation is too long, the product may truncate, summarize, retrieve selected pieces, or ask a different long-context model. Token budget management is therefore a product and systems problem: keep the exact recent turns, summarize older parts, retrieve important facts, and drop material that no longer helps.
+
+If the product uses **RAG**, or retrieval-augmented generation, another pipeline runs before the model answers. Documents are ingested, split into chunks, embedded into vectors, placed in an index, searched with sparse retrieval such as BM25, dense retrieval such as vector search, or both, reranked, and inserted into the prompt with citations. Hybrid systems often combine sparse and dense rankings with RRF, reciprocal rank fusion, a simple method that rewards documents that appear near the top of multiple lists.
+
+Fine-tuning and RAG solve different problems. Fine-tuning changes behavior, style, domain habits, or task format. RAG changes what fresh external facts are visible on this turn. You can use both: fine-tune a model to follow the company's answer format, then retrieve today's policy document into the prompt.
+
+If tools are available, the prompt contains enough structure for the model to emit a tool call instead of ordinary prose. Tools reduce hallucination only when the system actually forces external checks into the loop: call the API, read the result, quote the retrieved source, and verify the final answer against it. A tool schema alone does not make a model factual.
+
+If the request includes an image, a **VLM**, or vision-language model, adds another front end. A vision encoder turns image patches into vectors, or the system places learned image tokens into the sequence. After that, the language model can attend to text and image-derived representations. The exact architecture varies: some systems use cross-attention between language and vision streams; others use a unified token sequence. The journey is still the same shape: human content becomes vectors, then transformer layers operate on those vectors.
+
+<PromptAssemblyPath client:visible />
+
+That component hides one important production detail: RAG is two journeys, not one. The first journey happens before your chat, when documents are cleaned, chunked, embedded, and indexed. The second happens during your chat, when the query is rewritten or embedded, candidate chunks are found, reranked, trimmed to the context budget, and placed into the prompt. A citation at the end is only trustworthy if every step preserved the evidence: the right document was ingested, the right chunk was retrieved, the reranker kept it, the prompt made it visible, and the model's final sentence actually followed from it.
+
+<PromptEvidenceTrace client:visible />
+
+This is the first-principles test for every "memory," "RAG," "agent," "tool," or "vision" claim: what evidence crossed into the model's actual context, and what did the product force the model to do with it? If the answer is "nothing concrete," the feature is only a suggestion to a generator. Grounding becomes real when the system retrieves or executes something, validates it, packs it into the prompt, and checks that the final text is supported by that evidence.
+
+<GroundedClaimTrace client:visible />
+
+That last check is the difference between "the model saw a document" and "the answer is grounded." The miniature above uses a toy support check so the failure modes are visible; production systems need stronger citation, entailment, and policy checks. The retrieved chunk can be wrong. The right chunk can be trimmed out. The tool can return stale data. The model can ignore good evidence and write a plausible sentence anyway. Production RAG systems therefore need observability at the claim level: which source supported this sentence, was that source in the prompt, and did the final answer stay inside what the evidence actually says?
+
+Tools add a second turn inside the turn. The model first emits structured text that means "call this function with these arguments." Product code validates the arguments, calls the outside system, receives a result, and sends that result back into the model as new context. If the tool call is malformed, too slow, unauthorized, or returns surprising data, the product has to decide whether to retry, ask the user, fall back, or stop.
+
+Agents are an orchestration choice built from the same pieces. A single model loop can plan, call tools, read results, and continue. A multi-agent system splits that work into roles, but then it must manage shared memory, duplicate work, disagreement, and runaway loops. The first-principles test is simple: does splitting the loop improve the task enough to pay for extra latency, cost, and failure surface?
+
+This explains a strange behavior: if something is not in the model weights, not in the current prompt, not retrieved from a tool, and not inferable from those, the model cannot directly use it. There is no hidden notebook it checks unless the product has built one.
+
+:::note[The Numbers]
+| Thing | Public example / effect |
+|---|---:|
+| GPT-3 context window | 2,048 tokens |
+| Attention score cells for 4,096 prompt tokens | 16,777,216 before kernel tiling |
+| Prompt tokens | paid before first generated token can appear |
+| Hidden product instructions | consume the same context budget as visible text |
+| RAG citation | only as faithful as retrieval, reranking, prompt use, and final generation |
+| Tool call | a structured model output that product code must execute and validate |
+:::
+
+:::tip[How We Know]
+The transformer formulation treats the input as a sequence of positions and computes representations from that sequence. The original architecture is described in Vaswani et al., [Attention Is All You Need](https://arxiv.org/abs/1706.03762) (2017). Retrieval-augmented generation was formalized in Lewis et al., [Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks](https://arxiv.org/abs/2005.11401) (2020). RRF comes from Cormack, Clarke, and Buettcher, [Reciprocal Rank Fusion Outperforms Condorcet and Individual Rank Learning Methods](https://plg.uwaterloo.ca/~gvcormac/cormacksigir09-rrf.pdf) (SIGIR 2009). A public VLM example is Liu et al., [Visual Instruction Tuning](https://arxiv.org/abs/2304.08485) (LLaVA, 2023).
+:::
+
+The prompt now exists as text and structured metadata. The model still cannot read it.
+
+Because the model does not read text.
+
+## Q4: How Does Text Become Something a Model Can Read?
+
+The model reads integers.
+
+Before inference, a **tokenizer** maps text into token ids. A token can be a word, part of a word, punctuation, whitespace, bytes, or a common character sequence. The exact vocabulary is learned or designed before training. At inference time, the tokenizer applies that fixed mapping.
+
+Try changing the text below. The exact ids are toy ids, but the shape is real: text becomes chunks; chunks become numbers.
+
+<TokenizationLab client:visible />
+
+Why not characters? Because character sequences are long. Why not words? Because languages have rare words, new names, code identifiers, emojis, typos, and mixed scripts. Subword tokenization is the compromise: common words can be single tokens; rare words can be assembled from pieces.
+
+After tokenization, the prompt might look conceptually like:
+
+```text
+[128000, 9125, 374, 279, 2768, 315, ...]
+```
+
+The numbers are indexes into a learned table. The first real model operation is usually an embedding lookup: token id 9125 selects row 9125 from an embedding matrix. That row is a vector, maybe thousands of numbers wide. Now the prompt is no longer text. It is a matrix: one vector per token position.
+
+<EmbeddingLookupTrace client:visible />
+
+This is the moment where language turns into linear algebra. The token id does not "contain meaning" by itself. It selects a row of learned numbers. During training, that row was nudged whenever this token appeared in contexts where it helped or hurt prediction. During inference, the row is just read. The whole prompt becomes a rectangular block of numbers, and every later layer keeps transforming that block while preserving the core shape: one position per token, one vector per position.
+
+:::tip[How We Know]
+Subword tokenization for neural sequence models was popularized by Sennrich, Haddow, and Birch, [Neural Machine Translation of Rare Words with Subword Units](https://aclanthology.org/P16-1162/) (ACL 2016). SentencePiece later showed how to train subword models directly from raw text without requiring pre-tokenized whitespace-separated words: Kudo and Richardson, [SentencePiece](https://aclanthology.org/D18-2012/) (EMNLP 2018). GPT-3's model sizes, including 50,257 vocabulary entries, 96 layers, and 12,288 hidden width for the largest model, are listed in Brown et al., [Language Models are Few-Shot Learners](https://arxiv.org/abs/2005.14165) (2020).
+:::
+
+:::note[The Numbers]
+| Measurement | Example value |
+|---|---:|
+| GPT-3 largest vocabulary size | 50,257 BPE tokens |
+| GPT-3 largest hidden width | 12,288 numbers per token vector |
+| GPT-3 largest layers | 96 |
+| Prompt length | counted in tokens, not words |
+:::
+
+Failure here is subtle. A prompt that looks short can tokenize long. A pasted stack trace can explode the context. A multilingual phrase can have very different token counts across tokenizers. A model trained with one tokenizer cannot simply be served with another; the token ids would point at the wrong learned vectors.
+
+The mechanism is worth slowing down for because it explains many surprising costs. In a BPE-style tokenizer, the system starts from small units, often bytes or characters, then repeatedly applies a learned merge table. Common sequences become single tokens because they appeared often during tokenizer training. Rare names, unusual Unicode, long identifiers, base64, minified JSON, and logs fall back into many smaller pieces. SentencePiece-style tokenizers differ in details, but the production rule is the same: the model and runtime must use the exact vocabulary and id mapping expected by the weights.
+
+<TokenMergeTrace client:visible />
+
+The slider is the missing intuition behind many "why did this cost so much?" moments. A human sees a short identifier or a compact blob. The runtime sees many token positions. Each extra position becomes one more embedding lookup, one more slot in the prompt matrix, one more possible attention position, and often one more KV-cache entry. The tokenizer is upstream of almost every cost and latency number in the rest of the journey.
+
+Tokenization also shapes safety and RAG. Chunking a document by "characters" can create chunks that are wildly different in token length. A safety classifier that sees text before tokenization may disagree with what the model sees after hidden prompt assembly. A prompt-injection string can hide in retrieved text that looks compact to a human but consumes enough tokens to push the real evidence out of context. Tokens are not an implementation footnote; they are the accounting unit for cost, context, latency, and attention.
+
+<JourneyMap steps={journeySteps} current={5} client:visible />
+
+## Q5: What Is Inside the Model Before It Starts Answering?
+
+Before the request arrives, the model already exists as **weights**: billions of numbers learned during training.
+
+Training is the expensive offline phase. The simplified base-model objective is: given previous tokens, predict the next token. Repeat that across a massive corpus. Every wrong prediction nudges the weights. After enough examples and enough compute, the weights become a compressed statistical machine for continuing sequences.
+
+That base model is not yet a polished assistant. To become chat-shaped, it is usually adapted with instruction tuning, preference optimization, reinforcement learning from human or AI feedback, safety training, tool-use data, or some mixture. Different companies use different recipes, but the product goal is the same: make "next token prediction" behave like "helpful assistant response" under the chat format.
+
+A domain fine-tune can also make a model worse outside the new domain. That is catastrophic forgetting: the update improves one distribution while damaging behavior the base model had already learned. Production teams fight it with mixed training data, lower learning rates, frozen layers or adapters, evaluation suites that include old tasks, and sometimes distillation, where a smaller or specialized student model learns from a stronger teacher's outputs.
+
+At serving time, training is over. The weights are mostly fixed. Your request does not update the model's core weights. It flows through them.
+
+Before that can happen, the artifact has to become a live replica. Weight files sit on storage as shards: tensors plus a configuration that says how many layers, attention heads, KV heads, hidden dimensions, tokenizer vocabulary, precision, and parallelism plan the runtime should expect. A router alias points to a model snapshot. A worker for tensor-parallel rank 2 of 4 loads only the shards rank 2 owns. It verifies checksums, tensor names, dtypes, shapes, tokenizer id count, and runtime flags. Then it copies weights from storage to host memory, from host memory to GPU HBM, builds or warms kernels and CUDA graphs when the runtime uses them, allocates workspace, reserves KV-cache blocks, and announces "I can serve model snapshot X." Until that warmup finishes, the machine is hardware with expensive memory, not a serving replica.
+
+<ReplicaWarmupTrace client:visible />
+
+This loading path explains why model deploys are not ordinary web deploys. A stateless web process can start and serve a tiny request quickly. A large model replica may need hundreds of gigabytes of weights moved, verified, sharded, and resident in GPU memory before it can answer the first token.
+
+Trace one weight tensor during warmup. A metadata entry says `layers.12.mlp.up_proj.weight` has a dtype, a shape, and byte offsets inside a shard file. The worker checks that the tensor belongs to its rank, maps or reads the bytes, copies them into host memory, then transfers them over PCIe or NVLink into GPU HBM. The runtime may pack or transform the layout so the kernel can read contiguous tiles efficiently. A bad shape, wrong dtype, missing shard, unsupported quantization format, or tokenizer-vocabulary mismatch stops the replica before any user token reaches the model.
+
+<ModelArtifactTrace client:visible />
+
+That is why "the model" in production is an artifact contract. The weights, tokenizer, chat template, parallelism degree, quantization metadata, runtime kernel support, and eval record must agree. If the product sends token id 128006 but the embedding table was built for a different tokenizer, the tensor math can still run while the meaning is broken. If tensor-parallel rank 2 loads rank 3's shard, the shape may even fit while the answers degrade. Serving reliability starts before inference: it starts by proving that every rank is holding the right bytes in the right layout.
+
+Several failures at this layer look like "the model is down" even though no model math has run. The tokenizer file can mismatch the embedding table. The tensor-parallel degree can mismatch the checkpoint sharding. One shard can fail checksum. A runtime can support the weights but not the requested quantization format. A cold replica can be healthy but not yet warm, which means routing to it creates first-token latency that feels like a broken model.
+
+:::tip[How We Know]
+GPT-3 is documented in Brown et al., [Language Models are Few-Shot Learners](https://arxiv.org/abs/2005.14165) (2020), which describes a 175-billion-parameter autoregressive transformer trained to predict text. The public InstructGPT paper, [Training language models to follow instructions with human feedback](https://arxiv.org/abs/2203.02155), showed that human preference training could make smaller models preferred over much larger base models on their instruction-following distribution. Hugging Face's [Safetensors metadata documentation](https://huggingface.co/docs/safetensors/v0.3.2/en/metadata_parsing) shows that sharded weight repositories expose an index, per-tensor dtype, shape, and offsets. NVIDIA's [CUDA Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html) is the public reference for CUDA execution, memory features, and CUDA graphs.
+:::
+
+:::note[The Numbers]
+| Quantity | Public example / meaning |
+|---|---|
+| Parameter | One learned number in the model |
+| 175B parameters at 16-bit | about 350 billion bytes before overhead |
+| 70B parameters at 16-bit | about 140 billion bytes before overhead |
+| BLOOM safetensors metadata example | 352,494,542,848 bytes total size in the Hugging Face docs |
+| Safetensors tensor header | includes dtype, shape, and byte offsets |
+| Training step | forward pass, loss, backward pass, optimizer update |
+| Inference step | forward pass only |
+:::
+
+A common misunderstanding: people say "the model searches its database." That is wrong for the core neural part. The model is not looking up documents unless a retrieval system or tool is added. The weights encode patterns learned during training. The current prompt provides immediate context. Tools provide external data. Keep those three sources separate.
+
+## Q6: What Happens in One Transformer Layer?
+
+The prompt is now a matrix: token positions by vector dimensions.
+
+A transformer layer takes that matrix and returns another matrix of the same shape. Stack many layers, and each token position becomes a richer representation of "what this token means in this context."
+
+Why is there so much matrix multiplication in the first place?
+
+A token vector is a row of numbers. A learned weight matrix is a table of numbers. Multiplying the vector by the matrix is how the model asks: "make a new set of features from this old set of features." Do that for every token at once, and the prompt becomes a batch of rows multiplied by the same learned table. This is exactly the shape GPUs are built to run quickly. Matrix multiplication is not arbitrary decoration; it is the practical way learned linear transformations act on many token vectors in parallel.
+
+One decoder-only transformer layer, simplified, does this:
+
+1. Normalize the vectors so their scale is stable.
+2. Compute attention: each position decides which earlier positions matter.
+3. Add the attention result back to the original stream.
+4. Normalize again.
+5. Run a feed-forward network, often called the MLP.
+6. Add that result back too.
+
+The residual additions matter. A layer does not replace the stream; it edits it. Do this dozens of times and information can accumulate without every layer having to rediscover everything.
+
+<TransformerPass client:visible />
+
+The attention step is the famous part. For each token vector, the model computes three derived vectors:
+
+- **query**: what this position is looking for
+- **key**: what this position offers to be matched on
+- **value**: what information this position will contribute if attended to
+
+The query for the current token is compared with keys from earlier tokens. The comparison scores are normalized into weights. Those weights mix the value vectors. That mixture becomes the attention output.
+
+For implementation intuition, name the shapes. Let the hidden width be `H`, the number of token positions be `T`, and the number of attention heads be `A`. The input to a layer is roughly:
+
+```text
+X: [batch, T, H]
+Wq, Wk, Wv: [H, H]
+Q = X Wq, K = X Wk, V = X Wv
+reshape Q/K/V into [batch, A, T, head_dim]
+```
+
+Then each head forms a `[T, T]` score table. That is where the quadratic prefill cost comes from: doubling prompt length makes four times as many query-key comparisons before optimized kernels reduce memory traffic. During decode, the new token has one query and attends to cached keys from the past, so the new score row is `[1, T]` per head instead of a full `[T, T]` table.
+
+In symbols, one attention head is:
+
+```text
+softmax((QK^T) / sqrt(d_head) + mask) V
+```
+
+That line is dense, but it says the same thing in fewer words. `QK^T` compares every query with every key. Dividing by `sqrt(d_head)` keeps scores numerically stable as the head dimension grows. The mask blocks future positions. `softmax` turns scores into weights that sum to one. Multiplying by `V` mixes the value vectors.
+
+The "cannot look right" rule is called a causal mask. While generating token 42, the model may use tokens 1 through 41. It may not use token 43 because token 43 does not exist yet.
+
+This is also why decoder-only models became the default for chat LLMs. Encoder-only models, like classic bidirectional text encoders, are good at reading a whole input when all positions are known. Encoder-decoder models read an input with an encoder and generate with a decoder, which is useful for translation-style setups. A causal decoder-only model is simpler for open-ended continuation: keep appending tokens to the same sequence and apply the same next-token objective used during pretraining.
+
+Position still matters. Without position information, attention sees a bag of token vectors, not an ordered sentence. Older transformers used learned or sinusoidal absolute position vectors. Many modern LLMs use RoPE, rotary position embedding, which rotates query and key dimensions according to position so relative distance affects the dot product. ALiBi is another approach: add a distance-based bias to attention scores.
+
+There are also variants of how keys and values are shared. In full multi-head attention, every head has its own queries, keys, and values. In MQA, multiple query heads share one set of keys and values. In GQA, groups of query heads share keys and values. The tradeoff is direct: fewer KV heads means smaller KV cache and less memory bandwidth during decode, at some quality or capacity risk.
+
+<AttentionKvCache client:visible />
+
+The MLP is less narratively famous but computationally huge. It applies learned linear projections and nonlinear gates independently at each token position. If attention moves information between positions, the MLP transforms information inside each position.
+
+Some models replace one big MLP with a **mixture of experts**. A small router chooses a few expert MLPs for each token. Only the selected experts run, so the model can have many parameters without using all of them on every token. The cost is routing instability, load balancing, and extra communication when experts live on different GPUs.
+
+Deep stacks need stability tricks. LayerNorm or RMSNorm keeps vector scales controlled. Residual connections let layers edit a stream instead of rewriting it. Pre-LN layouts normalize before the attention or MLP sublayer, which generally makes very deep transformers easier to optimize than older post-LN layouts.
+
+At the final layer, the model projects the last token's vector into one score per vocabulary token. These scores are **logits**. High logit means "more likely next token." Low logit means "less likely." The model has not chosen a word yet. It has produced a probability-shaped landscape over possible next tokens.
+
+:::tip[How We Know]
+The query-key-value attention mechanism and stacked transformer architecture are described in Vaswani et al., [Attention Is All You Need](https://arxiv.org/abs/1706.03762) (2017). Decoder-only autoregressive language modeling at scale is described in Brown et al., [Language Models are Few-Shot Learners](https://arxiv.org/abs/2005.14165) (2020). RoPE is introduced in Su et al., [RoFormer](https://arxiv.org/abs/2104.09864) (2021). GQA is described in Ainslie et al., [GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints](https://arxiv.org/abs/2305.13245) (2023). Switch Transformer is a public reference for sparse expert routing: Fedus, Zoph, and Shazeer, [Switch Transformers](https://arxiv.org/abs/2101.03961) (2021).
+:::
+
+:::note[The Numbers]
+| Quantity | Scaling behavior |
+|---|---|
+| Attention score cells for `n` prompt tokens | `n × n` per head before optimized tiling |
+| 2,048-token prompt attention cells | 4,194,304 per head |
+| 8,192-token prompt attention cells | 67,108,864 per head |
+| Output logits with GPT-3 vocabulary | 50,257 scores |
+| GQA or MQA effect | fewer KV heads, smaller decode-time cache |
+:::
+
+Failure at this level looks like model behavior: hallucination, wrong reasoning, instruction mistakes, repetition, over-refusal, under-refusal. The GPU may have executed perfectly. The network may have streamed perfectly. The selected continuation can still be wrong.
+
+## Q7: Why Does the Model Need a KV Cache?
+
+Imagine generating a 500-token answer.
+
+Naively, for token 1 you run the whole prompt. For token 2 you run the whole prompt plus token 1. For token 3 you run the whole prompt plus tokens 1 and 2. That repeats work. The earlier tokens do not change. Their keys and values do not need to be recomputed every time.
+
+So serving systems keep a **KV cache**: the key and value tensors for previous positions in every layer. The first phase, **prefill**, reads the prompt and writes the cache. The second phase, **decode**, generates one token at a time while appending one new key and value per layer.
+
+This is why first-token latency and tokens-per-second are different metrics.
+
+First-token latency includes queueing, tokenization, routing, and prefill over the whole prompt. After that, each decode step is smaller, but it is sequential: token 257 depends on token 256. You cannot fully parallelize one user's generated tokens across time because the future token needs the past token as input.
+
+The KV cache is also why long contexts are expensive even after prefill. Every active request carries memory proportional to:
+
+```text
+tokens
+× layers
+× 2
+× kv_heads
+× head_dim
+× bytes_per_value
+```
+
+The `2` is for keys and values.
+
+<KvCacheTrace client:visible />
+
+This is the concrete trade. The cache saves recomputation by remembering the past, but it makes every active sequence occupy GPU memory until the sequence finishes or is cancelled. GQA and MQA matter here because they reduce `kv_heads`, which reduces the cache footprint and decode bandwidth. Quantized KV cache matters for the same reason: it attacks the part of memory that grows with context and concurrency, not just the fixed weight files.
+
+:::tip[How We Know]
+The serving literature treats KV-cache memory as a central bottleneck. The vLLM paper, [Efficient Memory Management for Large Language Model Serving with PagedAttention](https://arxiv.org/abs/2309.06180), describes how KV cache can consume a large share of GPU memory and introduces block-based paging to reduce waste. NVIDIA TensorRT-LLM documents production features such as [paged KV cache and in-flight batching](https://docs.nvidia.com/tensorrt-llm/).
+:::
+
+:::note[The Numbers]
+| Factor | Effect |
+|---|---:|
+| KV tensors per layer | 2: keys and values |
+| KV memory scaling with context | linear in active token count |
+| KV memory scaling with concurrency | linear in active sequence count |
+| vLLM reported throughput improvement | 2-4x over FasterTransformer and ORCA at similar latency in its evaluated workloads |
+:::
+
+Failure here is operational. If KV memory fills, the server must reject, queue, evict, swap, recompute, or route elsewhere. If the allocator fragments memory, you can have free memory in total but no suitable blocks for the next sequence. This is exactly the kind of problem that looks like operating systems, not like "AI."
+
+## Q8: Where Does the GPU Actually Spend Time?
+
+A transformer is mostly matrix multiplication and memory movement.
+
+The GPU is good at matrix multiplication because it has many arithmetic units and specialized tensor cores. The usual unit for arithmetic work is a **FLOP**, a floating-point operation. A multiplication is one operation. An addition is one operation. A matrix multiply contains enormous numbers of them, so hardware vendors advertise FLOPs per second.
+
+FLOPs matter because they estimate compute demand. They are not the whole answer. A chip can have huge theoretical FLOPs and still wait because numbers are not arriving fast enough.
+
+That brings us to memory. **DRAM** is dynamic random-access memory: dense memory that stores bits as charge and must be refreshed. GPU **HBM**, high-bandwidth memory, is a DRAM technology packaged close to the GPU to provide much higher bandwidth than ordinary CPU memory. **SRAM** is faster on-chip memory used for caches, registers, and shared memory, but it is far smaller and more expensive per bit.
+
+The numbers must be read from HBM, moved through caches or on-chip SRAM, multiplied, accumulated, and written back. If the kernel waits on memory, tensor cores sit idle. If communication waits between GPUs, all local compute can be ready and still blocked.
+
+For a single layer, the worker launches kernels for projections, attention, MLPs, normalization, sampling support, and cache writes. Modern inference runtimes fuse operations where possible so intermediate tensors do not need to be written to memory and read back again. FlashAttention is the canonical example for attention: compute exact attention while tiling the work to reduce traffic between GPU high-bandwidth memory and on-chip memory.
+
+The 2026 hardware-aware lesson is sharper than "use a faster GPU." The best kernels overlap data movement with math, keep intermediate tiles on chip, use lower precision where quality allows, and arrange work so tensor cores do not starve. FlashAttention-3 is a public example of that shift on Hopper GPUs: it overlaps tensor-core work with memory movement and uses FP8-aware techniques. That is the physical version of the same story we have followed all along: the model is not just equations; it is equations scheduled onto memory hierarchy and wires.
+
+Trace one attention tile. A block of GPU threads receives a slice of queries and a slice of cached keys. The keys are too large to keep all on chip, so the kernel streams a tile from HBM into shared memory or registers. Tensor cores multiply query tiles by key tiles. The kernel keeps a running softmax summary so it does not write the entire score matrix back to HBM. Then it streams the matching value tile, multiplies by the normalized weights, accumulates the output, and moves to the next tile. If the tile is chosen well, HBM traffic falls and tensor cores stay busy. If the tile is chosen poorly, the chip spends its time waiting for memory while arithmetic units sit underused.
+
+This is why FLOPs alone are a trap. Two kernels can perform the same mathematical attention and have very different wall-clock times because one writes giant intermediate matrices to HBM and the other keeps the right partial results on chip.
+
+<KernelRooflineTrace client:visible />
+
+The slider version is intentionally simplified, but the invariant is real. A matrix multiply has arithmetic work and memory traffic. The ratio between them is arithmetic intensity: how much math you get for each byte moved. High intensity gives tensor cores something to chew on. Low intensity makes the kernel wait on memory. This is why practical runtimes care about tiling, fusion, layout, FP8 or INT8 paths, paged KV cache, prefix cache locality, and avoiding unnecessary reads and writes. A serving stack such as vLLM, TensorRT-LLM, or SGLang is not merely "calling the model"; it is arranging token work so the hardware stays fed.
+
+:::tip[How We Know]
+FlashAttention is described in Dao et al., [FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness](https://arxiv.org/abs/2205.14135) (2022). FlashAttention-3 is described by Shah et al., [Fast and Accurate Attention with Asynchrony and Low-precision](https://arxiv.org/abs/2407.08608) (2024). NVIDIA's CUDA programming model documents the hierarchy of [threads, blocks, warps, and memory spaces](https://docs.nvidia.com/cuda/cuda-c-programming-guide/). NVIDIA's H100 product documentation lists HBM bandwidth figures such as [3.35 TB/s for H100 SXM](https://www.nvidia.com/en-sg/data-center/h100/).
+:::
+
+:::note[The Numbers]
+| Quantity | Public example |
+|---|---:|
+| CUDA warp | 32 threads |
+| H100 SXM HBM bandwidth | 3.35 TB/s |
+| H100 NVLink bandwidth | up to 900 GB/s bidirectional per GPU in Hopper systems |
+| Typical inference precision | FP16, BF16, FP8, INT8, INT4 depending on model and stack |
+| FLOP | one floating-point arithmetic operation |
+:::
+
+The physical bottom is not "electricity" in the abstract. It is charges stored in HBM cells, signals moving across package traces and board links, transistor gates switching inside tensor cores, SRAM banks feeding multiply-accumulate units, NICs moving packets between hosts, and cooling systems carrying heat away so the chips can keep their clocks.
+
+At this layer, a "slow model" might mean:
+
+- HBM bandwidth is saturated
+- tensor cores are underutilized because batch size is too small
+- kernels are too small and launch overhead matters
+- attention is memory-bound
+- CPU tokenization or sampling is stalling the GPU
+- tensor-parallel shards are waiting on collective communication
+- one unhealthy GPU slows a whole replica group
+
+The model math and the data center are now the same story.
+
+<JourneyMap steps={journeySteps} current={11} client:visible />
+
+## Q9: How Can a Model Too Big for One GPU Run at All?
+
+Start with memory.
+
+If a model has 70 billion parameters and each parameter is stored in 16 bits, the raw weights need about 140 GB in decimal units, about 130 GiB in binary units. An 80 GB GPU cannot hold that alone. Add KV cache, runtime workspace, fragmentation, communication buffers, and safety margin. Now you need multiple GPUs or lower precision.
+
+<GpuMemoryBudget client:visible />
+
+Work the memory budget in the order the runtime experiences it. First come weights: fixed cost, paid before users arrive. Then runtime workspace: temporary buffers, CUDA graphs, communication buffers, allocator slack, and fragmentation. Then KV cache: small for one short request, enormous for many long ones. Finally safety margin: the system must survive bursty arrivals, uneven sequence lengths, and one request asking for far more output than expected. If the model is tensor-parallel across four GPUs, the weight shard per GPU may fit, but every GPU still needs its share of KV cache and communication workspace. "Fits the weights" is therefore not the same as "serves production traffic."
+
+<ReplicaPlacement client:visible />
+
+That second view is the interview trap. A candidate can correctly compute raw weight memory and still miss production placement. The placement question is: for each GPU in the replica group, what lives in HBM at the moment a decode iteration launches? The answer includes its weight shard, its KV-cache shard or replicated cache depending on layout, its activation workspace, its communication buffers, allocator fragmentation, and emergency headroom. If any shard is over budget, the whole replica is over budget.
+
+Now trace the ownership question. If a 4-way tensor-parallel replica owns one layer's projection matrix, rank 0 may hold columns 0-2047, rank 1 columns 2048-4095, rank 2 columns 4096-6143, and rank 3 columns 6144-8191. The prompt vector may be replicated, but the weights are not. Each rank computes the part it can compute locally. The next operation either needs those parts gathered together or reduced into a shared result. That is where "fits across GPUs" becomes "waits across GPUs."
+
+<DeploymentPlanTrace client:visible />
+
+The deployment plan above is deliberately mechanical. Pick a parameter count. Pick a precision. Pick a tensor-parallel degree. Then ask what every rank must hold at the instant a decode iteration launches. The answer is not just the weight shard. It is the weight shard plus KV pages for active sequences, temporary workspace, communication buffers, allocator slack, and enough headroom for bursty prompts. This is where a production plan differs from a model-card number: "70B" is not a deployment; per-rank memory, interconnect, cache layout, and traffic shape are the deployment.
+
+There are several levers:
+
+**Quantization** stores weights in fewer bits. 8-bit weights roughly halve memory versus 16-bit. 4-bit weights roughly quarter it. This can improve cost and fit, but the system must preserve quality and speed.
+
+The practical question is what gets quantized. Weight-only quantization reduces model memory. Activation quantization can speed or shrink intermediate work but is harder to preserve accurately. KV-cache quantization attacks the memory that grows with context and concurrency. Methods such as GPTQ and AWQ are public examples of post-training quantization: they try to choose lower-precision weights while preserving the model's outputs on calibration data. Quantization is not just a file-size trick; it changes which kernels run, how memory bandwidth is used, and sometimes which quality failures appear.
+
+**Tensor parallelism** splits individual matrix multiplications across GPUs. Each GPU owns a shard of the weights. During the layer, GPUs exchange partial results.
+
+**Pipeline parallelism** puts different layers on different GPUs. Token representations flow through stages like an assembly line.
+
+**Data parallelism** replicates the whole model on multiple GPU groups. Different requests go to different replicas.
+
+Those three levers combine into **3D parallelism** during training: data parallel groups, tensor-parallel shards inside a layer, and pipeline-parallel stages across layers. The hard part is synchronization. Data parallel workers need gradient all-reduces. Tensor parallel workers need activation collectives inside layers. Pipeline stages need sends and receives between neighboring stage groups. One straggler can hold back the step.
+
+Training uses even more memory than inference because it stores activations, gradients, and optimizer state. That is why training-scale papers talk about ZeRO, sharding optimizer states, activation checkpointing, and multi-dimensional parallelism. Serving has its own pain: lower latency, unpredictable request lengths, and KV cache churn.
+
+:::tip[How We Know]
+Megatron-LM describes tensor and pipeline model parallelism for large transformer training in Shoeybi et al., [Megatron-LM: Training Multi-Billion Parameter Language Models Using Model Parallelism](https://arxiv.org/abs/1909.08053) (2019). ZeRO describes optimizer-state sharding in Rajbhandari et al., [ZeRO: Memory Optimizations Toward Training Trillion Parameter Models](https://arxiv.org/abs/1910.02054) (2019). The later Megatron scaling paper studies tensor, pipeline, and data parallel tradeoffs in [Efficient Large-Scale Language Model Training on GPU Clusters](https://arxiv.org/abs/2104.04473) (2021). Public quantization references include Frantar et al., [GPTQ](https://arxiv.org/abs/2210.17323) (2022), and Lin et al., [AWQ](https://arxiv.org/abs/2306.00978) (2023).
+:::
+
+:::note[The Trap Door]
+"Use more GPUs" is not a complete answer. More GPUs add memory, but they also add communication. Tensor parallelism can make one model fit, but every layer may now need collective operations. Pipeline parallelism can improve fit, but bubbles reduce utilization. Data parallelism scales throughput, but not the memory needed for one replica.
+:::
+
+## Q10: What Crosses Between GPUs?
+
+If the model is split across GPUs, a token vector cannot stay on one chip.
+
+Follow one layer in tensor parallelism. The token representation enters the layer split or replicated across a group of GPUs. Each GPU owns a slice of a projection matrix. It multiplies the input by its slice. Now each chip has only part of the answer. The next operation cannot pretend the partial result is complete, so the group performs a collective operation. In an **all-reduce**, every GPU contributes partial values and every GPU receives the combined result. In an **all-gather**, every GPU contributes a shard and every GPU receives the assembled tensor. The exact collective depends on how the matrix was split.
+
+That collective is a synchronization point. The fastest GPU waits for the slowest one. The layer cannot advance until the required tensor shape exists.
+
+<TensorParallelTrace client:visible />
+
+The important detail is not the name of the collective. It is the shape contract. Before the layer, the runtime has a tensor with a known shape. Splitting the matrix lets several GPUs compute pieces of the next tensor. But the following operation expects a complete or consistently sharded tensor. The collective restores that contract. If rank 2 is late, rank 0 cannot responsibly guess its missing slice. Distributed inference is therefore full of tiny barriers hidden inside what looks like one forward pass.
+
+This is why high-end inference boxes are not just "GPUs in a case." The interconnect is part of the model's execution path. In an H100 HGX system, NVLink and NVSwitch let GPUs communicate at far higher bandwidth than ordinary PCIe. Across nodes, systems use InfiniBand or high-speed Ethernet, and now network latency enters the inner loop for multi-node inference or training.
+
+Pipeline parallelism moves a different kind of data: the activation stream. GPU group 0 runs early layers, group 1 runs later layers, and microbatches flow through. This can make giant models fit, but it creates bubbles: times when a stage waits because the previous or next stage is not ready.
+
+Expert parallelism appears in mixture-of-experts models. A router chooses a small number of experts for each token, and tokens must be dispatched to the GPUs holding those experts. That improves parameter count per token-compute, but it adds an all-to-all communication problem.
+
+<DistributedSync client:visible />
+
+Training adds another synchronization path. In data parallel training, each replica computes gradients on different data. Before the optimizer step, replicas must agree on the combined gradient or an equivalent sharded form. ZeRO changes what is stored where: optimizer states, gradients, and parameters can be partitioned so each worker holds less redundant state, but the missing pieces must be gathered or reduced at the right moments. Memory saved becomes communication scheduled.
+
+The interview-grade mental model is not "parallelism makes it faster." It is: parallelism trades local memory and compute pressure for communication and synchronization pressure. The right answer depends on model size, batch size, sequence length, interconnect topology, precision, pipeline bubbles, expert load balance, and the latency target.
+
+:::tip[How We Know]
+Megatron-LM introduced practical tensor and pipeline model parallelism for large transformers in [Training Multi-Billion Parameter Language Models Using Model Parallelism](https://arxiv.org/abs/1909.08053). NVIDIA's [NCCL collective documentation](https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/usage/collectives.html) specifies operations such as all-reduce and all-gather. NVIDIA's [HGX H100 platform description](https://developer.nvidia.com/blog/introducing-nvidia-hgx-h100-an-accelerated-server-platform-for-ai-and-high-performance-computing/) describes eight H100 GPUs connected through NVSwitch, with each H100 communicating with the others at 900 GB/s bidirectional NVLink bandwidth.
+:::
+
+:::note[The Numbers]
+| Quantity | Public example |
+|---|---:|
+| HGX H100 GPUs per baseboard | 8 |
+| H100 NVLink bandwidth in HGX H100 | 900 GB/s bidirectional per GPU |
+| Common collective in tensor parallelism | all-reduce or all-gather |
+| Common communication in MoE expert parallelism | all-to-all token dispatch |
+:::
+
+Failure here feels different from a bad model answer. A single slow GPU, a flaky link, or an imbalanced expert route can slow the whole group. Distributed inference turns hardware tail latency into user-visible token latency.
+
+## Q11: What Changes When Many People Chat at Once?
+
+One user wants low latency. The provider wants high throughput. GPUs are expensive enough that idle time is painful.
+
+The conflict is decode.
+
+For a single request, decode generates one token at a time. That seems too small to fill a large GPU. The trick is batching: generate the next token for many requests in one forward pass. But user requests arrive at different times, have different prompt lengths, and finish at different lengths. A static batch is wasteful because short requests finish early and leave holes.
+
+Modern LLM serving uses **continuous batching** or **in-flight batching**. The scheduler forms a batch at each iteration. Finished requests leave. New requests enter. Long prompts may get chunked. Decode requests may be interleaved with prefill work. Admission control must account not just for compute but for KV-cache memory.
+
+<BatchingSimulator client:visible />
+
+This is the systems heart of large-scale LLM serving. The unit of scheduling is not "one request runs to completion." The unit is closer to "one model iteration over a set of active sequences."
+
+<SchedulerState client:visible />
+
+A useful mental model is that every active sequence has a small operating-system-like record. It contains a sequence id, prompt length, generated length, phase, KV-page pointers, sampling settings, max-token limit, priority, deadline, account or tenant, tool state, and cancellation bit. The scheduler repeatedly asks: which records can fit in the next iteration under compute and KV-memory budgets? Which prefills should be chunked? Which decodes must be protected to keep streams smooth? Which cancelled or finished records can release pages? This is where "many users at once" becomes concrete.
+
+<SchedulerTickTrace client:visible />
+
+Now the phrase **continuous batching** has teeth. At tick 517, a cancelled stream is not a sad story; it is KV pages that should be freed before the next batch. A giant prefill is not just a slow request; it is a chunking decision that can freeze dozens of active decodes if scheduled badly. A high-priority decode is not one more row in a queue; it is a stream whose next visible token is waiting on this iteration. The scheduler is constantly converting product promises into tensor work.
+
+Some systems go further and separate **prefill** from **decode** onto different worker pools. Prefill likes large prompt-parallel work and can create big bursts of memory writes. Decode likes steady low-latency token steps and reuses KV cache. Separating them can improve utilization, but it creates a new problem: the KV cache or enough state to continue generation must move, be shared, or be recomputed.
+
+This is where serving frameworks enter the story. **vLLM** is known for PagedAttention, which treats KV cache more like paged virtual memory. **TensorRT-LLM** is NVIDIA's optimized inference stack with features such as quantization, paged KV cache, tensor parallelism, and in-flight batching. **TGI**, Hugging Face Text Generation Inference, packages production serving features around open models. **SGLang** adds a runtime for structured language-model programs, with prefix caching and RadixAttention so repeated prompt prefixes can be reused efficiently.
+
+These frameworks do not change what a transformer is. They change how much useful work the hardware gets done per second, how many requests fit before KV memory fills, and how predictable latency remains under mixed prompt lengths.
+
+By May 2026, the public systems conversation has moved even harder toward KV cache as a first-class object. Prefill/decode disaggregation is no longer just a paper idea: vLLM documents disaggregated prefilling, and public engineering writeups describe separating prompt-heavy work from steady decode work. Newer papers and systems explore KV transfer, restoration, compression, SSD-backed cache, and hierarchical memory because long-context RAG and agent loops make the cache too large to treat as an invisible detail.
+
+:::tip[How We Know]
+ORCA introduced iteration-level scheduling for transformer serving and showed why request-level scheduling wastes capacity for generative models: Yu et al., [ORCA](https://www.usenix.org/conference/osdi22/presentation/yu) (OSDI 2022). TensorRT-LLM documents [paged attention, in-flight batching, and request scheduling](https://nvidia.github.io/TensorRT-LLM/features/paged-attention-ifb-scheduler.html). vLLM's PagedAttention paper connects batching efficiency to KV-cache memory management; its [PagedAttention design documentation](https://docs.vllm.ai/en/stable/design/paged_attention/) describes sequence, block, thread-group, and KV-cache layout concepts, and vLLM now documents [disaggregated prefilling](https://docs.vllm.ai/en/v0.14.1/features/disagg_prefill/). Hugging Face documents [Text Generation Inference](https://huggingface.co/docs/text-generation-inference/index). Zheng et al., [SGLang](https://arxiv.org/abs/2312.07104) (2023), describes RadixAttention for prefix reuse in structured LLM programs. Disaggregated prefill/decode serving is explored in systems papers such as [P/D-Serve](https://arxiv.org/abs/2408.08147), and recent 2026 work such as [CacheFlow](https://arxiv.org/abs/2604.25080), [Tutti](https://arxiv.org/abs/2605.03375), and vLLM's [KV offloading connector writeup](https://vllm.ai/blog/2026-01-08-kv-offloading-connector) shows how active the KV-cache restoration/storage problem remains.
+:::
+
+:::note[What to Measure]
+| Measurement | Public example / what it tells you |
+|---|---|
+| Time to first token | queueing plus prefill plus first decode |
+| Inter-token latency | time between streamed tokens |
+| Tokens per second per user | perceived generation speed |
+| Aggregate tokens per second | fleet throughput |
+| GPU memory utilization | how much capacity is weights, KV, workspace, or waste |
+| Goodput | useful completed tokens under latency SLOs |
+| Prefix-cache hit rate | how often repeated prompt prefixes avoid repeated prefill work |
+| vLLM logical KV block | often 16 tokens per block in public examples |
+| vLLM PagedAttention example | block size 16 and head size 128 stores 2,048 elements for one head |
+| 2026 vLLM KV offload writeup | newer physical KV block sizes around 0.5-2 MB for listed models |
+:::
+
+Failure under load often appears as a phase change. Everything is fine until KV cache fills or queues cross a threshold. Then first-token latency rises, users keep connections open longer, active sequences accumulate, memory pressure worsens, retries add traffic, and the system can spiral. Rate limits are not just business rules; they are stability controls.
+
+## Q12: How Is the Next Token Chosen?
+
+After the final transformer layer, the model produces logits: one score for every token in the vocabulary. The simplest choice is greedy decoding: pick the highest-scoring token.
+
+But chat models often sample. Sampling turns logits into probabilities, adjusts them, and randomly draws a token. Temperature changes sharpness. Top-p sampling trims the candidate set to tokens whose cumulative probability reaches a threshold. Frequency or presence penalties may discourage repetition. Safety layers or structured-output constraints may mask invalid tokens.
+
+Before sampling, production code usually applies numerically stable softmax logic. Raw logits can be large. Subtracting the maximum logit before exponentiation does not change the final probabilities, but it prevents overflow. The same idea is why cross-entropy implementations rarely compute "softmax, then log" as two naive steps.
+
+<SamplingTrace client:visible />
+
+Then the chosen token is appended to the sequence.
+
+That last sentence is the whole loop. Append the token, update the KV cache, run the model again, sample again, stream again. Stop when the model emits an end token, hits a length limit, triggers a tool call, violates a policy, or the client disconnects. Greedy decoding, temperature, top-p, masks, and penalties all live at this narrow point: the final vector has already become logits, and the runtime must choose exactly one next token while preserving product constraints.
+
+:::tip[How We Know]
+Autoregressive language modeling and sampling are described in the GPT-3 paper, [Language Models are Few-Shot Learners](https://arxiv.org/abs/2005.14165). Faster variants such as speculative decoding are described in Leviathan et al., [Fast Inference from Transformers via Speculative Decoding](https://arxiv.org/abs/2211.17192) (2022), Chen et al., [Accelerating Large Language Model Decoding with Speculative Sampling](https://arxiv.org/abs/2302.01318) (2023), and Li et al., [EAGLE](https://arxiv.org/abs/2401.15077) (2024). OpenAI's [Learning to reason with LLMs](https://openai.com/index/learning-to-reason-with-llms/) and Guo et al., [DeepSeek-R1](https://arxiv.org/abs/2501.12948), are public examples of the shift toward extra inference-time work for harder reasoning. Snell et al., [Scaling LLM Test-Time Compute Optimally can be More Effective than Scaling Model Parameters](https://arxiv.org/abs/2408.03314) (2024), studies when spending more test-time compute can beat simply using a larger model.
+:::
+
+:::note[Speculative Decoding in One Breath]
+A small draft model proposes several future tokens. The large target model verifies them in parallel. If the draft was right, several tokens are accepted for roughly one expensive target pass. If it was wrong, the system falls back without changing the target model's output distribution, depending on the exact algorithm.
+:::
+
+Now add the 2026 complication: not every model is trying to minimize tokens. Reasoning models often spend extra inference-time compute before the final answer. The extra work might be hidden scratch tokens, visible chain-of-thought-like text, multiple sampled candidates, verifier passes, code execution, search, or tool calls. The product may show none of that internal work and stream only the final answer.
+
+<TestTimeCompute client:visible />
+
+This changes the serving problem. A normal chat request is already variable length. A reasoning request is variable length twice: the final answer length varies, and the amount of hidden or auxiliary work varies. That means the scheduler must reserve enough token budget, KV cache, tool time, and safety checks for work the user may never see. "Reasoning" at product level becomes "more decode iterations, more verification, and more queue occupancy" at infrastructure level.
+
+Now compress the whole machine into one concrete token.
+
+<SingleTokenTrace client:visible />
+
+This is the closest we can get to the whole post in one object. One visible token is not one operation. It is one scheduler decision, one batch slot, one last-token vector, dozens of layer passes, many HBM reads, many tensor-core tiles, several possible collectives, one logits vector, one sampling decision, one KV-cache append, one detokenization fragment, and one network flush. If the user cancels at the wrong moment, the cancellation has to chase that chain backward so the scheduler can stop spending future iterations on a sequence nobody will read.
+
+Important distinction: the model does not know the sentence it will write in advance. It knows a distribution for the next token. The next token changes the context. That changes the next distribution. Fluent paragraphs emerge from repeated local choices conditioned on a very large learned state.
+
+## Q13: How Do Tokens Become the Answer on Your Screen?
+
+The inference worker detokenizes token ids back into text pieces. The serving process frames those pieces as stream events. The edge forwards them over the existing connection. The browser receives chunks, decodes bytes into text, updates the UI state, and paints.
+
+This is why you can see half a sentence. The server is not waiting for the whole answer. It is flushing pieces as soon as policy and product logic allow.
+
+The detokenizer has to be more careful than "id to string." Some tokens are word fragments. Some are byte fragments. A token boundary may not be a valid UTF-8 boundary. A JSON tool call may be syntactically incomplete until several more tokens arrive. A citation marker may be withheld until the retrieval metadata is attached. A safety filter may delay release of a risky phrase until enough surrounding context exists. Streaming is therefore a small protocol inside the product: buffer when needed, flush when safe, and keep enough state to resume or stop cleanly.
+
+Trace one fragment. The sampler chooses a token id. The detokenizer maps it to bytes or text. If those bytes complete a valid character, the stream gate can consider releasing it. If the fragment is inside a tool-call JSON object, the UI should not show it as prose. If it is a citation marker, the product needs source metadata. If it is risky text, the output check may need neighboring tokens before deciding. The user sees "typing." The system sees a sequence of release decisions.
+
+There may be postprocessing in the stream:
+
+- merge token fragments into valid UTF-8 text
+- hold back unsafe partial output until checks pass
+- parse tool-call JSON incrementally
+- attach citations or retrieved document references
+- redact internal control tokens
+- account for generated tokens
+- stop cleanly when the client cancels
+
+The return path is easier than the forward path mathematically, but it is not trivial operationally. Long-lived streams consume connection slots. Mobile networks pause. Browsers sleep tabs. Users hit stop. Proxies time out. The serving system needs cancellation to propagate back to the scheduler so GPU work and KV memory are freed.
+
+Cancellation is a reverse journey. The browser sends a close, abort, or stop signal. The edge marks the stream dead. The serving frontend marks the sequence cancelled. The scheduler removes it from the next iteration. The KV allocator releases its blocks. If a GPU kernel is already running, that iteration may finish, but the next one should not include the cancelled sequence. A bad cancellation path is expensive: users think they stopped generation, while the backend keeps paying for tokens no one will see.
+
+<StreamLifecycle client:visible />
+
+<StreamTokenReleaseTrace client:visible />
+
+The important LLM-specific point is that streaming is not merely "print as soon as possible." It is a controlled release path for a probabilistic generator. The product may need to hold text until bytes form valid characters, until tool JSON is complete enough to execute, until citation metadata is attached, or until a policy check has enough surrounding context. The best stream feels immediate to the user while still preserving these gates.
+
+:::tip[How We Know]
+The transport behavior comes from public streaming protocols such as [Server-Sent Events](https://html.spec.whatwg.org/multipage/server-sent-events.html) and HTTP streaming. The need for cancellation and iteration scheduling follows from the generative serving model described in [ORCA](https://www.usenix.org/conference/osdi22/presentation/yu): unfinished sequences remain active across many model iterations.
+:::
+
+<JourneyMap steps={journeySteps} current={14} client:visible />
+
+## Q14: What Is Happening Across the Fleet While You Wait?
+
+Your request is one colored line in a giant moving map.
+
+At the instant your stream is open, the fleet is not in one state. It is a collection of thousands of small transitions. Some machines are loading weights from local NVMe or network storage. Some are warming CUDA graphs. Some are draining for deploys. Some are overloaded because a popular product just sent a traffic spike. Some are serving long-context requests with huge KV caches. Some are running smaller models for routing or moderation. Your request is one sequence record inside that moving system.
+
+Trace one deploy as it crosses your request.
+
+A new model snapshot is copied into artifact storage. The snapshot is not just weights; it includes tokenizer rules, chat template, quantization metadata, parallelism plan, and eval records. A few replica groups load it. Each rank verifies tensor names, shapes, dtypes, and shard ownership, then moves its shard into GPU memory and announces that it is warm. The router now has two possible worlds: the old snapshot that already serves most users, and the new snapshot that should receive only a small slice.
+
+Your prompt might be duplicated into shadow traffic. The old snapshot's answer is shown to you. The new snapshot's answer is generated, logged, evaluated, and discarded. That lets the provider compare behavior without risking a visible regression. If the shadow path looks good, a canary begins: perhaps one percent of eligible traffic routes to the new snapshot. Now the change is real. Some users see the new behavior, and the fleet watches both model-quality metrics and infrastructure metrics.
+
+<FleetRolloutTrace client:visible />
+
+The trap is measuring only one side. A new snapshot can be safer and slower. A runtime change can preserve text quality and destroy inter-token latency. A quantized build can fit more traffic and subtly damage tool-call formatting. A prefix-cache change can lower average latency while making a rare no-cache path worse. A serious rollout treats every model change as both a behavior experiment and a systems experiment.
+
+Now trace one bad GPU inside that rollout. It does not crash. It merely runs slow on one tensor-parallel rank. Your token is ready on seven GPUs, but rank 3 is late. The collective waits. The next token waits. Inter-token latency rises, even though the prompt, tokenizer, sampler, and model weights are fine. If the same rank also shows ECC errors, kernel retries, or abnormal output checks, the replica group can be drained. If it only shows tail latency, the diagnosis is harder: the symptom is "the model feels slow," but the owner is hardware or distributed runtime.
+
+Now trace one traffic spike. A new feature sends many long prompts at once. Admission control starts rejecting low-priority long-context requests. The scheduler chunks prefills so decode streams do not freeze. Prefix-cache hit rate may improve if many prompts share a system prefix, or collapse if each prompt is unique. KV occupancy becomes the hard limit before raw FLOPs do. A provider that waits until users complain is too late; the fleet has to react when leading indicators cross guardrails.
+
+<FleetControlLoop client:visible />
+
+The fleet also needs a diagnosis habit. The same user-visible complaint, "the model got worse," can come from a bad snapshot, a slow GPU shard, a safety gate, a KV-cache storm, a retrieval regression, or a stream bug. The fix depends on locating the owning loop.
+
+<FleetIncidentTrace client:visible />
+
+The interview-grade move is to keep the object in your hand. If the object is a snapshot, ask where it is stored, how it becomes warm, how it is canaried, and how it rolls back. If the object is a sequence record, ask what queue owns it, how much KV memory it holds, which replica group it entered, and when cancellation frees it. If the object is a token, ask which batch, kernel, collective, sampler, stream gate, and browser flush it passed through. This is why "Member of Technical Staff, AI infra" interviews can move from softmax to queueing theory in five minutes. Both are in the critical path of the same token.
+
+:::tip[How We Know]
+The distributed-training side of the public literature shows the same hardware pressures at larger scale: [Megatron-LM](https://arxiv.org/abs/1909.08053), [ZeRO](https://arxiv.org/abs/1910.02054), and [Efficient Large-Scale Language Model Training on GPU Clusters](https://arxiv.org/abs/2104.04473). The serving side is covered by [ORCA](https://www.usenix.org/conference/osdi22/presentation/yu), [PagedAttention/vLLM](https://arxiv.org/abs/2309.06180), and production runtime documentation such as [TensorRT-LLM](https://docs.nvidia.com/tensorrt-llm/).
+:::
+
+:::note[Failure Modes by Layer]
+
+- Client/network: stream drops, so the answer stops mid-generation.
+- Gateway: quota or auth rejects, so the request fails before model work.
+- Router: bad placement, so first-token latency rises.
+- Tokenizer: unexpected token inflation, so cost and context use surprise you.
+- Scheduler: queue instability, so latency spikes under load.
+- KV cache: memory exhaustion or fragmentation, so requests are rejected, preempted, swapped, or slowed.
+- GPU kernel: low utilization, so cost per token rises.
+- Distributed shard: one slow or failed GPU, so the whole replica group stalls.
+- Sampling/policy: bad stop logic or masking, so the answer is truncated, repetitive, or incorrectly refused.
+- UI: poor stream handling, so text duplicates or formatting breaks.
+:::
+
+## Q15: How Does the Provider Keep the Whole Thing Stable?
+
+At small scale, the serving question is "can one request finish?" At large scale, the question is "can the system stay inside its latency and safety bounds while demand, prompt lengths, output lengths, and hardware health keep changing?"
+
+Stability is not one switch. It is a set of control loops watching different objects.
+
+Trace one overloaded minute. A burst of long-context traffic arrives. The first signal is not necessarily errors; it may be prompt-token rate, KV-cache occupancy, queue depth, prefill backlog, or time to first token. Admission control now has to decide whether another request should enter the system. It may accept, queue, reject, downgrade to a smaller model, reduce maximum output, route to another region, or reserve capacity only for higher-priority traffic. Load shedding is deliberate refusal: a clear failure for some users can be safer than letting every user enter a queue so long that they time out and retry.
+
+Now follow the feedback. If queues rise, users wait. If users wait, some cancel or retry. Retries add traffic. More active streams hold more KV cache. More KV pressure forces more rejection, swapping, preemption, or longer queues. This is the spiral the control loop is trying to prevent. Rate limits, token budgets, and max-output caps are therefore not merely billing rules. They are stability actuators.
+
+Autoscaling is slower than admission because a warm LLM replica is not a stateless web container. The system may need to copy hundreds of gigabytes of weights, verify shards, initialize kernels, allocate KV blocks, and then only gradually route traffic to the new group. During the overloaded minute, the fastest controls are usually admission, routing, batching policy, output limits, and load shedding. New capacity helps later.
+
+Trace a regression. A new snapshot passes unit tests and can answer normal prompts. In canary, users start regenerating answers more often on finance questions with citations. The serving metrics look healthy: latency is fine, errors are low, GPUs are busy. The quality metrics are not healthy: citation faithfulness dropped in one language and one document type. An LLM-as-judge flags examples, humans audit a sample, and the team finds the model is over-summarizing retrieved tables. The rollback is a product-quality rollback, not an infrastructure rollback. That is why the fleet has to measure behavior and systems at the same time.
+
+Now trace the same incident as an evaluation design question. If the offline suite only has short English questions, it will miss the table-heavy multilingual RAG failure. If the judge model rewards confident prose more than source faithfulness, it may mark the bad answer as good. If humans only audit random samples, they may not see the narrow slice. A serious eval loop stratifies by language, domain, tool path, context length, retrieval source, answer format, and model snapshot. It keeps golden examples, adversarial examples, historical regressions, and fresh production samples separate because each catches a different failure.
+
+Trace a safety decision. A prompt enters. The input classifier may flag it. The model may still be allowed to answer if the safe response is educational or defensive. During generation, structured-output constraints may prevent invalid tool calls. After generation, an output classifier or policy check may hold, redact, or replace text. If the system refuses too much, helpfulness falls. If it refuses too little, safety fails. Safety is therefore a boundary under adversarial pressure, not a single classifier result.
+
+These loops share a discipline: every control must name both the metric it watches and the harm it may cause. Rejecting long prompts protects KV cache but harms users with legitimate long documents. Lowering max output protects decode capacity but may truncate good answers. Moving traffic to a smaller model improves availability but may reduce quality. Tightening a safety classifier reduces bad output but may over-refuse. The provider is not optimizing one scalar; it is maintaining a boundary under changing demand and adversarial pressure.
+
+<IncidentTimelineTrace client:visible />
+
+<StabilityControlTrace client:visible />
+
+The practical discipline is to map every symptom to its owning loop. High first-token latency may be admission, prefill, routing, or cold replicas. Bad citations may be retrieval, reranking, prompt packing, model behavior, or eval coverage. Unsafe output may be input classification, post-training, decoding constraints, output filtering, or red-team coverage. Slow tokens may be a GPU, a collective, a kernel, a queue, or a huge KV cache. A mature provider does not ask "is the model bad?" first. It asks which layer changed, which metric crossed a guardrail, and which control can reduce harm without making a different layer worse.
+
+That is also how to answer production interview questions without hand-waving. Start from the user symptom, name the token path it touches, name the metric that should move first, and name the control loop allowed to act. If a citation is wrong, adding GPUs is irrelevant. If inter-token latency is high because one tensor-parallel rank is slow, prompt engineering is irrelevant. If KV occupancy is the bottleneck, a faster matmul kernel may not save the outage. The journey tells you which fixes are even candidates.
+
+:::note[Production Metrics]
+| Metric | Why it matters |
+|---|---|
+| Time to first token | captures queueing and prefill pain |
+| Inter-token latency | captures decode path health |
+| Prompt tokens per request | predicts prefill and KV-cache pressure |
+| Output tokens per request | predicts stream duration and decode load |
+| KV-cache occupancy | memory admission bottleneck |
+| Prefix-cache hit rate | whether repeated prompt prefixes are being reused |
+| GPU SM utilization | arithmetic unit occupancy |
+| HBM bandwidth | memory traffic pressure |
+| Cancellation rate | user impatience, network failure, or bad routing |
+| Eval score by snapshot | quality regression detection |
+| Regeneration rate | weak proxy for answer dissatisfaction |
+| Citation faithfulness | whether cited sources actually support the generated claim |
+| Policy violation rate | whether safety layers are holding under real traffic |
+:::
+
+:::tip[How We Know]
+ORCA frames serving around iteration-level scheduling and latency/throughput tradeoffs. vLLM's PagedAttention paper connects throughput to KV-cache memory management, and the vLLM documentation describes [automatic prefix caching](https://docs.vllm.ai/en/v0.9.0/design/automatic_prefix_caching.html) over KV blocks. NVIDIA TensorRT-LLM documents production inference features such as [streaming, in-flight batching, paged attention, and quantization](https://docs.nvidia.com/tensorrt-llm/), which are exactly the runtime mechanisms that production metrics need to observe. SGLang's public documentation describes a serving runtime for language and multimodal models with [RadixAttention, prefix caching, multi-GPU parallelism, speculative decoding, continuous batching, paged attention, structured outputs, quantization, and multi-LoRA batching](https://docs.sglang.io/). Constitutional AI is described in Bai et al., [Constitutional AI: Harmlessness from AI Feedback](https://arxiv.org/abs/2212.08073) (2022). The public InstructGPT work also documents human preference evaluation as a central part of assistant training and assessment.
+:::
+
+## The Complete Loop
+
+Months before your chat, training turned data into weights, and post-training shaped those weights into an assistant. When you press Enter, the browser sends encrypted bytes to an edge. The gateway authenticates, limits, labels, and routes. The product assembles a prompt larger than your visible message, possibly with retrieved documents, tool schemas, conversation memory, or image-derived vectors. The tokenizer converts text into integers. The scheduler slips your sequence into a moving batch. The model reads the prompt during prefill and writes KV cache. Transformer layers run attention and MLPs as GPU kernels, where memory movement, tensor-core occupancy, and inter-GPU collectives can dominate latency. The final vector becomes logits. A stable softmax-and-sampling step chooses one token. That token is appended, streamed, painted, and fed back into the next decode step. The loop repeats until the answer stops. Around it, a fleet is constantly routing, batching, paging, quantizing, deploying, throttling, measuring, evaluating, and recovering.
+
+<CompleteLoopTrace client:visible />
+
+So the answer on your screen is not "the model spoke." It is the visible edge of a loop that stayed coherent long enough to serve you: a frozen artifact was loaded correctly, your request was admitted, your prompt became vectors, KV cache remembered the prefix, GPU kernels advanced the state, distributed ranks synchronized, sampling chose one id, stream gates released safe text, and fleet metrics kept the whole system inside its guardrails. Understanding LLMs at scale means being able to point to the exact object at each layer and say what can change it, what can block it, and what evidence would prove it is healthy.
+
+<JourneyMap steps={journeySteps} current={-1} client:visible />
+
+## LLM Chat at Every Level
+
+| Layer                 | What the chat is at this layer                                      |
+| --------------------- | ------------------------------------------------------------------- |
+| Training artifact     | Weight tensors produced by earlier optimization                     |
+| Human                 | A question and a gradually appearing answer                         |
+| Browser               | A request body and a long-lived response stream                     |
+| Edge network          | TLS sessions, HTTP streams, retries, timeouts                       |
+| Gateway               | Auth, quotas, policy, request ids, routing metadata                 |
+| Product orchestration | Prompt assembly, RAG, tools, VLM inputs, conversation state         |
+| Tokenizer             | A sequence of integer ids                                           |
+| Model                 | Embeddings, transformer layers, logits, sampling                    |
+| Serving runtime       | Batches, KV-cache blocks, CUDA graphs, kernels, prefix caches       |
+| GPU                   | HBM reads, SRAM tiles, tensor-core matrix multiplies                |
+| Multi-GPU node        | Sharded weights, collectives, NVLink or PCIe movement               |
+| Cluster               | Replicas, queues, load balancing, deploys, failures                 |
+| Physical reality      | Transistors switching, memory cells charging, heat leaving the rack |
+
+## Glossary in Journey Order
+
+| Term                | Meaning                                                                         |
+| ------------------- | ------------------------------------------------------------------------------- |
+| Weight              | A learned number stored in the model                                            |
+| Parameter           | Another name for a learned weight                                               |
+| Gradient            | Direction saying how a weight should change to reduce loss                      |
+| Optimizer state     | Extra training memory used to turn gradients into weight updates                |
+| Rollout             | A sampled completion used for scoring, comparison, training, or evaluation      |
+| SFT                 | Supervised fine-tuning on instruction-and-answer examples                       |
+| RLHF                | Reinforcement learning from human feedback                                      |
+| PPO                 | A reinforcement-learning method often used in public RLHF pipelines             |
+| DPO                 | Direct preference optimization from preferred and rejected answers              |
+| GRPO                | Group relative policy optimization, a rollout-comparison policy method          |
+| LoRA / QLoRA        | Parameter-efficient adaptation methods using small low-rank updates             |
+| Prompt              | The full input sequence sent to the model for this turn                         |
+| RAG                 | Retrieval-augmented generation: retrieve external context before generation     |
+| RRF                 | Reciprocal rank fusion, a way to combine ranked retrieval lists                 |
+| VLM                 | Vision-language model that can process image-derived representations and text   |
+| Token               | A text piece represented by one integer id                                      |
+| Embedding           | The vector looked up for a token id                                             |
+| Matmul              | Matrix multiplication, the core operation applying learned weights to vectors   |
+| Transformer layer   | One repeated block that edits token vectors using attention and an MLP          |
+| Query               | What a token position is looking for during attention                           |
+| Key                 | What a previous position offers to be matched against                           |
+| Value               | The information copied from a matched position                                  |
+| RoPE                | Rotary position embedding, a way to encode token position in attention          |
+| MQA / GQA           | Attention variants that share keys and values to reduce KV-cache cost           |
+| MoE                 | Mixture of experts, where a router sends tokens to selected expert networks     |
+| Activation          | Intermediate vector or tensor produced while a model runs                       |
+| Logit               | One raw score for a possible next token                                         |
+| Softmax             | Function that turns scores into probabilities                                   |
+| Log-sum-exp trick   | Numerically stable way to compute softmax or cross-entropy                      |
+| KV cache            | Stored keys and values from previous positions                                  |
+| Prefill             | The pass that reads the prompt and fills KV cache                               |
+| Decode              | The repeated pass that generates one new token                                  |
+| Inference           | Running the fixed model forward to produce outputs                              |
+| Test-time compute   | Extra compute spent during inference rather than training                       |
+| Verifier            | A model, rule, test, or tool result used to judge candidate answers             |
+| Reasoning budget    | Product or system limit on hidden tokens, candidates, tools, or verification    |
+| FLOP                | One floating-point arithmetic operation                                         |
+| Tensor core         | GPU hardware specialized for matrix multiply operations                         |
+| DRAM                | Dense memory technology that stores bits as charge and needs refresh            |
+| HBM                 | High-bandwidth DRAM packaged close to the GPU                                   |
+| SRAM                | Fast on-chip memory used for caches, registers, and shared memory               |
+| Collective          | A communication operation among GPUs, such as all-reduce                        |
+| Continuous batching | Updating the active batch between generation iterations                         |
+| GPTQ / AWQ          | Public post-training quantization methods for lower-precision weights           |
+| vLLM                | Serving runtime known for PagedAttention                                        |
+| TensorRT-LLM        | NVIDIA inference stack for optimized LLM serving                                |
+| TGI                 | Hugging Face Text Generation Inference serving stack                            |
+| SGLang              | Runtime for structured LLM programs with prefix reuse techniques                |
+| LLM-as-judge        | Using a model to score outputs, with calibration and audit requirements         |
+| Constitutional AI   | Training/evaluation approach using written principles for critique and revision |
+| SLO                 | A service-level objective, such as first-token latency below a threshold        |
+
+## Further Reading
+
+- Vaswani et al., [Attention Is All You Need](https://arxiv.org/abs/1706.03762) (2017). The transformer paper. Read it for the architecture vocabulary: attention, heads, positional encoding, residual paths.
+- Brown et al., [Language Models are Few-Shot Learners](https://arxiv.org/abs/2005.14165) (2020). Read it for autoregressive scaling, prompt conditioning, and the GPT-style framing.
+- Hoffmann et al., [Training Compute-Optimal Large Language Models](https://arxiv.org/abs/2203.15556) (2022). Read it for Chinchilla scaling laws and the model-size-versus-data tradeoff.
+- Ouyang et al., [Training language models to follow instructions with human feedback](https://arxiv.org/abs/2203.02155) (2022). Read it for the public RLHF/instruction-following pipeline.
+- Rafailov et al., [Direct Preference Optimization](https://arxiv.org/abs/2305.18290) (2023), Shao et al., [DeepSeekMath](https://arxiv.org/abs/2402.03300) (2024), and Guo et al., [DeepSeek-R1](https://arxiv.org/abs/2501.12948) (2025). Read these for public preference optimization, GRPO, and reasoning-oriented RL.
+- OpenAI, [Learning to reason with LLMs](https://openai.com/index/learning-to-reason-with-llms/) (2024), and Snell et al., [Scaling LLM Test-Time Compute Optimally can be More Effective than Scaling Model Parameters](https://arxiv.org/abs/2408.03314) (2024). Read these for inference-time compute as a model-quality knob.
+- Hu et al., [LoRA](https://arxiv.org/abs/2106.09685) (2021), and Dettmers et al., [QLoRA](https://arxiv.org/abs/2305.14314) (2023). Read these for parameter-efficient fine-tuning.
+- Su et al., [RoFormer](https://arxiv.org/abs/2104.09864) (2021), Ainslie et al., [GQA](https://arxiv.org/abs/2305.13245) (2023), and Fedus et al., [Switch Transformers](https://arxiv.org/abs/2101.03961) (2021). Read these for positional encodings, KV-head sharing, and expert routing.
+- Lewis et al., [Retrieval-Augmented Generation](https://arxiv.org/abs/2005.11401) (2020), and Cormack et al., [Reciprocal Rank Fusion](https://plg.uwaterloo.ca/~gvcormac/cormacksigir09-rrf.pdf) (2009). Read these for retrieval pipelines and rank fusion.
+- Yu et al., [ORCA](https://www.usenix.org/conference/osdi22/presentation/yu) (2022). Read it for iteration-level scheduling and why generative serving is not ordinary web serving.
+- Kwon et al., [Efficient Memory Management for Large Language Model Serving with PagedAttention](https://arxiv.org/abs/2309.06180) (2023). Read it for KV-cache paging and memory-aware throughput.
+- Zhong et al., [P/D-Serve](https://arxiv.org/abs/2408.08147) (2024). Read it for the idea that prefill and decode have different resource shapes and may be scheduled separately.
+- vLLM, [Disaggregated Prefilling](https://docs.vllm.ai/en/v0.14.1/features/disagg_prefill/), Liu et al., [CacheFlow](https://arxiv.org/abs/2604.25080) (2026), and Zhong et al., [Tutti](https://arxiv.org/abs/2605.03375) (2026). Read these for the 2026 view of KV cache as data that may move, restore, compress, or spill.
+- Dao et al., [FlashAttention](https://arxiv.org/abs/2205.14135) (2022), and Shah et al., [FlashAttention-3](https://arxiv.org/abs/2407.08608) (2024). Read these for the hardware-aware view: the bottleneck is often memory traffic, not just arithmetic.
+- Shoeybi et al., [Megatron-LM](https://arxiv.org/abs/1909.08053) (2019) and Rajbhandari et al., [ZeRO](https://arxiv.org/abs/1910.02054) (2019). Read these for model parallelism and memory sharding.
+- NVIDIA [NCCL collective documentation](https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/usage/collectives.html). Read it for all-reduce, all-gather, and the synchronization vocabulary behind multi-GPU execution.
+- Frantar et al., [GPTQ](https://arxiv.org/abs/2210.17323) (2022), and Lin et al., [AWQ](https://arxiv.org/abs/2306.00978) (2023). Read these for public post-training quantization methods.
+- Zheng et al., [SGLang](https://arxiv.org/abs/2312.07104) (2023), Hugging Face [Text Generation Inference](https://huggingface.co/docs/text-generation-inference/index), and NVIDIA [TensorRT-LLM documentation](https://docs.nvidia.com/tensorrt-llm/). Read these for modern serving runtimes.
+- NVIDIA, [CUDA C++ Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/) and [H100 Tensor Core GPU](https://www.nvidia.com/en-sg/data-center/h100/). Read these to connect model abstractions to kernels, memory spaces, bandwidth, and tensor cores.
+- Bai et al., [Constitutional AI](https://arxiv.org/abs/2212.08073) (2022). Read it for public safety and AI-feedback training machinery.
