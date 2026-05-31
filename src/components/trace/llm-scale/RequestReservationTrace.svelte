@@ -10,16 +10,16 @@
   let maxOutput = $state(1200)
   let reasoning = $state(2)
   let queueMs = $state(420)
-  let kvFree = $state(72)
+  let memoryFree = $state(72)
 
   let current = $derived(tiers[tier])
   let hiddenTokens = $derived(Math.round(maxOutput * reasoning * current.hidden))
   let reservedTokens = $derived(promptTokens + maxOutput + hiddenTokens)
   let tokenPct = $derived(Math.min(100, Math.round((reservedTokens / current.tpm) * 100)))
-  let kvNeeded = $derived(Math.min(100, Math.round((promptTokens / 1000) + (maxOutput / 400) + reasoning * 7)))
-  let admitted = $derived(tokenPct < 80 && kvNeeded < kvFree && queueMs < 1200)
+  let memoryNeeded = $derived(Math.min(100, Math.round((promptTokens / 1000) + (maxOutput / 400) + reasoning * 7)))
+  let admitted = $derived(tokenPct < 80 && memoryNeeded < memoryFree && queueMs < 1200)
   let decision = $derived.by(() => {
-    if (!admitted && kvNeeded >= kvFree) return 'route, downgrade, or reject: KV budget is tight'
+    if (!admitted && memoryNeeded >= memoryFree) return 'route, downgrade, or reject: memory budget is tight'
     if (!admitted && tokenPct >= 80) return 'reject or queue: token budget would be overrun'
     if (!admitted) return 'queue or shed: latency guardrail is already hot'
     return 'admit and reserve capacity'
@@ -31,7 +31,7 @@
     <div>
       <h3 id="reservation-title">Admission Is a Reservation, Not a Boolean</h3>
       <p>
-        The gateway turns a request into estimated future work: prompt tokens, visible output, hidden reasoning, queue time, and KV-cache pressure.
+        The gateway turns a request into estimated future work: prompt tokens, visible output, hidden reasoning, queue time, and memory needed to remember the active conversation.
       </p>
     </div>
     <div class:bad={!admitted} class="status">
@@ -42,7 +42,7 @@
 
   <div class="tiers" role="group" aria-label="Account tier">
     {#each Object.entries(tiers) as [key, item]}
-      <button type="button" class:active={tier === key} on:click={() => (tier = key)}>
+      <button type="button" class:active={tier === key} onclick={() => (tier = key)}>
         {item.label}
       </button>
     {/each}
@@ -70,9 +70,9 @@
       <span>{queueMs} ms</span>
     </label>
     <label>
-      Free KV blocks
-      <input aria-label="Free KV budget percent" type="range" min="15" max="95" step="1" bind:value={kvFree} />
-      <span>{kvFree}%</span>
+      Free memory budget
+      <input aria-label="Free conversation memory budget percent" type="range" min="15" max="95" step="1" bind:value={memoryFree} />
+      <span>{memoryFree}%</span>
     </label>
   </div>
 
@@ -88,9 +88,9 @@
       <small>not necessarily shown to user</small>
     </div>
     <div>
-      <span>KV pressure</span>
-      <strong>{kvNeeded}% needed</strong>
-      <small>{kvFree}% free</small>
+      <span>Conversation memory</span>
+      <strong>{memoryNeeded}% needed</strong>
+      <small>{memoryFree}% free</small>
     </div>
     <div>
       <span>Routing priority</span>
@@ -103,7 +103,7 @@
 
   <noscript>
     <p>
-      Static fallback: admission estimates prompt tokens, output tokens, hidden reasoning work, queue age, and KV-cache pressure before allowing GPU work.
+      Static fallback: admission estimates prompt tokens, output tokens, hidden reasoning work, queue age, and active-conversation memory before allowing GPU work.
     </p>
   </noscript>
 </figure>

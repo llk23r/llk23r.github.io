@@ -78,7 +78,7 @@
     </div>
     <div class="modes" role="group" aria-label="Stream scenario">
       {#each Object.entries(scenarios) as [key, item]}
-        <button type="button" class:active={mode === key} on:click={() => ((mode = key), (pieceCount = 1))}>
+        <button type="button" class:active={mode === key} onclick={() => ((mode = key), (pieceCount = 1))}>
           {item.label}
         </button>
       {/each}

@@ -71,7 +71,7 @@
 
   <div class="modes" role="group" aria-label="Prompt evidence path">
     {#each Object.entries(paths) as [key, item]}
-      <button type="button" class:active={mode === key} on:click={() => (mode = key)}>
+      <button type="button" class:active={mode === key} onclick={() => (mode = key)}>
         {item.label}
       </button>
     {/each}

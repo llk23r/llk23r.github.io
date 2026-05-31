@@ -50,7 +50,7 @@
       <span>Weight precision</span>
       <div>
         {#each precisionOptions as option}
-          <button type="button" class:active={precisionBits === option.bits} on:click={() => (precisionBits = option.bits)}>
+          <button type="button" class:active={precisionBits === option.bits} onclick={() => (precisionBits = option.bits)}>
             {option.label}
           </button>
         {/each}

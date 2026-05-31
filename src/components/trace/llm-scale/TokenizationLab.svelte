@@ -69,7 +69,7 @@
   </div>
 
   <div class="lesson">
-    <strong>Why this matters:</strong> the context window, KV cache, batching limits, and billing all count tokens. A long word, code identifier, emoji, or pasted log can cost more token positions than your eyes expect.
+    <strong>Why this matters:</strong> context size, waiting time, memory use, and billing all count tokens. A long word, code identifier, emoji, or pasted log can cost more token positions than your eyes expect.
   </div>
 
   <noscript>

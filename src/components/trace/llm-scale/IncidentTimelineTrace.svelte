@@ -70,7 +70,7 @@
 
   <div class="modes" role="group" aria-label="Incident type">
     {#each Object.entries(incidents) as [key, incident]}
-      <button type="button" class:active={mode === key} on:click={() => (mode = key)}>
+      <button type="button" class:active={mode === key} onclick={() => (mode = key)}>
         {incident.label}
       </button>
     {/each}

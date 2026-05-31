@@ -3,7 +3,7 @@
     healthy: { label: 'healthy', failAt: -1 },
     tokenizer: { label: 'tokenizer mismatch', failAt: 2 },
     cold: { label: 'cold storage', failAt: 3 },
-    parallelism: { label: 'wrong TP degree', failAt: 1 },
+    parallelism: { label: 'wrong split count', failAt: 1 },
   }
 
   const steps = [
@@ -13,29 +13,29 @@
       check: 'model card, safety envelope, region policy',
     },
     {
-      name: 'shard plan',
-      detail: 'rank 2 of tensor-parallel group 4 owns a slice of each large matrix',
-      check: 'layer names, TP degree, expert placement',
+      name: 'split plan',
+      detail: 'this worker owns one slice of each large table',
+      check: 'layer names, split count, worker placement',
     },
     {
-      name: 'metadata check',
-      detail: 'tensor names, shapes, dtype, tokenizer vocab size',
+      name: 'recipe check',
+      detail: 'table names, shapes, number formats, text-piece count',
       check: 'embedding rows must match token ids',
     },
     {
-      name: 'read shards',
-      detail: 'storage -> host RAM through local NVMe or network path',
-      check: 'checksum, byte offsets, load bandwidth',
+      name: 'read pieces',
+      detail: 'storage -> ordinary memory through local disk or network path',
+      check: 'fingerprints, file positions, loading speed',
     },
     {
-      name: 'copy to HBM',
-      detail: 'host RAM -> GPU memory for weights and runtime workspace',
-      check: 'enough HBM after weights, scratch, and KV pool',
+      name: 'copy to GPU memory',
+      detail: 'ordinary memory -> GPU memory for weights and workspace',
+      check: 'enough GPU memory after weights, scratch, and remembered-token room',
     },
     {
       name: 'warm runtime',
-      detail: 'build kernels, CUDA graphs, NCCL communicators, KV block pool',
-      check: 'test prefill and decode pass',
+      detail: 'prepare GPU programs, communication setup, and remembered-token pool',
+      check: 'test prompt read and one-piece loop',
     },
     {
       name: 'register healthy',
@@ -55,7 +55,7 @@
     if (!blocked) return 'warming, not yet routable'
     if (mode === 'tokenizer') return 'stop: token ids would point at the wrong embedding rows'
     if (mode === 'cold') return 'slow path: replica exists but first token will wait on weight movement'
-    return 'stop: shard files do not match the runtime parallelism plan'
+    return 'stop: model pieces do not match the split plan'
   })
 </script>
 
@@ -75,7 +75,7 @@
 
   <div class="modes" role="group" aria-label="Replica warmup scenario">
     {#each Object.entries(modes) as [key, item]}
-      <button type="button" class:active={mode === key} on:click={() => (mode = key)}>
+      <button type="button" class:active={mode === key} onclick={() => (mode = key)}>
         {item.label}
       </button>
     {/each}
@@ -115,7 +115,7 @@
 
   <noscript>
     <p>
-      Static fallback: a large model replica must resolve a snapshot alias, load the correct tensor shards, validate tokenizer and tensor metadata, copy weights into GPU HBM, reserve KV-cache blocks, warm runtime kernels, and register healthy before traffic reaches it.
+      Static fallback: a large model replica must choose the right snapshot, load the correct model pieces, validate the text-splitting rule and table shapes, copy weights into GPU memory, reserve room for remembered tokens, warm GPU programs, and register healthy before traffic reaches it.
     </p>
   </noscript>
 </figure>

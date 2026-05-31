@@ -1,29 +1,29 @@
 <script>
   const stages = [
     {
-      label: 'manifest',
-      action: 'read config, tokenizer, chat template, parallelism plan',
-      failure: 'wrong tokenizer id count or unsupported runtime flag',
+      label: 'recipe',
+      action: 'read model recipe, text-splitting rule, chat format, split plan',
+      failure: 'wrong text-piece count or unsupported setting',
     },
     {
-      label: 'shards',
-      action: 'verify tensor names, dtypes, shapes, checksums',
-      failure: 'missing rank shard or shape mismatch',
+      label: 'pieces',
+      action: 'check table names, shapes, number formats, fingerprints',
+      failure: 'missing model piece or shape mismatch',
     },
     {
-      label: 'layout',
-      action: 'pack weights for kernels and quantized formats',
-      failure: 'unsupported INT4/FP8 path or bad scale metadata',
+      label: 'arrange',
+      action: 'repack learned numbers for GPU programs',
+      failure: 'number format not supported',
     },
     {
-      label: 'HBM',
-      action: 'copy weight pages into GPU memory and allocate workspace',
-      failure: 'not enough headroom for KV cache and buffers',
+      label: 'GPU memory',
+      action: 'copy learned numbers into GPU memory and save workspace',
+      failure: 'not enough room for remembered tokens',
     },
     {
-      label: 'warm',
-      action: 'capture graphs, run probes, register healthy replica',
-      failure: 'cold route causes first-token latency spike',
+      label: 'ready',
+      action: 'run test work and mark replica healthy',
+      failure: 'cold route delays first answer piece',
     },
   ]
 
@@ -42,7 +42,7 @@
     <div>
       <h3 id="artifact-title">A Model Artifact Becomes a Live Replica</h3>
       <p>
-        A snapshot is not serving-ready until its files, metadata, layout, memory, and health checks agree.
+        A snapshot is not serving-ready until its files, recipe, layout, memory, and health checks agree.
       </p>
     </div>
     <div class="status">
@@ -63,8 +63,8 @@
       <span>{paramsB}B</span>
     </label>
     <label>
-      Tensor-parallel ranks
-      <input aria-label="Tensor parallel ranks" type="range" min="1" max="8" step="1" bind:value={tensorParallel} />
+      GPU workers
+      <input aria-label="GPU workers" type="range" min="1" max="8" step="1" bind:value={tensorParallel} />
       <span>{tensorParallel}</span>
     </label>
     <label>
@@ -90,18 +90,18 @@
       <strong>{totalGiB.toFixed(1)} GiB</strong>
     </div>
     <div>
-      <span>Per-rank shard</span>
+      <span>Per-worker piece</span>
       <strong>{perRankGiB.toFixed(1)} GiB</strong>
     </div>
     <div>
       <span>Serving invariant</span>
-      <strong>all ranks warm or no route</strong>
+      <strong>all workers ready or no route</strong>
     </div>
   </div>
 
   <noscript>
     <p>
-      Static fallback: a model snapshot becomes live only after manifest checks, shard verification, layout packing, HBM loading, workspace allocation, and health registration.
+      Static fallback: a model snapshot becomes live only after recipe checks, model-piece verification, layout packing, GPU-memory loading, workspace allocation, and health registration.
     </p>
   </noscript>
 </figure>

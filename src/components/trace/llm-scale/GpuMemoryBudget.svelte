@@ -98,7 +98,7 @@
     </div>
   </div>
 
-  <p class="footnote">This is a teaching estimate, not a capacity planner. Real systems add tensor parallel shards, activation workspace, CUDA graphs, fragmentation, quantization details, adapters, and safety margins.</p>
+  <p class="footnote">This is a teaching estimate, not a capacity planner. Real systems add split model pieces, temporary workspace, warmed GPU-program overhead, leftover gaps, smaller-number details, add-on weights, and safety margins.</p>
 
   <noscript>
     <p>

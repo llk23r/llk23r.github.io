@@ -15,7 +15,11 @@
   let logitsMiB = $derived((batch * 128000 * bytes) / 1024 ** 2)
   let shardHidden = $derived(Math.ceil(hidden / tensorParallel))
 
-  const steps = [
+  function selectStep(event) {
+    step = Number(event.currentTarget.dataset.step)
+  }
+
+  let steps = $derived.by(() => [
     {
       title: '1. Scheduler admits a decode iteration',
       layer: 'serving runtime',
@@ -112,7 +116,7 @@
       sync: 'cancellation can free the remaining scheduled work',
       result: 'your screen changes, then the next decode iteration begins',
     },
-  ]
+  ])
 
   let current = $derived(steps[step])
 </script>
@@ -136,7 +140,7 @@
 
   <div class="timeline" aria-label="Single token trace steps">
     {#each steps as item, i}
-      <button type="button" class:active={i === step} on:click={() => (step = i)} aria-label={item.title}>
+      <button type="button" class:active={i === step} aria-pressed={i === step} data-step={i} onclick={selectStep} aria-label={item.title}>
         {i + 1}
       </button>
     {/each}

@@ -1,59 +1,59 @@
 <script>
   const steps = [
     {
-      label: 'Weights',
+      label: 'Learned numbers',
       layer: 'model',
-      detail: 'Training already produced the fixed weight tensors that will run this request.',
+      detail: 'Training already produced the fixed learned numbers that will run this request.',
     },
     {
-      label: 'Prompt',
+      label: 'Your message',
       layer: 'human',
-      detail: 'Text leaves the chat box with conversation history, account metadata, and a request id.',
+      detail: 'Text leaves the chat box with conversation history, account labels, and a request id.',
     },
     {
-      label: 'Edge',
+      label: 'Nearby service',
       layer: 'network',
-      detail: 'DNS, TLS, and an edge service terminate the connection close to you.',
+      detail: 'The browser finds a nearby service and opens a private web connection.',
     },
     {
-      label: 'Gateway',
+      label: 'Front door',
       layer: 'system',
-      detail: 'Authentication, rate limits, policy checks, and routing decide where the request may go.',
+      detail: 'Identity checks, usage limits, safety checks, and machine choice decide where the request may go.',
     },
     {
-      label: 'Tokenizer',
+      label: 'Text pieces',
       layer: 'model',
-      detail: 'Text becomes integer token ids. The model never sees words directly.',
+      detail: 'Text becomes numbered pieces. The model never sees words directly.',
     },
     {
-      label: 'Scheduler',
+      label: 'Shared turn',
       layer: 'system',
-      detail: 'Many users are packed into batches so expensive GPUs stay busy.',
+      detail: 'Many users share model turns so expensive GPU chips stay busy.',
     },
     {
-      label: 'Prefill',
+      label: 'Read input',
       layer: 'model',
-      detail: 'The model reads every prompt token once and writes key/value memory for later reuse.',
+      detail: 'The model reads every input piece once and saves useful work for later reuse.',
     },
     {
-      label: 'Decode',
+      label: 'Repeat',
       layer: 'model',
-      detail: 'One new token is sampled, appended, and fed back into the model.',
+      detail: 'One new piece is chosen, appended, and fed back into the model.',
     },
     {
       label: 'GPU',
       layer: 'hardware',
-      detail: 'Matrix multiplications run across tensor cores, HBM, SRAM, and interconnect links.',
+      detail: 'Large number-table operations run on special chips with very fast storage nearby.',
     },
     {
       label: 'Stream',
       layer: 'network',
-      detail: 'Generated tokens return as small chunks before the full answer is complete.',
+      detail: 'Generated text pieces return as small chunks before the full answer is complete.',
     },
     {
       label: 'Pixels',
       layer: 'human',
-      detail: 'The browser decodes bytes, updates text nodes, and your eyes see the answer grow.',
+      detail: 'The browser turns arriving text fragments into visible text, and your eyes see the answer grow.',
     },
   ]
 
@@ -88,7 +88,7 @@
         class:done={i < current}
         style="--step-color: {colors[step.layer]}"
         type="button"
-        on:click={() => select(i)}
+        onclick={() => select(i)}
         aria-current={i === current ? 'step' : undefined}
       >
         <span class="dot"></span>
@@ -98,7 +98,7 @@
     {/each}
   </div>
 
-  <svg class="diagram" viewBox="0 0 760 210" role="img" aria-label="Layered path from user prompt to streamed answer">
+  <svg class="diagram" viewBox="0 0 760 210" role="img" aria-label="Layered path from user message to streamed answer">
     <defs>
       <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
         <path d="M0,0 L8,4 L0,8 Z" fill="var(--theme-foreground, #ddd)" opacity="0.8" />
@@ -113,12 +113,12 @@
         <line x1={x} y1="105" x2={x} y2={i % 2 === 0 ? 72 : 141} stroke={colors[step.layer]} opacity="0.45" />
       </g>
     {/each}
-    <text class="caption" x="380" y="198" text-anchor="middle">The path is linear to you; inside the provider it is a queueing, batching, memory-management problem.</text>
+    <text class="caption" x="380" y="198" text-anchor="middle">To you it feels linear; inside, it is queues, shared turns, and saved work.</text>
   </svg>
 
   <noscript>
     <p>
-      Static fallback: a chat request moves from prompt assembly to edge networking, gateway admission, tokenization, scheduling, GPU prefill, token-by-token decode, streaming, and finally browser painting.
+      Static fallback: a chat request moves from message assembly to nearby networking, front-door checks, text splitting, shared GPU work, repeated piece generation, streaming, and finally browser painting.
     </p>
   </noscript>
 </figure>

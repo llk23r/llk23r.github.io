@@ -35,7 +35,7 @@
 
   <div class="tokens" role="group" aria-label="Token id examples">
     {#each tokens as token, index}
-      <button type="button" class:active={selected === index} on:click={() => (selected = index)}>
+      <button type="button" class:active={selected === index} onclick={() => (selected = index)}>
         {token.text}
       </button>
     {/each}

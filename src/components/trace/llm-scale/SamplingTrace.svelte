@@ -61,9 +61,9 @@
 <figure class="trace-viz" aria-labelledby="sampling-title">
   <div class="header">
     <div>
-      <h3 id="sampling-title">Logits Become One Sampled Token</h3>
+      <h3 id="sampling-title">Raw Scores Become One Sampled Token</h3>
       <p>
-        Change temperature, top-p, and the safety mask. The same logits can produce a narrow deterministic path or a wider candidate set.
+        Change temperature, top-p, and the safety mask. The same raw scores can produce a narrow path or a wider candidate set.
       </p>
     </div>
     <div class="status">
@@ -97,8 +97,8 @@
   <div class="table" role="table" aria-label="Sampling candidates">
     <div class="row head" role="row">
       <span>token</span>
-      <span>logit</span>
-      <span>softmax</span>
+      <span>raw score</span>
+      <span>ticket share</span>
       <span>in top-p</span>
     </div>
     {#each rows as row}
@@ -118,7 +118,7 @@
 
   <noscript>
     <p>
-      Static fallback: logits are shifted for numerical stability, divided by temperature, turned into probabilities with softmax, trimmed by top-p or masks, sampled, appended to the context, and used in the next decode step.
+      Static fallback: raw scores are adjusted by temperature, turned into ticket shares, trimmed by top-p or masks, sampled, appended to the context, and used in the next decode step.
     </p>
   </noscript>
 </figure>

@@ -59,7 +59,7 @@
 
   <div class="modes" role="group" aria-label="Grounding scenario">
     {#each Object.entries(scenarios) as [key, item]}
-      <button type="button" class:active={mode === key} on:click={() => (mode = key)}>
+      <button type="button" class:active={mode === key} onclick={() => (mode = key)}>
         {item.label}
       </button>
     {/each}

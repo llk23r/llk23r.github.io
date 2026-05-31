@@ -46,7 +46,7 @@
     <div>
       <h3 id="training-step-title">One Training Position Becomes a Weight Nudge</h3>
       <p>
-        Pick the correct next token and model confidence. Cross-entropy turns the miss into a logit-gradient seed; backpropagation carries that signal into the weights.
+        Pick the correct next piece and the model's raw score. The training code turns the miss into a loss, then sends update directions back into the weights.
       </p>
     </div>
     <div class="status">
@@ -59,34 +59,37 @@
   <div class="controls">
     <div class="targets" role="group" aria-label="Correct next token">
       {#each tokens.slice(0, 4) as token}
-        <button type="button" class:active={target === token} on:click={() => (target = token)}>
-          {token.trim()}
+        <button type="button" class:active={target === token} aria-pressed={target === token} onclick={() => (target = token)}>
+          <span>{token.trim()}</span>
+          {#if target === token}
+            <small>target</small>
+          {/if}
         </button>
       {/each}
     </div>
     <label>
-      Target logit
-      <input aria-label="Target logit" type="range" min="-1.5" max="3" step="0.1" bind:value={confidence} />
+      Raw score
+      <input aria-label="Target raw score" type="range" min="-1.5" max="3" step="0.1" bind:value={confidence} />
       <span>{confidence.toFixed(1)}</span>
     </label>
     <label>
-      Learning rate
-      <input aria-label="Learning rate" type="range" min="0.02" max="0.8" step="0.02" bind:value={learningRate} />
+      Nudge size
+      <input aria-label="Nudge size" type="range" min="0.02" max="0.8" step="0.02" bind:value={learningRate} />
       <span>{learningRate.toFixed(2)}</span>
     </label>
     <label>
-      Data replicas
-      <input aria-label="Data parallel replicas" type="range" min="1" max="64" step="1" bind:value={replicas} />
+      Workers
+      <input aria-label="Training workers" type="range" min="1" max="64" step="1" bind:value={replicas} />
       <span>{replicas}</span>
     </label>
   </div>
 
-  <div class="table" role="table" aria-label="Training token probabilities and logit gradients">
+  <div class="table" role="table" aria-label="Training pieces, belief shares, and update directions">
     <div class="row head" role="row">
-      <span>token</span>
-      <span>logit</span>
-      <span>probability</span>
-      <span>dL/dlogit</span>
+      <span>piece</span>
+      <span>raw score</span>
+      <span>belief share</span>
+      <span>direction</span>
     </div>
     {#each tokens as token}
       <div class:target={token === target} class="row" role="row">
@@ -100,22 +103,22 @@
 
   <div class="readout">
     <div>
-      <span>Target logit after toy update</span>
+      <span>Target score after toy update</span>
       <strong>{updatedTargetLogit.toFixed(3)}</strong>
     </div>
     <div>
-      <span>Replica gradient sync</span>
-      <strong>{replicas} workers all-reduce</strong>
+      <span>Workers sharing directions</span>
+      <strong>{replicas} workers agree</strong>
     </div>
     <div>
-      <span>Toy gradient payload</span>
+      <span>Toy update message</span>
       <strong>{allReduceBytes} bytes</strong>
     </div>
   </div>
 
   <noscript>
     <p>
-      Static fallback: a training position produces logits, stable softmax probabilities, cross-entropy loss, logit gradients that seed backpropagation, a data-parallel gradient synchronization, and then an optimizer update to the weights.
+      Static fallback: a training position produces raw scores, turns them into belief shares, measures loss, sends update directions backward, shares those directions across workers, and then nudges the weights.
     </p>
   </noscript>
 </figure>
@@ -191,9 +194,25 @@
     cursor: pointer;
   }
 
+  button span,
+  button small {
+    display: block;
+  }
+
+  button small {
+    margin-top: 0.12rem;
+    color: inherit;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0;
+  }
+
   button.active {
     background: var(--theme-green, #10b981);
     color: var(--theme-background, #111);
+    border-color: var(--theme-green, #10b981);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--theme-green, #10b981) 35%, transparent);
   }
 
   label {

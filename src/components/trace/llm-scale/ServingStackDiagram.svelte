@@ -1,13 +1,13 @@
 <script>
   const rows = [
-    ['Browser / app', 'SSE or WebSocket stream', 'human latency'],
-    ['Edge', 'TLS, request ids, regional routing', 'network latency'],
-    ['API gateway', 'auth, quota, abuse filters, policy', 'admission control'],
-    ['Router', 'model choice, region, warm pool, cache locality', 'placement'],
-    ['Inference server', 'tokenization, batching, sampling, streaming', 'scheduling'],
-    ['Worker process', 'runtime graph, kernels, KV cache blocks', 'GPU utilization'],
-    ['GPU node', 'HBM, tensor cores, NVLink, NIC', 'memory bandwidth'],
-    ['Cluster fabric', 'InfiniBand or Ethernet, collectives, storage', 'fleet scale'],
+    ['Browser / app', 'send message, keep answer path open', 'visible wait'],
+    ['Nearby web service', 'private connection, request label', 'network wait'],
+    ['Front door', 'identity, usage, and safety checks', 'can enter?'],
+    ['Router', 'choose a warm machine group', 'right room'],
+    ['Model runner', 'prepare input, share turns, release pieces', 'work packing'],
+    ['Worker process', 'loaded model copy and saved past work', 'runner health'],
+    ['Accelerator machine', 'number-table math on special chips', 'chip time'],
+    ['Fleet', 'many machine groups, updates, failures', 'whole service'],
   ]
 </script>
 
@@ -25,7 +25,7 @@
 
   <noscript>
     <p>
-      Static fallback: production LLM serving spans browser/app, edge, gateway, router, inference server, worker process, GPU node, and cluster fabric.
+      Static fallback: production LLM serving spans the browser, nearby web service, front door, router, model runner, worker process, accelerator machine, and the wider fleet.
     </p>
   </noscript>
 </figure>

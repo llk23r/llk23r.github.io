@@ -38,9 +38,9 @@
         ['v', '2', 'v2'],
       ],
     },
-    base64: {
-      label: 'base64 blob',
-      note: 'High-entropy strings often stay fragmented.',
+    encoded: {
+      label: 'encoded blob',
+      note: 'Random-looking strings often stay split into small pieces.',
       initial: ['Q', 'm', '9', 'v', 'c', '3', 'Q', 'u', 'e', 'H', 'l', '6', 'L', 'T', 'A', '='],
       merges: [
         ['Q', 'm', 'Qm'],
@@ -52,8 +52,8 @@
       ],
     },
     unicode: {
-      label: 'mixed Unicode',
-      note: 'Byte fallback and script coverage decide how fine the pieces are.',
+      label: 'mixed scripts and emoji',
+      note: 'Uncommon characters may stay as smaller pieces.',
       initial: ['N', 'a', 'm', 'a', 's', 't', 'e', ' ', 'न', 'म', 'स', '्', 'त', 'े', ' ', '🙂'],
       merges: [
         ['N', 'a', 'Na'],
@@ -118,7 +118,7 @@
     </div>
     <div class="modes" role="group" aria-label="Tokenization input type">
       {#each Object.entries(cases) as [key, item]}
-        <button type="button" class:active={mode === key} on:click={() => setMode(key)}>
+        <button type="button" class:active={mode === key} onclick={() => setMode(key)}>
           {item.label}
         </button>
       {/each}

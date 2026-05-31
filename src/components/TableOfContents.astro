@@ -63,7 +63,7 @@ const filteredHeadings = headings.filter(({ depth }) => depth >= 2 && depth <= 3
 
 <script>
   function initToc() {
-    const anchors = document.querySelectorAll('h2[id], h3[id]')
+    const anchors = document.querySelectorAll('#prose-content > h2[id], #prose-content > h3[id]')
     const desktopItems = document.querySelectorAll('details.toc .toc-item')
     const mobileItems = document.querySelectorAll('.toc-mobile-drawer .toc-item')
     const tocNav = document.querySelector('details.toc .toc-nav')
@@ -150,6 +150,7 @@ const filteredHeadings = headings.filter(({ depth }) => depth >= 2 && depth <= 3
       // Auto-scroll desktop TOC
       if (activeIndex >= 0 && tocNav && window.innerWidth >= 1024 && !userScrolledToc) {
         const activeItem = desktopItems[activeIndex] as HTMLElement
+        if (!activeItem) return
         const navRect = tocNav.getBoundingClientRect()
         const itemRect = activeItem.getBoundingClientRect()
 

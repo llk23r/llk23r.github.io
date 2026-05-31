@@ -17,10 +17,10 @@
 
   let downstream = $derived([
     ['gateway', `charge quota against ${modelAlias}`],
-    ['router', tools ? 'requires tool-capable model pool' : 'can use text-only pool'],
-    ['scheduler', `reserve output budget near ${maxOutput} tokens`],
+    ['backend choice', tools ? 'needs a model path that can use tools' : 'can use a text-only model path'],
+    ['work queue', `reserve output budget near ${maxOutput} tokens`],
     ['streamer', stream ? 'hold connection open and flush chunks' : 'return one final body'],
-    ['cleanup', cancel ? 'client stop can free KV pages' : 'disconnect may leak work until timeout'],
+    ['cleanup', cancel ? 'client stop can free remembered work' : 'disconnect may leak work until timeout'],
   ])
 </script>
 
@@ -29,7 +29,7 @@
     <div>
       <h3 id="envelope-title">The Browser Sends a Control Envelope</h3>
       <p>
-        Your visible message is inside a request envelope. Change the fields and watch how they become routing, scheduling, and cleanup constraints.
+        Your visible message is inside a request envelope. Change the fields and watch how they become accounting, backend-choice, work-queue, and cleanup constraints.
       </p>
     </div>
     <div class="status">
@@ -41,7 +41,7 @@
   <div class="controls">
     <div class="models" role="group" aria-label="Model alias">
       {#each ['fast-small', 'general-large', 'reasoning-large'] as alias}
-        <button type="button" class:active={modelAlias === alias} on:click={() => (modelAlias = alias)}>
+        <button type="button" class:active={modelAlias === alias} onclick={() => (modelAlias = alias)}>
           {alias}
         </button>
       {/each}
@@ -82,7 +82,7 @@
 
   <noscript>
     <p>
-      Static fallback: an LLM request carries conversation id, request id, model alias, stream preference, tool permissions, output budget, and cancellation state. Those fields become routing, scheduling, accounting, and cleanup constraints.
+      Static fallback: an LLM request carries conversation id, request id, model alias, stream preference, tool permissions, output budget, and cancellation state. Those fields become accounting, backend-choice, work-queue, and cleanup constraints.
     </p>
   </noscript>
 </figure>

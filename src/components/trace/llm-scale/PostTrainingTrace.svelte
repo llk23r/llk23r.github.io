@@ -1,38 +1,38 @@
 <script>
   const modes = {
     sft: {
-      label: 'SFT',
+      label: 'Imitation',
       signal: 'human-written target answer',
-      loss: 'imitate the target tokens',
+      loss: 'imitate the target answer pieces',
       risk: 'copies format but may not learn preference boundaries',
     },
     dpo: {
-      label: 'DPO',
+      label: 'Answer pairs',
       signal: 'preferred answer beats rejected answer',
-      loss: 'raise preferred probability relative to rejected',
+      loss: 'raise the preferred answer relative to the rejected answer',
       risk: 'depends on pair quality and reference behavior',
     },
     rlhf: {
-      label: 'RLHF / PPO',
-      signal: 'reward model score plus KL guardrail',
-      loss: 'sample rollout, score it, update policy cautiously',
+      label: 'Human preference',
+      signal: 'preference score plus drift guardrail',
+      loss: 'sample an answer, score it, update cautiously',
       risk: 'reward hacking or unstable policy updates',
     },
     grpo: {
-      label: 'GRPO-style',
-      signal: 'group of rollouts compared against each other',
+      label: 'Group compare',
+      signal: 'group of sampled answers compared against each other',
       loss: 'improve answers that beat their group baseline',
       risk: 'group quality and verifier coverage dominate',
     },
   }
 
   const steps = [
-    ['prompt', 'A training prompt asks for helpful behavior, tool use, refusal, math, or citation.'],
-    ['rollouts', 'The current model or humans produce candidate answers.'],
+    ['example', 'A training example asks for helpful behavior, tool use, refusal, math, or citation.'],
+    ['answers', 'The current model or humans produce candidate answers.'],
     ['signal', 'A target, preference, reward, verifier, or principle turns behavior into supervision.'],
     ['loss', 'Training code converts that signal into a number to minimize.'],
     ['update', 'Gradients nudge a copy of the model weights.'],
-    ['eval gate', 'Offline evals, red-team cases, and canaries decide whether this snapshot can serve users.'],
+    ['evaluation gate', 'Offline checks, adversarial cases, and small test releases decide whether this snapshot can serve users.'],
   ]
 
   let mode = $state('dpo')
@@ -44,14 +44,14 @@
 <figure class="trace-viz" aria-labelledby="post-training-trace-title">
   <div class="header">
     <div>
-      <h3 id="post-training-trace-title">One Prompt Becomes a Post-Training Signal</h3>
+      <h3 id="post-training-trace-title">One Example Becomes a Post-Training Signal</h3>
       <p>
         Pick the training recipe and move through the path. The deployed assistant is shaped by these loops before your request arrives.
       </p>
     </div>
     <div class="modes" role="group" aria-label="Post-training recipe">
       {#each Object.entries(modes) as [key, item]}
-        <button type="button" class:active={mode === key} on:click={() => (mode = key)}>
+        <button type="button" class:active={mode === key} onclick={() => (mode = key)}>
           {item.label}
         </button>
       {/each}
@@ -91,7 +91,7 @@
 
   <noscript>
     <p>
-      Static fallback: post-training turns prompts and candidate answers into targets, preferences, rewards, verifier results, or principles. Those signals become losses, losses become weight updates, and eval gates decide whether a snapshot is deployable.
+      Static fallback: post-training turns examples and candidate answers into targets, preferences, rewards, verifier results, or principles. Those signals become losses, losses become weight updates, and eval gates decide whether a snapshot is deployable.
     </p>
   </noscript>
 </figure>

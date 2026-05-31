@@ -54,7 +54,7 @@
 
   <div class="modes" role="group" aria-label="Stream token case">
     {#each Object.entries(cases) as [key, item]}
-      <button type="button" class:active={mode === key} on:click={() => (mode = key)}>
+      <button type="button" class:active={mode === key} onclick={() => (mode = key)}>
         {item.label}
       </button>
     {/each}

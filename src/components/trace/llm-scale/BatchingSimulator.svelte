@@ -53,8 +53,8 @@
       </p>
     </div>
     <div class="mode" role="group" aria-label="Scheduling mode">
-      <button type="button" class:active={mode === 'continuous'} on:click={() => (mode = 'continuous')}>Continuous</button>
-      <button type="button" class:active={mode === 'naive'} on:click={() => (mode = 'naive')}>Naive</button>
+      <button type="button" class:active={mode === 'continuous'} onclick={() => (mode = 'continuous')}>Continuous</button>
+      <button type="button" class:active={mode === 'naive'} onclick={() => (mode = 'naive')}>Naive</button>
     </div>
   </div>
 

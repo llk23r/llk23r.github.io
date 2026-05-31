@@ -81,7 +81,7 @@
     </div>
     <div class="modes" role="group" aria-label="Fleet scenario">
       {#each Object.entries(scenarios) as [key, scenario]}
-        <button type="button" class:active={mode === key} on:click={() => (mode = key)}>
+        <button type="button" class:active={mode === key} onclick={() => (mode = key)}>
           {scenario.label}
         </button>
       {/each}

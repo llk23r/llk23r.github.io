@@ -81,7 +81,7 @@
     </div>
     <div class="mode" role="group" aria-label="Inference-time compute mode">
       {#each Object.entries(modes) as [key, item]}
-        <button type="button" class:active={mode === key} on:click={() => (mode = key)}>{item.label}</button>
+        <button type="button" class:active={mode === key} onclick={() => (mode = key)}>{item.label}</button>
       {/each}
     </div>
   </div>

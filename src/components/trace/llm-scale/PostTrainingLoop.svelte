@@ -1,31 +1,31 @@
 <script>
   const modes = {
     sft: {
-      label: 'SFT',
+      label: 'Imitation',
       sampleLabel: 'labeled examples',
       signal: 'match the reference answer',
       update: 'ordinary next-token loss',
       color: 'var(--theme-cyan, #06b6d4)',
     },
     rlhf: {
-      label: 'RLHF / PPO',
-      sampleLabel: 'rollouts',
-      signal: 'reward model score minus KL drift',
-      update: 'policy-gradient step',
+      label: 'Human preference',
+      sampleLabel: 'sampled answers',
+      signal: 'human-trained score with a drift guardrail',
+      update: 'careful preference update',
       color: 'var(--theme-green, #10b981)',
     },
     dpo: {
-      label: 'DPO',
+      label: 'Answer pairs',
       sampleLabel: 'chosen/rejected pairs',
       signal: 'make chosen answer more likely than rejected',
       update: 'direct preference loss',
       color: 'var(--theme-yellow, #f59e0b)',
     },
     grpo: {
-      label: 'GRPO',
-      sampleLabel: 'groups of rollouts',
+      label: 'Group compare',
+      sampleLabel: 'groups of sampled answers',
       signal: 'score each answer relative to its group',
-      update: 'critic-free policy step',
+      update: 'group-based preference update',
       color: 'var(--theme-magenta, #8b5cf6)',
     },
   }
@@ -41,8 +41,8 @@
   let comparisonUnits = $derived(mode === 'dpo' ? prompts : mode === 'grpo' ? prompts * rollouts : mode === 'rlhf' ? prompts * rollouts : 0)
 
   const stages = [
-    ['1', 'Choose prompts', 'questions, tasks, or conversations'],
-    ['2', 'Produce answers', 'human labels or model rollouts'],
+    ['1', 'Choose examples', 'questions, tasks, or conversations'],
+    ['2', 'Produce answers', 'human labels or sampled model answers'],
     ['3', 'Score signal', 'reference, preference, reward, or verifier'],
     ['4', 'Compute loss', 'turn scores into pressure on weights'],
     ['5', 'Update policy', 'change the assistant for future serving'],
@@ -53,11 +53,11 @@
   <div class="header">
     <div>
       <h3 id="post-train-title">Post-Training Is a Factory for Better Future Answers</h3>
-      <p>Serving runs fixed weights. Post-training changes those weights before the next deployment by turning examples, preferences, or rollouts into update pressure.</p>
+      <p>Serving runs fixed weights. Post-training changes those weights before the next deployment by turning examples, preferences, or sampled answers into update pressure.</p>
     </div>
     <div class="mode" role="group" aria-label="Post-training mode">
       {#each Object.entries(modes) as [key, item]}
-        <button type="button" class:active={mode === key} on:click={() => (mode = key)}>{item.label}</button>
+        <button type="button" class:active={mode === key} onclick={() => (mode = key)}>{item.label}</button>
       {/each}
     </div>
   </div>
@@ -74,17 +74,17 @@
 
   <div class="controls">
     <label>
-      Prompts
-      <input type="range" min="128" max="2048" step="128" bind:value={prompts} />
+      Examples
+      <input aria-label="Examples" type="range" min="128" max="2048" step="128" bind:value={prompts} />
       <span>{prompts.toLocaleString()}</span>
     </label>
     <label>
-      Rollouts per prompt
-      <input type="range" min="2" max="16" step="1" bind:value={rollouts} disabled={mode === 'sft' || mode === 'dpo'} />
+      Sampled answers per example
+      <input aria-label="Sampled answers per example" type="range" min="2" max="16" step="1" bind:value={rollouts} disabled={mode === 'sft' || mode === 'dpo'} />
       <span>{mode === 'sft' || mode === 'dpo' ? 'not generated' : rollouts}</span>
     </label>
     <label>
-      Avg rollout tokens
+      Avg answer pieces
       <input type="range" min="100" max="1600" step="100" bind:value={avgTokens} disabled={mode === 'sft' || mode === 'dpo'} />
       <span>{mode === 'sft' || mode === 'dpo' ? 'offline pairs' : avgTokens}</span>
     </label>
@@ -101,7 +101,7 @@
       <small>{selected.sampleLabel}</small>
     </div>
     <div>
-      <span>Generated rollout tokens</span>
+      <span>Generated answer pieces</span>
       <strong>{generatedTokens.toLocaleString()}</strong>
       <small>zero here means labels or pairs already exist</small>
     </div>
@@ -113,7 +113,7 @@
 
   <noscript>
     <p>
-      Static fallback: SFT learns from labeled answers; RLHF/PPO samples rollouts and scores them with a reward model; DPO trains from chosen/rejected pairs; GRPO compares groups of sampled answers and updates the policy without a separate value model.
+      Static fallback: one post-training path learns from labeled answers, one learns from human preferences, one learns from chosen/rejected pairs, and one compares groups of sampled answers.
     </p>
   </noscript>
 </figure>

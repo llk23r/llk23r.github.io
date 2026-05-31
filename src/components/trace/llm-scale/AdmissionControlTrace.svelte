@@ -2,37 +2,37 @@
   const tiers = {
     free: { label: 'Free', budget: 12000, latency: 'best effort' },
     pro: { label: 'Pro', budget: 36000, latency: 'interactive' },
-    enterprise: { label: 'Enterprise', budget: 90000, latency: 'strict SLO' },
+    enterprise: { label: 'Enterprise', budget: 90000, latency: 'strict speed target' },
   }
 
   let tier = $state('pro')
   let promptTokens = $state(8000)
   let maxOutput = $state(1200)
   let reasoningMultiplier = $state(2)
-  let kvFreePages = $state(64)
+  let memoryFreeBlocks = $state(64)
   let regionLocked = $state(true)
 
   let currentTier = $derived(tiers[tier])
   let hiddenReasoningTokens = $derived(Math.round(maxOutput * Math.max(0, reasoningMultiplier - 1)))
   let estimatedTokens = $derived(promptTokens + maxOutput + hiddenReasoningTokens)
-  let kvPagesNeeded = $derived(Math.ceil((promptTokens + maxOutput + hiddenReasoningTokens) / 256))
+  let memoryBlocksNeeded = $derived(Math.ceil((promptTokens + maxOutput + hiddenReasoningTokens) / 256))
   let quotaOk = $derived(estimatedTokens <= currentTier.budget)
-  let kvOk = $derived(kvPagesNeeded <= kvFreePages)
-  let nearKv = $derived(!kvOk && kvPagesNeeded <= Math.ceil(kvFreePages * 1.25))
+  let memoryOk = $derived(memoryBlocksNeeded <= memoryFreeBlocks)
+  let nearMemory = $derived(!memoryOk && memoryBlocksNeeded <= Math.ceil(memoryFreeBlocks * 1.25))
   let decision = $derived.by(() => {
     if (!quotaOk) return 'reject or ask for a smaller max output'
-    if (regionLocked && !kvOk && !nearKv) return 'queue, downgrade, or return capacity error'
-    if (!kvOk && nearKv) return 'queue briefly or chunk prefill work'
-    if (!kvOk) return 'route to another warm region if policy allows'
+    if (regionLocked && !memoryOk && !nearMemory) return 'queue, downgrade, or return capacity error'
+    if (!memoryOk && nearMemory) return 'queue briefly or read the prompt in smaller pieces'
+    if (!memoryOk) return 'route to another loaded region if policy allows'
     if (estimatedTokens > currentTier.budget * 0.85) return 'admit with high-cost accounting tag'
-    return 'admit to a warm replica group'
+    return 'admit to an already-loaded model group'
   })
   let state = $derived.by(() => {
     if (!quotaOk) return 'quota failed'
-    if (!kvOk) return nearKv ? 'capacity tight' : 'capacity failed'
+    if (!memoryOk) return nearMemory ? 'capacity tight' : 'capacity failed'
     return 'admitted'
   })
-  let requestId = $derived(`req-${String(promptTokens + maxOutput + hiddenReasoningTokens).slice(0, 2)}${kvPagesNeeded}${tier[0]}`)
+  let requestId = $derived(`req-${String(promptTokens + maxOutput + hiddenReasoningTokens).slice(0, 2)}${memoryBlocksNeeded}${tier[0]}`)
 </script>
 
 <figure class="trace-viz" aria-labelledby="admission-title">
@@ -40,7 +40,7 @@
     <div>
       <h3 id="admission-title">Admission Control Counts Tokens, Not Just Requests</h3>
       <p>
-        Change the prompt, output, tier, and free KV pages. The front door is deciding whether this request can safely enter the model queue.
+        Change the prompt, output, tier, and free memory blocks. The front door is deciding whether this request can safely enter the model queue.
       </p>
     </div>
     <div class:warn={state !== 'admitted'} class="verdict">
@@ -52,7 +52,7 @@
   <div class="controls">
     <div class="tiers" role="group" aria-label="Account tier">
       {#each Object.entries(tiers) as [key, option]}
-        <button type="button" class:active={tier === key} on:click={() => (tier = key)}>
+        <button type="button" class:active={tier === key} onclick={() => (tier = key)}>
           {option.label}
         </button>
       {/each}
@@ -74,9 +74,9 @@
       <span>{reasoningMultiplier.toFixed(1)}x</span>
     </label>
     <label>
-      Free KV pages
-      <input aria-label="Free KV pages" type="range" min="8" max="420" step="4" bind:value={kvFreePages} />
-      <span>{kvFreePages}</span>
+      Free memory blocks
+      <input aria-label="Free memory blocks" type="range" min="8" max="420" step="4" bind:value={memoryFreeBlocks} />
+      <span>{memoryFreeBlocks}</span>
     </label>
     <label class="toggle">
       <input aria-label="Region locked" type="checkbox" bind:checked={regionLocked} />
@@ -102,8 +102,8 @@
       <strong>{hiddenReasoningTokens.toLocaleString()}</strong>
     </div>
     <div>
-      <span>KV pages needed</span>
-      <strong>{kvPagesNeeded}/{kvFreePages}</strong>
+      <span>Memory blocks needed</span>
+      <strong>{memoryBlocksNeeded}/{memoryFreeBlocks}</strong>
     </div>
     <div>
       <span>Latency objective</span>
@@ -124,11 +124,11 @@
       <strong>policy</strong>
       <span>region, abuse, safety precheck</span>
     </div>
-    <div class:ok={kvOk} class:bad={!kvOk}>
+    <div class:ok={memoryOk} class:bad={!memoryOk}>
       <strong>capacity</strong>
-      <span>warm replica and KV pages</span>
+      <span>loaded model and memory blocks</span>
     </div>
-    <div class:ok={quotaOk && kvOk} class:bad={!quotaOk || !kvOk}>
+    <div class:ok={quotaOk && memoryOk} class:bad={!quotaOk || !memoryOk}>
       <strong>route</strong>
       <span>{decision}</span>
     </div>
@@ -136,7 +136,7 @@
 
   <noscript>
     <p>
-      Static fallback: admission control estimates prompt tokens, output tokens, hidden reasoning work, account quota, policy constraints, and free KV-cache pages before sending a request to a warm model replica.
+      Static fallback: admission control estimates prompt tokens, output tokens, hidden reasoning work, account quota, policy constraints, and free conversation-memory blocks before sending a request to an already-loaded model group.
     </p>
   </noscript>
 </figure>
