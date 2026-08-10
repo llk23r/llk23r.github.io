@@ -153,12 +153,16 @@
   }
 
   input[type='range'] {
+    box-sizing: border-box;
+    min-width: 0;
     width: 100%;
   }
 
-  code {
+  .formula code {
+    max-width: 100%;
     font-family: var(--theme-font-mono, 'JetBrains Mono', monospace);
     overflow-wrap: anywhere;
+    white-space: normal !important;
   }
 
   .formula span {

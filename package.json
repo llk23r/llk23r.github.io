@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "postbuild": "pagefind --site dist",
+    "postbuild": "npm run check:trace-islands && pagefind --site dist",
+    "check:trace-islands": "node scripts/check-trace-islands.mjs",
     "preview": "astro preview",
     "astro": "astro",
     "format": "prettier --write ."

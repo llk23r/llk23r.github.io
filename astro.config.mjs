@@ -72,7 +72,7 @@ export default defineConfig({
       plugins: [pluginLineNumbers()],
     }), // Must come after expressive-code integration
     mdx(),
-    svelte({ compilerOptions: { css: 'injected' } }),
+    svelte(),
   ],
   experimental: {
     contentIntellisense: true,

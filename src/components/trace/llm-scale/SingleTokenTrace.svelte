@@ -281,6 +281,8 @@
   }
 
   input {
+    box-sizing: border-box;
+    min-width: 0;
     width: 100%;
   }
 
@@ -292,7 +294,10 @@
   }
 
   button {
+    box-sizing: border-box;
+    min-width: 0;
     min-height: 36px;
+    padding: 0.35rem;
     border: 1px solid var(--theme-separator, #333);
     border-radius: 6px;
     background: transparent;
@@ -374,7 +379,7 @@
     }
 
     .timeline {
-      grid-template-columns: repeat(6, 1fr);
+      grid-template-columns: repeat(6, minmax(0, 1fr));
     }
   }
 </style>

@@ -1,21 +1,21 @@
 # Lessons Learned
 
-## 2026-02-21 — Svelte `client:only` components lose all CSS in production builds
+## 2026-08-11 - TRACE Svelte islands need SSR and extracted CSS
 
-**Symptom:** TRACE blog posts render with white gaps where Svelte components should be. No console errors. Components mount and execute JS, but have zero styling.
+**Symptom:** A TRACE interactive first appears with the article's global styles, then changes shape when Svelte hydrates it. Switching the island to `client:only="svelte"` removes that incorrect first frame, but replaces it with empty server HTML, eager JavaScript loading, and no interactive content when JavaScript is unavailable.
 
-**Root cause:** Svelte's default CSS mode (`css: 'external'`) extracts component styles into virtual CSS modules (`Component.svelte?svelte&type=style&lang.css`). Vite resolves these during build and replaces the import with `/* empty css */`, expecting the CSS to land in a bundled `.css` chunk. For `client:only` components — which skip SSR entirely — this CSS chunk is silently dropped. The scoped class names (`svelte-XXXXXX`) are applied to DOM elements, but no matching CSS rules exist anywhere in the build output.
+**Root cause:** `css: 'injected'` puts each component's scoped CSS in its client JavaScript. A `client:visible` island is server-rendered before that JavaScript runs, so the browser lays out correct component markup without its component stylesheet. Hydration then injects the stylesheet and causes the visible redesign.
 
-**Why it's silent:** Dev mode works fine (Vite serves CSS modules dynamically via HMR). The bug only manifests in production builds. No errors are thrown because the JS executes correctly — it's purely a missing stylesheet.
-
-**Fix:** One line in `astro.config.mjs`:
+**Current invariant:** TRACE Svelte islands use `client:visible`, and the Astro Svelte integration uses its default extracted-CSS mode:
 
 ```js
-svelte({ compilerOptions: { css: 'injected' } })
+svelte()
 ```
 
-This tells Svelte to embed CSS in each component's JS bundle and inject it at runtime via `append_styles()`, bypassing Vite's broken CSS extraction for client-only components.
+This gives the browser styled server markup on the first paint, preserves useful content without JavaScript, and hydrates each interactive lazily as it approaches the viewport.
 
-**Applies when:** All Svelte components use `client:only="svelte"` (required due to Svelte 5.53+ hydration mismatch bugs with Astro SSR).
+**Verification:** With Astro 6.4.2, `@astrojs/svelte` 8.1.2, and Svelte 5.56.0, all 125 TRACE islands were production-built, scrolled into view, and checked for successful hydration and scoped styling. Stateful representatives were interacted with after SSR hydration. The earlier Svelte 5.53 `lifecycle_outside_component` failure did not recur.
 
-**Red herring:** Removing `$effect()` and replacing with manual function calls was attempted as a fix but was unrelated. The `$effect` pattern was correct and was restored.
+**Historical trap:** External CSS can be omitted for `client:only` islands because they have no server-rendered component entry from which Astro can retain the stylesheet. Do not combine TRACE `client:only` islands with external CSS, and do not restore injected CSS to compensate. Fix or upgrade the hydration path instead.
+
+**Regression guard:** `npm run build` runs `scripts/check-trace-islands.mjs`, which rejects client-only, empty, or unstyled TRACE islands in generated production HTML.

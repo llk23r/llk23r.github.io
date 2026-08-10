@@ -74,7 +74,7 @@ This post traces everything that happens. From click to pixels.
 
 ## The Journey
 
-<JourneyMap steps={journeySteps} current={0} client:only="svelte" />
+<JourneyMap steps={journeySteps} current={0} client:visible />
 
 ---
 
@@ -92,7 +92,7 @@ button.addEventListener('click', async () => {
 
 Three lines of JavaScript. The click event propagates through the DOM. The browser's event loop picks up the listener and calls it. `fetch()` fires. The browser's networking layer takes over.
 
-<ClickToFetch client:only="svelte" />
+<ClickToFetch client:visible />
 
 But look at that URL: `/api/users/42`. A relative path. No server name. No IP address. No port number. The code doesn't say *where* to send this request. The browser infers the destination from the page's origin; `https://api.example.com`.
 
@@ -112,7 +112,7 @@ The browser checks its own DNS cache first. If you visited this site recently, t
 
 The OS sends a UDP packet to port 53 of a **recursive resolver** (usually your ISP's, or a public one like `8.8.8.8` or `1.1.1.1`). The resolver walks the DNS hierarchy:
 
-<DnsResolution client:only="svelte" />
+<DnsResolution client:visible />
 
 1. Ask a **root nameserver** (one of 13 global clusters): "Where is `api.example.com`?" Root says: "I don't know, but `.com` is handled by these TLD servers."
 2. Ask a **.com TLD server**: "Where is `api.example.com`?" TLD says: "I don't know, but `example.com` is handled by `ns1.example.com` at `198.51.100.1`."
@@ -136,7 +136,7 @@ The Domain Name System is defined in [RFC 1034](https://www.rfc-editor.org/rfc/r
 
 If DNS fails (resolver unreachable, domain doesn't exist), `fetch()` rejects with a network error. No TCP, no TLS, no HTTP. The name has to resolve first. Everything starts here.
 
-<JourneyMap steps={journeySteps} current={2} client:only="svelte" />
+<JourneyMap steps={journeySteps} current={2} client:visible />
 
 ## Q3: The Browser's Connection Pool
 
@@ -150,7 +150,7 @@ So browsers cheat. They keep connections alive after using them, pooled and read
 
 Under HTTP/2, something better: a **single TCP connection** with multiplexed streams. Multiple requests share one connection, each on its own numbered stream. No head-of-line blocking at the HTTP layer. (Though TCP-level head-of-line blocking persists; a single lost packet stalls all streams. This is why HTTP/3 abandons TCP entirely for QUIC over UDP.)
 
-<BrowserPool client:only="svelte" />
+<BrowserPool client:visible />
 
 This is the first encounter with a pattern you'll see again: **connection reuse**. The browser does for HTTP connections what a database pool does for PostgreSQL connections. Same economics, different layer. We'll see the database version in Q9.
 
@@ -190,7 +190,7 @@ HTTPS fixes this by wrapping TCP in TLS (Transport Layer Security). But there's 
 
 TLS 1.3 solves it in one round trip:
 
-<TlsHandshake client:only="svelte" />
+<TlsHandshake client:visible />
 
 **ClientHello** (browser → server): "Here are the cipher suites I support, and here's my half of the key exchange (an ECDHE public key)."
 
@@ -214,7 +214,7 @@ Both sides now derive the same symmetric encryption key from the ECDHE exchange.
 TLS 1.3 is defined in [RFC 8446](https://www.rfc-editor.org/rfc/rfc8446) (2018), authored primarily by Eric Rescorla. It reduced the handshake from 2 RTTs (TLS 1.2) to 1 RTT, and introduced 0-RTT resumption for repeat connections.
 :::
 
-<JourneyMap steps={journeySteps} current={5} client:only="svelte" />
+<JourneyMap steps={journeySteps} current={5} client:visible />
 
 ## Q6: The HTTP Request
 
@@ -224,7 +224,7 @@ Now it can finally ask for the thing you wanted: user 42.
 
 The browser constructs an HTTP/2 request:
 
-<HttpRequest client:only="svelte" />
+<HttpRequest client:visible />
 
 The request is a `GET /api/users/42` with headers: `Host`, `Accept: application/json`, `Authorization` (bearer token or cookie), `Accept-Encoding: gzip, br`. HTTP/2 compresses these headers with HPACK (a dictionary-based scheme that avoids sending `Host: api.example.com` as full text every time).
 
@@ -240,7 +240,7 @@ The request leaves the browser. It arrives at `203.0.113.50`. But here's the thi
 
 It's talking to a **load balancer**; Nginx, HAProxy, AWS ALB, or Cloudflare.
 
-<LoadBalancerDiagram client:only="svelte" />
+<LoadBalancerDiagram client:visible />
 
 An L7 (application-layer) load balancer **terminates TLS** here. It unwraps the encryption, reads the HTTP headers, and decides which of several backend instances should handle this request (round-robin, least-connections, or content-based routing). It then opens a *second* connection to the chosen backend; often plain HTTP internally, since the data center's internal network is trusted.
 
@@ -269,7 +269,7 @@ The handler runs. It needs user data from the database. It calls `pool.acquire()
 
 We've gone from click to `pool.acquire()` in about 4 milliseconds (assuming cached DNS, same-region server). Now we go deeper; into the kernel, into the TCP state machine, into the database. Everything from here is the backend talking to PostgreSQL, and this is where we trace every struct, every syscall, every byte.
 
-<JourneyMap steps={journeySteps} current={8} client:only="svelte" />
+<JourneyMap steps={journeySteps} current={8} client:visible />
 
 ---
 
@@ -326,13 +326,13 @@ The pool doesn't really "pool connections." It pools **file descriptors with est
 
 But what is a file descriptor? Why is everything hiding behind an integer?
 
-<JourneyMap steps={journeySteps} current={10} client:only="svelte" />
+<JourneyMap steps={journeySteps} current={10} client:visible />
 
 ## Q11: What's Behind That Integer?
 
 Every running process has a **file descriptor table**; a kernel data structure your program can't touch directly, only through system calls. It's an array of pointers. The integer `7` is an index.
 
-<FdKernelStack client:only="svelte" />
+<FdKernelStack client:visible />
 
 Here's what that integer actually points to:
 
@@ -367,7 +367,7 @@ If a process opens sockets without closing them, the fd table fills up. At the l
 
 Now you know what a connection *is*. How does the kernel create one?
 
-<JourneyMap steps={journeySteps} current={11} client:only="svelte" />
+<JourneyMap steps={journeySteps} current={11} client:visible />
 
 ## Q12: The socket() Syscall Creates an Endpoint
 
@@ -414,7 +414,7 @@ Three things happen:
 
 **Third, the kernel builds a SYN packet and sends it.**
 
-<SynPacket client:only="svelte" />
+<SynPacket client:visible />
 
 The Initial Sequence Number is semi-random (hash of 4-tuple + secret + clock) to prevent packets from old connections being mistaken for new ones. The socket transitions to `TCP_SYN_SENT` and a retransmission timer starts: if no response in 1 second, resend the SYN. Up to 6 retries over ~127 seconds before giving up.
 
@@ -438,7 +438,7 @@ If the server is down, the SYN gets no response. Your application hangs for two 
 
 But the server is up. It's been waiting.
 
-<JourneyMap steps={journeySteps} current={13} client:only="svelte" />
+<JourneyMap steps={journeySteps} current={13} client:visible />
 
 ## Q14: The Database Server Was Already Waiting
 
@@ -452,7 +452,7 @@ Before any client can connect, the server called two functions: `bind()` and `li
 
 **The accept queue** (fully established): connections that finished the handshake but haven't been picked up by the application yet. The `backlog` parameter to `listen()` caps this queue, further limited by `net.core.somaxconn` (4,096 on modern kernels; historically 128).
 
-<ListenQueues client:only="svelte" />
+<ListenQueues client:visible />
 
 Our SYN arrives. The kernel finds the listening socket via hash lookup (~100 nanoseconds), creates a `request_sock` in the SYN queue, and sends back a SYN-ACK.
 
@@ -468,7 +468,7 @@ This is the same handshake from Q4. But now you can see inside.
 
 When the browser connected to the backend in Q4, this exact machinery ran. Three packets, same state machine, same kernel structs. Now you see what was behind "three packets, one round trip."
 
-<TcpHandshake client:only="svelte" />
+<TcpHandshake client:visible />
 
 Step by step:
 
@@ -493,7 +493,7 @@ If the final ACK is lost, the server retransmits the SYN-ACK. The client, alread
 | SYN-ACK max retries (tcp_synack_retries) | 5 |
 :::
 
-<JourneyMap steps={journeySteps} current={15} client:only="svelte" />
+<JourneyMap steps={journeySteps} current={15} client:visible />
 
 ## Q16: accept() Creates a New Socket
 
@@ -561,7 +561,7 @@ That's a 10,000x to 500,000x difference. This is the entire reason connection po
 The PostgreSQL wire protocol is documented in the [PostgreSQL docs](https://www.postgresql.org/docs/current/protocol.html): "Frontend/Backend Protocol." The per-connection forking behavior is described in `src/backend/postmaster/postmaster.c` in the PostgreSQL source.
 :::
 
-<JourneyMap steps={journeySteps} current={17} client:only="svelte" />
+<JourneyMap steps={journeySteps} current={17} client:visible />
 
 ## Q18: Bytes Through the Kernel
 
@@ -569,7 +569,7 @@ You call `conn.fetch("SELECT * FROM users WHERE id = $1", 42)`. asyncpg serializ
 
 The kernel copies the bytes from your process's memory into the **socket send buffer** (`sk_write_queue`). This is a chain of `sk_buff` structures; the fundamental packet data structure in Linux networking. Each one is ~240 bytes of kernel metadata wrapping a chunk of data.
 
-<KernelDataFlow client:only="svelte" />
+<KernelDataFlow client:visible />
 
 `write()` returns **immediately** once the data is copied to the send buffer. It doesn't wait for the data to reach the server. It doesn't even wait for it to leave the network card. The kernel handles the rest asynchronously.
 
@@ -612,7 +612,7 @@ The NIC reads the packet from a ring buffer via DMA (the hardware reads RAM with
 
 Each of these latencies is paid **per round trip** during connection setup. One more reason pooling matters more the farther your database is.
 
-<JourneyMap steps={journeySteps} current={19} client:only="svelte" />
+<JourneyMap steps={journeySteps} current={19} client:visible />
 
 ## Q20: The Connection Returns to the Pool
 
@@ -666,7 +666,7 @@ Background pinging:     Best of both; a background task probes idle connections 
 
 HikariCP (the gold standard JVM pool) validates only connections idle longer than 30 seconds; balancing safety with speed.
 
-<PoolSimulator client:only="svelte" />
+<PoolSimulator client:visible />
 
 Try sending a burst of requests. Watch what happens when the pool is exhausted; requests queue up. Then watch them drain as active connections finish and are reused. That reuse; the same slot going active → idle → active → idle; is the entire value of pooling.
 
@@ -677,7 +677,7 @@ asyncpg's pool implementation is in [`pool.py`](https://github.com/MagicStack/as
 
 The worst pool bug is a **pool leak**: code that acquires a connection but never releases it (an exception bypasses the `finally` block, or you forget). The pool thinks the connection is active. Over hours, all `max_size` connections are "in use" but actually abandoned. Symptom: acquire timeout errors under low load.
 
-<JourneyMap steps={journeySteps} current={21} client:only="svelte" />
+<JourneyMap steps={journeySteps} current={21} client:visible />
 
 ---
 
@@ -695,7 +695,7 @@ The HTTP/2 frame is handed to TLS for encryption (if the internal connection use
 
 ## Q23: The Response Travels Back
 
-<ResponsePath client:only="svelte" />
+<ResponsePath client:visible />
 
 The response follows the same path in reverse: backend → load balancer → network → browser. But there's no new connection. The browser's TCP connection from Q4 is still open. The TLS session from Q5 is still active. TCP is full-duplex; both sides can send simultaneously on the same socket, using the same 4-tuple.
 
@@ -728,7 +728,7 @@ document.getElementById('name').textContent = user.name;
 
 Setting `.textContent` triggers the browser's rendering pipeline:
 
-<RenderPipeline client:only="svelte" />
+<RenderPipeline client:visible />
 
 **DOM mutation**: the text node changes. **Style calculation**: the browser recomputes which CSS rules apply (in this case, nothing changes). **Layout**: the browser recalculates element positions (the text might be wider or narrower). **Paint**: the affected pixels are redrawn into a layer. **Composite**: the GPU composites all layers and sends the final frame to the display.
 
@@ -752,7 +752,7 @@ The browser rendering pipeline (DOM → Style → Layout → Paint → Composite
 | **Total click-to-pixels (cross-continent, cold)** | **~300–500 ms** |
 :::
 
-<JourneyMap steps={journeySteps} current={24} client:only="svelte" />
+<JourneyMap steps={journeySteps} current={24} client:visible />
 
 ---
 
@@ -800,13 +800,13 @@ This is why a single-threaded Python asyncio or Node.js server can handle tens o
 The limitations of `select()` and `poll()` at scale were documented by Banga, Mogul, and Druschel in ["A Scalable and Explicit Event Delivery Mechanism for UNIX"](https://www.usenix.org/conference/usenix-annual-technical-conference-1999/scalable-and-explicit-event-delivery-mechanism) (1999), which directly motivated epoll's design. epoll was added to Linux by Davide Libenzi in [kernel 2.5.44](https://github.com/torvalds/linux/blob/master/fs/eventpoll.c) (2002). The "C10K problem" (handling 10,000 concurrent connections) was famously framed by Dan Kegel in [1999](http://www.kegel.com/c10k.html); epoll was the answer.
 :::
 
-<JourneyMap steps={journeySteps} current={26} client:only="svelte" />
+<JourneyMap steps={journeySteps} current={26} client:visible />
 
 ## Q27: TCP Teardown
 
 A pooled connection lives for minutes or hours. But eventually it closes; the pool evicts it, the application shuts down, or the server restarts. TCP teardown takes **four steps** instead of three, because each direction closes independently:
 
-<TcpTeardown client:only="svelte" />
+<TcpTeardown client:visible />
 
 TCP is **full-duplex**; data flows both directions independently. When the client sends FIN, it's saying "I'm done sending." But the server might still have data to send. So the server acknowledges the FIN, finishes sending, then sends its own FIN. In practice, the server's ACK and FIN are often combined into one packet.
 
@@ -830,7 +830,7 @@ Two reasons:
 
 The problem: TIME_WAIT sockets consume resources. Each holds an `inet_timewait_sock` (~168 bytes of kernel memory) and occupies an ephemeral port.
 
-<TimeWaitDemo client:only="svelte" />
+<TimeWaitDemo client:visible />
 
 Start the simulation and watch. Without pooling, at 100 requests/second, each creating and closing a connection, you hit steady state at 6,000 TIME_WAIT sockets. At 500/second: 30,000. But you only have 28,232 ephemeral ports. Boom.
 
@@ -858,7 +858,7 @@ TIME_WAIT is defined in [RFC 793](https://www.rfc-editor.org/rfc/rfc793), Sectio
 
 Connection pooling eliminates this problem entirely. Long-lived connections don't close and reopen. No FIN, no TIME_WAIT, no port exhaustion.
 
-<JourneyMap steps={journeySteps} current={28} client:only="svelte" />
+<JourneyMap steps={journeySteps} current={28} client:visible />
 
 ## Q29: HTTP Keep-Alive, TCP Keepalive, and Connection Pooling Are Three Different Things
 
@@ -872,7 +872,7 @@ The naming is confusing. They share words but are different mechanisms at differ
 
 **HTTP/2 multiplexing**: interleaves multiple request/response streams on a *single* TCP connection. Each stream has an ID; responses arrive in any order. With HTTP/2, you often need just one TCP connection per server. The browser used this in Q3.
 
-<KeepAliveComparison client:only="svelte" />
+<KeepAliveComparison client:visible />
 
 Why does this matter for databases? Database connections are **stateful**; they have transactions, session variables, prepared statements. Each connection can handle only one query at a time. So pooling means maintaining multiple TCP connections and distributing queries across them. There's no equivalent of HTTP/2 multiplexing for PostgreSQL; one connection, one query at a time.
 
@@ -886,7 +886,7 @@ Everything so far has been about **application-side pooling**: your asyncpg or H
 
 Imagine five application instances, each with a pool of 20 connections:
 
-<PoolArchitecture client:only="svelte" />
+<PoolArchitecture client:visible />
 
 Scale to 10 instances and you've doubled over `max_connections`. Raising `max_connections` is dangerous because each PostgreSQL connection holds ~5–10 MB of RAM (it's a full OS process).
 
@@ -922,13 +922,13 @@ The proxy pattern; `close()` doesn't close, it returns; is universal across conn
 PgBouncer's pool modes and configuration are documented at [pgbouncer.org](https://www.pgbouncer.org/config.html). The source is on [GitHub](https://github.com/pgbouncer/pgbouncer). HikariCP's internal design; the `ConcurrentBag`, the `ProxyConnection`, the validation strategy; is documented in Brett Wooldridge's [wiki](https://github.com/brettwooldridge/HikariCP/wiki).
 :::
 
-<JourneyMap steps={journeySteps} current={30} client:only="svelte" />
+<JourneyMap steps={journeySteps} current={30} client:visible />
 
 ## Q31: What Did Pooling Save You?
 
 Here's the full cost, side by side, for a database query over a LAN (0.5ms RTT):
 
-<CostComparison client:only="svelte" />
+<CostComparison client:visible />
 
 Ten times faster. Zero port accumulation. A hundred times less memory on the server.
 
@@ -938,7 +938,7 @@ For cross-region connections (50ms RTT), the gap widens to 50x or more.
 
 ## The Complete Loop
 
-<JourneyMap steps={journeySteps} current={-1} client:only="svelte" />
+<JourneyMap steps={journeySteps} current={-1} client:visible />
 
 You click a button. JavaScript calls `fetch()`. The browser resolves `api.example.com` through a chain of nameservers. It reuses a TCP+TLS connection from its pool (or creates one: three TCP packets, one TLS round trip). It sends an HTTP/2 request through a load balancer to a backend server. The backend's event loop wakes up, routes the request, and calls `pool.acquire()`. The pool pops a pre-established database connection; a Python object wrapping an asyncio transport wrapping a socket wrapping an integer; `7`; that indexes into a kernel table pointing through three nested C structs to a TCP state machine. Your query is serialized into PostgreSQL wire protocol, copied into a kernel send buffer, segmented by TCP, wrapped in IP, transmitted as light or electricity, reassembled on the database server, parsed, executed. The response travels back through every layer in reverse. The backend serializes JSON, the load balancer forwards it, TLS encrypts it, TCP carries it, the browser decrypts it, JavaScript parses it, and the DOM updates. The GPU composites new pixels to the display.
 
