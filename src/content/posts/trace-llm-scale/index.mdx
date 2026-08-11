@@ -99,9 +99,13 @@ Let's follow it.
 
 Here is the whole loop at the highest level:
 
-<JourneyMap steps={journeySteps} current={0} client:visible />
+<JourneyMap
+  steps={journeySteps}
+  current={0}
+  client:visible={{ rootMargin: '4000px 0px' }}
+/>
 
-<RequestJourney client:visible />
+<RequestJourney client:visible={{ rootMargin: '4000px 0px' }} />
 
 Keep three objects in your hand:
 
@@ -139,7 +143,7 @@ That open stream is the first clue. The request is not "please give me an answer
 
 > Start a loop, and send me each safe piece as soon as it exists.
 
-<RequestEnvelopeTrace client:visible />
+<RequestEnvelopeTrace client:visible={{ rootMargin: '4000px 0px' }} />
 
 This is why a boring network problem can look like a model problem. DNS can fail. Login can expire. A proxy can time out. A mobile network can sleep. The model may be perfectly healthy while the stream dies before the next piece reaches you.
 
@@ -162,7 +166,11 @@ But it still does not owe you an answer.
 
 First it has to decide whether it can afford to promise one.
 
-<JourneyMap steps={journeySteps} current={2} client:visible />
+<JourneyMap
+  steps={journeySteps}
+  current={2}
+  client:visible={{ rootMargin: '4000px 0px' }}
+/>
 
 ## The Front Door Makes a Promise
 
@@ -180,13 +188,13 @@ A short prompt asking for one sentence is small. A pasted legal contract asking 
 
 So the front door estimates before the model runs. It estimates input tokens, maximum output tokens, hidden reasoning budget if the product exposes one, tool permissions, region constraints, and whether any warm running copy can hold the conversation state.
 
-<AdmissionControlTrace client:visible />
+<AdmissionControlTrace client:visible={{ rootMargin: '4000px 0px' }} />
 
 Think of a restaurant host with a kitchen behind them. Seating too many tables is not kindness. It creates a room full of people waiting for food that cannot arrive. For LLMs, the kitchen is GPU time, memory, queues, policy checks, and stream connections.
 
 That is admission control: deciding whether accepting this request would make the system break its promises.
 
-<RequestReservationTrace client:visible />
+<RequestReservationTrace client:visible={{ rootMargin: '4000px 0px' }} />
 
 The key word is reserve. Future tokens are not here yet, but the system must treat them as real. If it accepts every long answer optimistically, the fleet can run out of memory halfway through everybody's streams. If it rejects too cautiously, expensive chips sit idle while users wait outside.
 
@@ -214,7 +222,7 @@ Behind the sign may be several rooms: one old snapshot, one new canary snapshot,
 
 Routing is the act of choosing the room.
 
-<ServingStackDiagram client:visible />
+<ServingStackDiagram client:visible={{ rootMargin: '4000px 0px' }} />
 
 The router is not only looking for "a GPU." It needs a warm replica with the right weights, the right tokenizer, the right context limit, the right tool support, the right safety envelope, enough memory, and a queue that will not make the first token arrive too late.
 
@@ -250,7 +258,7 @@ In everyday speech, "prompt" means what you typed. In the machine, prompt means 
 
 That distinction matters because the model does not have a private notebook it can secretly consult during a plain serving call. If the model should use something, that thing must be placed where the model can read it, or retrieved by a tool and placed there later.
 
-<PromptAssemblyPath client:visible />
+<PromptAssemblyPath client:visible={{ rootMargin: '4000px 0px' }} />
 
 Now add the familiar modern trick: retrieval.
 
@@ -258,7 +266,7 @@ Suppose you ask about a private policy document. The model weights are not suppo
 
 But evidence has its own journey. A document is cleaned, split into chunks, turned into searchable number handles called embeddings, placed in an index, searched at question time, reranked, trimmed to fit, and finally inserted into the prompt.
 
-<PromptEvidenceTrace client:visible />
+<PromptEvidenceTrace client:visible={{ rootMargin: '4000px 0px' }} />
 
 A citation at the end is only as strong as that path. Was the right document ingested? Was the right chunk found? Did the reranker keep it? Did the prompt include it? Did the final sentence actually stay inside what the evidence says?
 
@@ -331,7 +339,7 @@ The document may never have been ingested. It may have been split at a bad bound
 
 That is why a citation is not magic. A citation is a claim about a path.
 
-<GroundedClaimTrace client:visible />
+<GroundedClaimTrace client:visible={{ rootMargin: '4000px 0px' }} />
 
 The toy checker above is deliberately simple, but the question is the real one:
 
@@ -367,7 +375,7 @@ Before the prompt can enter the model, a tokenizer cuts text into pieces and map
 
 Try changing the text below. The exact ids are toy ids, but the shape is real: text becomes pieces, pieces become numbers.
 
-<TokenizationLab client:visible />
+<TokenizationLab client:visible={{ rootMargin: '4000px 0px' }} />
 
 Why not just use words?
 
@@ -383,7 +391,7 @@ Those ids do not contain meaning by themselves. They are more like library card 
 
 That first pull is an embedding lookup. The row it pulls is a vector: a list of numbers. Put one vector row beside every token position, and the prompt stops being prose. It becomes a table.
 
-<EmbeddingLookupTrace client:visible />
+<EmbeddingLookupTrace client:visible={{ rootMargin: '4000px 0px' }} />
 
 This is the first clean crossing:
 
@@ -391,7 +399,7 @@ This is the first clean crossing:
 
 The tokenizer also explains many surprises. A short-looking code identifier can become many tokens. A compact log line can become expensive. A prompt injection hidden in retrieved text can consume enough token budget to push useful evidence out.
 
-<TokenMergeTrace client:visible />
+<TokenMergeTrace client:visible={{ rootMargin: '4000px 0px' }} />
 
 Tokens are not a footnote. They are the accounting unit for cost, context, waiting time, and the later memory the model must keep while generating.
 
@@ -439,7 +447,11 @@ Now we have rows of numbers.
 
 But rows of numbers cannot answer anything unless the learned numbers are already waiting somewhere.
 
-<JourneyMap steps={journeySteps} current={5} client:visible />
+<JourneyMap
+  steps={journeySteps}
+  current={5}
+  client:visible={{ rootMargin: '4000px 0px' }}
+/>
 
 ## The Learned Numbers Were Already Waiting
 
@@ -457,17 +469,17 @@ The model sees "Paris is the capital of" and guesses the next token. If it gives
 
 A weight is one learned number. A gradient is a direction signal for a weight: move this number up a little, or down a little, if you want the loss to shrink. Backpropagation is the bookkeeping walk that carries blame from the wrong final score back through the operations that contributed to it. An optimizer turns those directions into careful nudges.
 
-<TrainingStepTrace client:visible />
+<TrainingStepTrace client:visible={{ rootMargin: '4000px 0px' }} />
 
 One sentence barely matters. Training is that tiny correction repeated across enormous mixtures of text and enormous numbers of weights. The point is not to memorize one line. The point is to make many shared numbers better at the next-token game across many contexts.
 
 The first trained model is usually not yet a good assistant. It may continue text well, but a chat product wants more: answer questions, follow instructions, refuse harmful requests, use tools, cite sources when asked. So a second family of training steps shapes behavior after base training.
 
-<PostTrainingLoop client:visible />
+<PostTrainingLoop client:visible={{ rootMargin: '4000px 0px' }} />
 
 In post-training, examples or preferences become a signal. The signal becomes a loss. The loss becomes another weight update. The updated snapshot then has to pass evaluations before it can serve users.
 
-<PostTrainingTrace client:visible />
+<PostTrainingTrace client:visible={{ rootMargin: '4000px 0px' }} />
 
 The names can stay plain:
 
@@ -557,13 +569,13 @@ An artifact is the bundle needed for serving: weights, tokenizer rules, chat for
 
 The live copy is called a replica. A replica is not another mind. It is one loaded running copy of the same snapshot, ready to accept work.
 
-<ReplicaWarmupTrace client:visible />
+<ReplicaWarmupTrace client:visible={{ rootMargin: '4000px 0px' }} />
 
 Loading a large replica is not like starting a small web server. The worker checks files, verifies checksums, reads weight shards, copies bytes into CPU memory, moves them into GPU memory, warms GPU programs, allocates workspace, reserves room for future tokens, and only then announces that it can serve.
 
 A shard is one stored piece of a larger model. A tensor is an organized block of numbers with a shape. The shape matters because GPU programs expect exact dimensions. If a worker loads the wrong block, the next operation may not know how to multiply it.
 
-<ModelArtifactTrace client:visible />
+<ModelArtifactTrace client:visible={{ rootMargin: '4000px 0px' }} />
 
 Think of a stage set arriving in crates. One crate has the wall. One has the lights. One has the floor. Opening a crate does not give you a play. The crew has to assemble the set, wire the lights, test the rig, and only then let the audience in.
 
@@ -571,7 +583,7 @@ That is model warmup.
 
 ## The Weights Are Only the First Rent
 
-<GpuMemoryBudget client:visible />
+<GpuMemoryBudget client:visible={{ rootMargin: '4000px 0px' }} />
 
 Now comes the second surprise.
 
@@ -579,7 +591,7 @@ Now comes the second surprise.
 
 A GPU must hold its share of weights, but also temporary workspace, communication buffers, allocator gaps, safety margin, and the growing memory for active conversations. The model file is the first rent. Every open stream keeps paying.
 
-<ReplicaPlacement client:visible />
+<ReplicaPlacement client:visible={{ rootMargin: '4000px 0px' }} />
 
 If one GPU in a group runs out of room, the whole running copy is in trouble. A deployment plan is therefore not just "70B on four GPUs." It is a budget for what every GPU must hold at the instant the next decode step launches.
 
@@ -646,7 +658,7 @@ The word "bank" needs earlier words to make sense. Near "river," it should lean 
 
 Attention is the mechanism that lets one token position look back at earlier positions and ask: which of you matters to me right now?
 
-<TransformerPass client:visible />
+<TransformerPass client:visible={{ rootMargin: '4000px 0px' }} />
 
 Each position creates three learned views of itself:
 
@@ -762,13 +774,13 @@ The earlier work does not change.
 
 So serving systems keep a KV cache. KV means key/value. The plain idea is simpler: while reading earlier tokens, each layer creates reusable notes. During generation, the model can look back at those notes instead of recomputing the whole past.
 
-<AttentionKvCache client:visible />
+<AttentionKvCache client:visible={{ rootMargin: '4000px 0px' }} />
 
 The first phase is prefill. That is the big read of the whole prompt. It fills the cache.
 
 The second phase is decode. That is the one-token loop. Generate one token, add its new notes to the cache, then use the enlarged cache to generate the next token.
 
-<KvCacheTrace client:visible />
+<KvCacheTrace client:visible={{ rootMargin: '4000px 0px' }} />
 
 This is why two speed numbers matter:
 
@@ -840,7 +852,11 @@ Now look lower. Those blocks still have to be read by real hardware.
 
 Where are those numbers physically moving?
 
-<JourneyMap steps={journeySteps} current={8} client:visible />
+<JourneyMap
+  steps={journeySteps}
+  current={8}
+  client:visible={{ rootMargin: '4000px 0px' }}
+/>
 
 ## The Numbers Touch Metal
 
@@ -860,7 +876,7 @@ Far and large. Close and tiny.
 
 An LLM kernel is often a choreography for moving the right numbers from the large place into the fast place just before the arithmetic needs them.
 
-<KernelRooflineTrace client:visible />
+<KernelRooflineTrace client:visible={{ rootMargin: '4000px 0px' }} />
 
 Trace one attention tile. A tile is a small block of a larger table. A block of GPU threads pulls a slice of cached keys from HBM into faster on-chip storage. Tensor cores multiply query tiles by key tiles. The kernel keeps a running summary, streams the matching value tile, mixes it into the output, and moves on.
 
@@ -929,7 +945,7 @@ It can put different layers on different GPUs. That is pipeline parallelism.
 
 It can run more full copies so different requests go to different replicas. That is data parallelism.
 
-<DeploymentPlanTrace client:visible />
+<DeploymentPlanTrace client:visible={{ rootMargin: '4000px 0px' }} />
 
 The trap is that "use more GPUs" is not a complete answer.
 
@@ -937,13 +953,13 @@ More GPUs add memory and arithmetic, but they also add communication. If GPU 0 c
 
 The chips need a coordinated exchange.
 
-<TensorParallelTrace client:visible />
+<TensorParallelTrace client:visible={{ rootMargin: '4000px 0px' }} />
 
 A collective operation is a group communication step. In an all-reduce, every GPU contributes partial values and every GPU receives the combined result. In an all-gather, every GPU contributes a shard and every GPU receives the assembled tensor.
 
 That collective is a waiting point. The fastest GPU waits for the slowest one.
 
-<DistributedSync client:visible />
+<DistributedSync client:visible={{ rootMargin: '4000px 0px' }} />
 
 Now the interconnect is part of the model. NVLink, NVSwitch, InfiniBand, or high-speed Ethernet are not just infrastructure around the answer. They can be inside the path of each generated token.
 
@@ -980,7 +996,7 @@ Sampling means choosing randomly, but not equally. Imagine a raffle. Better toke
 
 The raw scores are not ticket counts yet. They can be negative, huge, or tiny. They do not add up to anything useful. A function called softmax turns raw scores into probabilities: ticket shares that add up to 1.
 
-<SamplingTrace client:visible />
+<SamplingTrace client:visible={{ rootMargin: '4000px 0px' }} />
 
 Then the product can reshape the raffle:
 
@@ -997,13 +1013,13 @@ That token is appended to the sequence. The KV cache gets one new set of notes. 
 
 That last paragraph is the loop.
 
-<SingleTokenTrace client:visible />
+<SingleTokenTrace client:visible={{ rootMargin: '4000px 0px' }} />
 
 One visible token is not one operation. It is a scheduler decision, a batch slot, dozens of layer passes, memory reads, matrix-multiply tiles, possible GPU-to-GPU exchanges, a logits vector, a sampling choice, a cache append, a detokenized fragment, and a network flush.
 
 Reasoning models add another wrinkle. They may spend extra serving-time compute before the final answer: hidden scratch tokens, multiple sampled attempts, verifier passes, code execution, search, or tool calls. The product may show none of that internal work and stream only the final answer.
 
-<TestTimeCompute client:visible />
+<TestTimeCompute client:visible={{ rootMargin: '4000px 0px' }} />
 
 So "reasoning" in the chat app often means more one-token loops, more verification, more queue occupancy, and more memory pressure in the machinery underneath.
 
@@ -1063,9 +1079,9 @@ The server is not waiting for the whole answer. It is releasing pieces as soon a
 
 But release is not always "print immediately." Some tokens are word fragments. Some byte fragments do not form a valid UTF-8 character until the next piece arrives. A JSON tool call may be nonsense until its braces close. A citation marker may need source metadata. A safety check may hold a risky phrase until neighboring text makes it clear.
 
-<StreamLifecycle client:visible />
+<StreamLifecycle client:visible={{ rootMargin: '4000px 0px' }} />
 
-<StreamTokenReleaseTrace client:visible />
+<StreamTokenReleaseTrace client:visible={{ rootMargin: '4000px 0px' }} />
 
 Streaming is a small protocol inside the product: buffer when needed, flush when safe, and keep enough state to stop cleanly.
 
@@ -1093,13 +1109,13 @@ Think of a bus. Leaving immediately is great for the first passenger, but wastes
 
 For one request, decode generates one token at a time. That is too little work to keep a large GPU busy. The trick is to generate the next token for many requests in the same model step.
 
-<BatchingSimulator client:visible />
+<BatchingSimulator client:visible={{ rootMargin: '4000px 0px' }} />
 
 People do not arrive in neat groups. One prompt is short. One is huge. One answer ends after ten tokens. Another keeps going for a thousand. A fixed batch would quickly fill with holes.
 
 So modern serving systems rebuild the batch while work is already moving. That is continuous batching, also called in-flight batching.
 
-<SchedulerState client:visible />
+<SchedulerState client:visible={{ rootMargin: '4000px 0px' }} />
 
 Every active conversation has a record attached to it: input length, generated length, prefill or decode state, KV-cache pages, remaining token budget, priority, and cancellation status.
 
@@ -1107,7 +1123,7 @@ The scheduler repeatedly asks:
 
 > Which records can fit in the next model step without breaking compute and memory budgets?
 
-<SchedulerTickTrace client:visible />
+<SchedulerTickTrace client:visible={{ rootMargin: '4000px 0px' }} />
 
 Now cancellation is not a UI nicety. It frees cache pages. A huge prompt is not just slow. It may need to be read in chunks so dozens of active streams do not freeze. A priority decode is not merely another queue item. It is a visible next token waiting on this iteration.
 
@@ -1170,7 +1186,7 @@ You press Enter. Text appears.
 
 Behind that calm surface, the fleet is always changing. Some replicas are warming. Some are being drained for an update. Some hold old model snapshots. Some hold a canary snapshot. Some are overloaded because a feature just sent a traffic spike. Some are slow because one GPU link is unhappy.
 
-<FleetRolloutTrace client:visible />
+<FleetRolloutTrace client:visible={{ rootMargin: '4000px 0px' }} />
 
 This is why the fleet needs a diagnosis habit. The same sentence from a user, "the model feels worse today," is not a bug report with one obvious owner.
 
@@ -1180,7 +1196,7 @@ So the fleet's job is not only to serve. It is to notice which loop is drifting 
 
 A new model rollout is not just a behavior experiment. It is also a systems experiment. A safer model may be slower. A faster runtime may change rare formatting behavior. A smaller-number build may fit more traffic but damage quality in edge cases.
 
-<FleetControlLoop client:visible />
+<FleetControlLoop client:visible={{ rootMargin: '4000px 0px' }} />
 
 ## A Rollout Is Two Experiments
 
@@ -1222,7 +1238,7 @@ The same complaint can come from different layers:
 | truncated answer | length cap, stop token, policy gate, stream bug          |
 | network error    | browser, proxy, edge, cancellation path                  |
 
-<FleetIncidentTrace client:visible />
+<FleetIncidentTrace client:visible={{ rootMargin: '4000px 0px' }} />
 
 Stability is a set of feedback loops. Watch queue depth. Watch first-token time. Watch inter-token time. Watch KV occupancy. Watch hardware health. Watch quality scores by snapshot. Watch citation faithfulness. Watch policy violations. Then decide what harm to accept.
 
@@ -1230,9 +1246,9 @@ Load shedding is deliberate refusal. A clear failure for some users can be safer
 
 Autoscaling helps later, but not instantly. A warm LLM replica may require copying hundreds of gigabytes of weights, verifying shards, warming kernels, allocating cache blocks, and gradually routing traffic. During the overloaded minute, the fast controls are admission, routing, batching policy, output limits, and rejection.
 
-<IncidentTimelineTrace client:visible />
+<IncidentTimelineTrace client:visible={{ rootMargin: '4000px 0px' }} />
 
-<StabilityControlTrace client:visible />
+<StabilityControlTrace client:visible={{ rootMargin: '4000px 0px' }} />
 
 ## Stability Means Choosing Which Pain
 
@@ -1279,7 +1295,7 @@ It did not come from "the model" in one vague sense.
 
 It came from a loop:
 
-<CompleteLoopTrace client:visible />
+<CompleteLoopTrace client:visible={{ rootMargin: '4000px 0px' }} />
 
 Your browser opened a stream. The front door admitted future work. The app packed a prompt larger than the sentence you typed. The tokenizer cut it into numbered pieces. A warm replica held frozen learned numbers. Transformer layers edited rows of numbers. The KV cache remembered the past. GPU memory fed arithmetic circuits. Distributed workers may have exchanged partial results. The sampler chose one next id. The stream gate released safe text. The browser painted it.
 
@@ -1289,7 +1305,11 @@ And the loop ran again.
 
 That is why the answer appears before it is finished. There is no finished answer yet. There is only the next piece, chosen under the pressure of everything before it.
 
-<JourneyMap steps={journeySteps} current={-1} client:visible />
+<JourneyMap
+  steps={journeySteps}
+  current={-1}
+  client:visible={{ rootMargin: '4000px 0px' }}
+/>
 
 ## LLM Chat at Every Level
 

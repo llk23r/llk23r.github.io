@@ -19,3 +19,13 @@ This gives the browser styled server markup on the first paint, preserves useful
 **Historical trap:** External CSS can be omitted for `client:only` islands because they have no server-rendered component entry from which Astro can retain the stylesheet. Do not combine TRACE `client:only` islands with external CSS, and do not restore injected CSS to compensate. Fix or upgrade the hydration path instead.
 
 **Regression guard:** `npm run build` runs `scripts/check-trace-islands.mjs`, which rejects client-only, empty, or unstyled TRACE islands in generated production HTML.
+
+## 2026-08-11 - Lazy hydration must finish before an island is visible
+
+**Symptom:** Even with correct SSR markup and extracted component CSS, an interactive can appear to morph as the reader scrolls it into view.
+
+**Root cause:** A zero-margin `client:visible` directive starts hydration only when the island crosses the viewport boundary. Svelte then normalizes text nodes, form attributes, and bound SVG attributes while the reader is already looking at the component. In development, representative islands needed 50-66 ms for that activation.
+
+**Current invariant:** The LLM-scale TRACE post uses `client:visible={{ rootMargin: '4000px 0px' }}`. This keeps the islands lazy while giving roughly the next two interactives time to hydrate before the reader reaches them.
+
+**Regression guard:** `scripts/check-trace-islands.mjs` verifies that every generated LLM-scale island carries the required hydration margin in its serialized client options.

@@ -7,6 +7,9 @@ const traceSlugs = [
   'trace-sockets',
   'trace-llm-scale',
 ]
+const hydrationRootMargins = {
+  'trace-llm-scale': '4000px 0px',
+}
 
 let totalIslands = 0
 
@@ -14,7 +17,7 @@ for (const slug of traceSlugs) {
   const outputPath = path.join('dist', 'posts', slug, 'index.html')
   const html = await readFile(outputPath, 'utf8')
   const islands = html.match(/<astro-island\b[\s\S]*?<\/astro-island>/g) ?? []
-  const visibleIslands = html.match(/<astro-island\b[^>]*\bclient="visible"/g) ?? []
+  const visibleIslands = html.match(/<astro-island\b[^>]*\bclient="visible"[^>]*>/g) ?? []
   const emptyIslands = html.match(/<astro-island\b[^>]*>\s*<\/astro-island>/g) ?? []
 
   if (islands.length === 0) {
@@ -24,6 +27,18 @@ for (const slug of traceSlugs) {
     throw new Error(
       `${slug}: expected ${islands.length} client:visible islands, found ${visibleIslands.length}`,
     )
+  }
+  const expectedRootMargin = hydrationRootMargins[slug]
+  if (expectedRootMargin) {
+    const encodedRootMargin = `&quot;rootMargin&quot;:&quot;${expectedRootMargin}&quot;`
+    const prefetchedIslands = visibleIslands.filter((island) =>
+      island.includes(encodedRootMargin),
+    )
+    if (prefetchedIslands.length !== islands.length) {
+      throw new Error(
+        `${slug}: expected ${islands.length} islands to hydrate ${expectedRootMargin} before visibility, found ${prefetchedIslands.length}`,
+      )
+    }
   }
   if (emptyIslands.length > 0) {
     throw new Error(
